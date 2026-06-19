@@ -1,0 +1,82 @@
+<style>
+
+</style>
+
+<div class="content">
+    <div class="card mt-4 shadow-sm">
+        <div class="card-header bg-dark text-white">
+            {{title}}
+        </div>
+
+        <div class="card-body table-responsive">
+
+            <table id="example" class="table table-bordered table-hover">
+                <thead class="table-light">
+                    {{thead}}
+                </thead>
+
+                <tbody>
+                    {{tableRows}}
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
+<!-- <script>
+    function updateStatus(id, status) {
+        if (!confirm("Are you sure?")) return;
+        fetch('/admin/student-status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id, status })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: data.message,
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                });
+
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 2000);
+
+            } else {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: data.message,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+        })
+        .catch(() => {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: 'Something went wrong',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+        });
+    }
+</script> -->
+

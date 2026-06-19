@@ -1,0 +1,31 @@
+const express = require('express');
+const router = express.Router();
+const Login = require('../controllers/Admin/Login');
+const Manage = require('../controllers/Admin/Manage');
+const Permission = require('../controllers/Admin/Permission');
+const jwtAuth = require('../helpers/Auth');
+
+
+router.get('/admin', (req, res) => {
+    res.send('Admin Route');
+});
+
+router.get('/login', Login.loginView);
+router.post('/loginPost', Login.login);
+
+router.get('/register', Login.registerView);
+router.post('/registerPost', Login.register);
+router.get('/logout', Manage.logout);
+router.get('/index', jwtAuth.verifyToken, Manage.dashboard);
+router.get('/report', jwtAuth.verifyToken, Manage.users);
+router.post('/report', jwtAuth.verifyToken, Manage.users);
+router.post('/student-status',jwtAuth.verifyToken, Manage.updateStudentStatus);
+router.route('/add')
+    .get(jwtAuth.verifyToken,Manage.add)
+    .post(jwtAuth.verifyToken,Manage.add);
+
+    router.route('/subAdmin')
+    .get(jwtAuth.verifyToken,Permission.addSubadmin)
+    .post(jwtAuth.verifyToken,Permission.addSubadmin);
+
+module.exports = router;

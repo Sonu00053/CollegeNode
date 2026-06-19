@@ -1,0 +1,46 @@
+<body>
+<div class="container py-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">{{title}}</h4>
+        </div>
+        <div class="card-body">
+            <form action="{{action}}" method="{{method}}">
+                {{fields}}
+                <div class="d-flex gap-2">
+                    {{buttons}}
+                </div>
+            </form>
+        </div> 
+    </div>
+</div>
+</body>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
+    const message = "{{message}}";
+    const type = "{{messageType}}";
+    const url = "{{action}}";
+
+    // 🔥 prevent POST resubmit on refresh
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, url);
+    }
+
+    if (message) {
+
+        Toastify({
+            text: message,
+            duration: 2000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: type === 'success' ? "green" : "red"
+        }).showToast();
+
+        // optional redirect (ONLY if needed)
+        setTimeout(() => {
+            window.location.href = url;
+        }, 1000);
+    }
+</script>

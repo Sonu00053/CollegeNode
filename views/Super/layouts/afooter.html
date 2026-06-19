@@ -1,0 +1,88 @@
+<script>
+    let menuBtn = document.getElementById("menuBtn");
+    let sidebar = document.getElementById("sidebar");
+
+    menuBtn.onclick = () => {
+
+        if (window.innerWidth <= 767) {
+            sidebar.classList.toggle("show");
+        }
+
+    };
+</script>
+
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- DataTables -->
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- Export Dependencies -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+<!-- Buttons -->
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+
+<script>
+    $(document).ready(function () {
+
+        $('#example').DataTable({
+
+            dom:
+                "<'row mb-3'<'col-md-8 d-flex flex-wrap gap-2'B><'col-md-4'f>>" +
+                "<'row'<'col-12'tr>>" +
+                "<'row mt-3 align-items-center'<'col-md-3'l><'col-md-5 text-end'i><'col-md-4'p>>",
+
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "All"]
+            ],
+
+            buttons: [
+                {
+                    extend: 'copy',
+                    className: 'btn btn-primary btn-sm'
+                },
+                {
+                    extend: 'csv',
+                    className: 'btn btn-success btn-sm'
+                },
+                {
+                    extend: 'excel',
+                    className: 'btn btn-success btn-sm'
+                },
+                {
+                    extend: 'pdf',
+                    className: 'btn btn-danger btn-sm'
+                },
+                {
+                    extend: 'print',
+                    className: 'btn btn-info btn-sm'
+                },
+                {
+                    extend: 'pageLength',
+                    className: 'btn btn-secondary btn-sm'
+                },
+                {
+                    responsive: true
+                }
+
+            ]
+        });
+
+    });
+</script>
+
+</body>
+
+</html>

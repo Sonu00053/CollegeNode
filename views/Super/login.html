@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Super Admin Login</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+/* Glass card */
+.box{
+    width:380px;
+    padding:35px;
+    border-radius:15px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    color:#fff;
+    text-align:center;
+}
+
+.box h2{
+    margin-bottom:20px;
+    font-size:26px;
+}
+
+/* Inputs */
+input{
+    width:100%;
+    padding:14px;
+    margin-top:12px;
+    border:none;
+    outline:none;
+    border-radius:8px;
+    font-size:14px;
+}
+
+/* Button */
+button{
+    width:100%;
+    padding:14px;
+    margin-top:18px;
+    border:none;
+    border-radius:8px;
+    background:#ffffff;
+    color:#667eea;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    background:#f1f1f1;
+    transform:translateY(-2px);
+}
+
+/* small text */
+small{
+    display:block;
+    margin-top:12px;
+    opacity:0.8;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+    <h2>Super Login</h2>
+
+    <form id="loginForm">
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+
+        <button type="submit">Login</button>
+    </form>
+
+    <small>Secure JWT Authentication</small>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const email = document.querySelector('[name="email"]').value;
+    const password = document.querySelector('[name="password"]').value;
+
+    try {
+        const res = await fetch('/super/loginPost', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (!data.status) {
+            Toastify({
+                text: data.message,
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "#ff4d4d"
+            }).showToast();
+            return;
+        }
+
+        Toastify({
+            text: data.message,
+            duration: 2000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#28a745"
+        }).showToast();
+
+        setTimeout(() => {
+            window.location.href = data.redirect;
+        }, 700);
+
+    } catch (err) {
+        Toastify({
+            text: "Server Error",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#ff4d4d"
+        }).showToast();
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+<div class="content">
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">{{title}}</h5>
+        </div>
+
+        <div class="card-body">
+            <form action="{{action}}" method="{{method}}">
+                
+                <div class="row g-3">
+
+                    <div class="col-12">
+                        {{fields}}
+                    </div>
+
+                    <div class="col-12 d-flex gap-2">
+                        {{buttons}}
+                    </div>
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+
+
+const message = "{{message}}";
+const type = "{{messageType}}";
+const url = "{{action}}";
+if (message) {
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: type,
+        title: message,
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true
+    });
+        setTimeout(() => {
+            window.location.href = url;
+        }, 2000);
+}
+</script>
