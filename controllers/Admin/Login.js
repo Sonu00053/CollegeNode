@@ -67,8 +67,7 @@ exports.login = async (req, res) => {
 
 exports.registerView = async (req, res) => {
     try {
-        
-        return View.Aview(res, 'register', );
+        return View.Aview(res, 'register',);
     } catch (err) {
         console.log(err);
         return res.status(500).json({
@@ -78,6 +77,8 @@ exports.registerView = async (req, res) => {
     }
 };
 
+
+
 exports.register = async (req, res) => {
     try {
         const {
@@ -86,6 +87,7 @@ exports.register = async (req, res) => {
             last_name,
             dob,
             gender,
+            role,
             father_name,
             father_occupation,
             mother_name,
@@ -107,6 +109,7 @@ exports.register = async (req, res) => {
         if (!last_name) errors.last_name = "Last name is required";
         if (!dob) errors.dob = "Date of birth is required";
         if (!gender) errors.gender = "Gender is required";
+        if (!role) errors.role = "Role is required";
         if (!father_name) errors.father_name = "Father name is required";
         if (!mother_name) errors.mother_name = "Mother name is required";
         if (!email) errors.email = "Email is required";
@@ -158,7 +161,9 @@ exports.register = async (req, res) => {
         // Check duplicate email & mobile
         const existingUser = await UserModel.getSingleRecord('staff', { email }, '*');
         const existingMobile = await UserModel.getSingleRecord('staff', { mobile }, '*');
+        const permission = await UserModel.getSingleRecord('permissions', { role }, '*');
 
+        console.log(permission);
         if (existingUser) {
             return res.status(400).json({
                 status: false,
@@ -172,6 +177,12 @@ exports.register = async (req, res) => {
                 message: 'Mobile already exists'
             });
         }
+        if (!permission) {
+            return res.status(400).json({
+                status: false,
+                message: 'Please Select Role'
+            });
+        }
 
         // Generate staff ID
         const staff_id = await exports.generateStaffId();
@@ -183,7 +194,9 @@ exports.register = async (req, res) => {
             last_name,
             dob,
             gender,
+            role,
             father_name,
+            access: permission.permission,
             father_occupation,
             mother_name,
             mother_occupation,

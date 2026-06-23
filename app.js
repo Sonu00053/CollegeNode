@@ -1,7 +1,8 @@
 require('dotenv').config();
 
 global.CONSTANTS = require('./constants/constant');
-
+global.Form = require('./helpers/FormHelper');
+global.SuperHelper = require('./helpers/SuperHelper');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -30,10 +31,10 @@ app.use(express.static(path.join(__dirname, 'views')));
 const adminRoutes = require('./routes/admin');
 const superRoutes = require('./routes/super');
 const mainroute = require('./routes/route');
-const userroute = require('./routes/user');
+const userroute = require('./routes/roles');
 app.use('/admin', adminRoutes);
 app.use('/super', superRoutes);
-app.use('/user', userroute);
+app.use('/role', userroute);
 app.use('/', mainroute);
 
 // ============================

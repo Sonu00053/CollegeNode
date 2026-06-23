@@ -1,0 +1,357 @@
+<div class="content">
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Student Register</h5>
+        </div>
+        <div class="card-body">
+
+            <form id="registerForm">
+                <div class="row g-3">
+                    <div class="col-md-6"><label>First Name *</label><input name="first_name" id="first_name"
+                            class="form-control"><small class="error"></small></div>
+                    <div class="col-md-6"><label>Last Name *</label><input name="last_name" id="last_name"
+                            class="form-control"><small class="error"></small></div>
+                    <div class="col-md-6"><label>DOB *</label><input type="date" name="dob" id="dob"
+                            class="form-control"><small class="error"></small></div>
+                    <div class="col-md-6"><label>Gender *</label><select id="gender" name="gender" class="form-control">
+                            <option value="">Select</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Other</option>
+                        </select><small class="error"></small></div>
+                    <div class="col-md-6"><label>Father Name *</label><input name="father_name" id="father_name"
+                            class="form-control"><small class="error"></small></div>
+                    <div class="col-md-6"><label>Father Mobile *</label><input name="father_mobile" id="father_mobile"
+                            class="form-control"><small class="error"></small></div>
+                    <div class="col-md-6"><label>Mother Name *</label><input name="mother_name" id="mother_name"
+                            class="form-control"><small class="error"></small></div>
+                    <div class="col-md-6"><label>Student Mobile *</label><input name="mobile" id="mobile"
+                            class="form-control"><small class="error"></small></div>
+                    <div class="col-md-6"><label>Email *</label><input id="email" name="email"
+                            class="form-control"><small class="error"></small></div>
+                    <div class="col-md-6">
+                        <label>Roll No *</label>
+                        <input type="text" name="roll_no" id="roll_no" class="form-control">
+                        <small class="error"></small>
+                    </div>
+                    <div class="col-md-6"><label>Pincode</label><input id="pincode" name="pincode"
+                            class="form-control"><small class="error"></small></div>
+                    <div class="col-md-12"><label>Address</label><textarea id="address" name="address"
+                            class="form-control"></textarea><small class="error"></small></div>
+                    <div class="col-md-6"><label>City</label><input id="city" name="city" class="form-control">
+                        <small class="error"></small>
+                    </div>
+                    <div class="col-md-6"><label>State</label><input id="state" name="state" class="form-control">
+                        <small class="error"></small>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Course</label>
+                        <select name="course" id="course" class="form-select">
+                            <option value="">Select Course</option>
+                        </select>
+                        <small class="error"></small>
+                    </div>
+                    <input type="hidden" name="subject_ids" id="subject_ids">
+                    <div class="col-md-6"><label>Semester *</label><select id="semester" name="semester"
+                            class="form-control">
+                            <option value="">Select</option>
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                            <option>5</option>
+                            <option>6</option>
+                        </select><small class="error"></small></div>
+
+                    <div class="col-md-6"><label>Password *</label><input type="password" name="password" id="password"
+                            class="form-control"><small class="error"></small></div>
+                    <div class="col-md-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="transport" name="transport" value="Yes">
+                            <label class="form-check-label" for="transport">
+                                Transport Required
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="vehicleSection" class="row g-3 mt-2" style="display:none;">
+                        <div class="col-md-6">
+                            <label>Vehicle Name *</label>
+                            <input type="text" id="vehicle_name" name="vehicle_name" class="form-control">
+                            <small class="error"></small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label>Vehicle No *</label>
+                            <input type="text" id="vehicle_no" name="vehicle_no" class="form-control">
+                            <small class="error"></small>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-dark w-100 mt-4">Register Student</button>
+            </form>
+
+        </div>
+
+    </div>
+</div>
+<div class="modal fade" id="subjectModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5>Select Subjects</h5>
+            </div>
+
+            <div class="modal-body" id="subjectList">
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="saveSubjects">
+                    Save
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+
+    document.addEventListener('click', function (e) {
+
+        if (e.target && e.target.id === 'saveSubjects') {
+            let ids = [];
+            document.querySelectorAll('.subjectCheckbox:checked')
+                .forEach(x => ids.push(x.value));
+            document.getElementById('subject_ids').value =
+                JSON.stringify(ids);
+            bootstrap.Modal.getInstance(
+                document.getElementById('subjectModal')
+            ).hide();
+        }
+    });
+    document.getElementById('course').addEventListener('change', async function () {
+
+        let courseId = this.value;
+
+        if (!courseId) return;
+
+        let response = await fetch(`/role/subjects/${courseId}`);
+        let result = await response.json();
+
+        let html = '';
+        result.subjects.forEach(subject => {
+
+            html += `
+        <div class="form-check">
+            <input
+                class="form-check-input subjectCheckbox"
+                type="checkbox"
+                value="${subject.id}"
+                id="subject_${subject.id}">
+
+            <label class="form-check-label">
+                ${subject.subject_name}
+            </label>
+        </div>
+        `;
+        });
+
+        document.getElementById('subjectList').innerHTML = html;
+
+        new bootstrap.Modal(
+            document.getElementById('subjectModal')
+        ).show();
+
+    });
+</script>
+
+
+<script>
+
+
+    JSON.parse('{{course}}').forEach(course => {
+        document.getElementById('course').innerHTML += `
+            <option value="${course.id}">
+                ${course.course_name}
+            </option>
+        `;
+    });
+
+    // Transport checkbox show/hide
+    document.getElementById('transport').addEventListener('change', function () {
+
+        document.getElementById('vehicleSection').style.display =
+            this.checked ? 'flex' : 'none';
+
+        if (!this.checked) {
+            document.getElementById('vehicle_name').value = '';
+            document.getElementById('vehicle_no').value = '';
+        }
+
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async function (e) {
+
+        e.preventDefault();
+
+        let valid = true;
+
+        document.querySelectorAll('.error').forEach(x => x.innerHTML = '');
+        document.querySelectorAll('.form-control').forEach(x => x.classList.remove('is-invalid'));
+
+        function err(id, msg) {
+            let f = document.getElementById(id);
+
+            if (!f) {
+                console.log(id, "field not found");
+                return;
+            }
+
+            let errorBox = f.parentElement.querySelector('.error');
+
+            if (!errorBox) {
+                console.log(id, "error box not found");
+                return;
+            }
+
+            f.classList.add('is-invalid');
+            errorBox.innerHTML = msg;
+            valid = false;
+        }
+
+        [
+            'first_name',
+            'last_name',
+            'dob',
+            'gender',
+            'father_name',
+            'father_mobile',
+            'mother_name',
+            'mobile',
+            'email',
+            'course',
+            'semester',
+            'password',
+            'city',
+            'address',
+            'pincode',
+            'state',
+            'roll_no'
+        ].forEach(id => {
+
+            let field = document.getElementById(id);
+
+            if (field.value.trim() === '') {
+
+                let label = field.parentElement.querySelector('label')
+                    .innerText
+                    .replace('*', '')
+                    .trim();
+
+                err(id, `${label} field is required`);
+            }
+        });
+
+        // Transport validation
+        if (document.getElementById('transport').checked) {
+
+            if (document.getElementById('vehicle_name').value.trim() === '') {
+                err('vehicle_name', 'Vehicle Name field is required');
+            }
+
+            if (document.getElementById('vehicle_no').value.trim() === '') {
+                err('vehicle_no', 'Vehicle No field is required');
+            }
+
+        }
+
+        let em = document.getElementById('email').value;
+
+        if (em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+            err('email', 'Invalid email');
+        }
+        let roll_no = document.getElementById('roll_no').value;
+
+        if (roll_no && !/^[0-9]+$/.test(roll_no)) {
+            err('roll_no', 'Roll No must contain only digits');
+        }
+
+        ['mobile', 'father_mobile'].forEach(id => {
+
+            let v = document.getElementById(id).value;
+
+            if (v && !/^[0-9]{10}$/.test(v)) {
+                err(id, 'Mobile must be 10 digits');
+            }
+
+        });
+
+        let p = document.getElementById('password').value;
+
+        if (p && p.length < 6) {
+            err('password', 'Minimum 6 characters');
+        }
+
+        if (!valid) return;
+
+        try {
+
+            const formData = Object.fromEntries(new FormData(this).entries());
+
+            // checkbox unchecked hone par value bhejo
+            formData.transport = document.getElementById('transport').checked ? 'Yes' : 'No';
+
+            const response = await fetch('/role/registerPost', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (result.status) {
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: result.message,
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+
+                setTimeout(() => {
+                    window.location.href = '/role/register';
+                }, 1000);
+
+            } else {
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: result.message,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+
+            }
+
+        } catch (error) {
+
+            console.error(error);
+
+        }
+
+    });
+
+</script>

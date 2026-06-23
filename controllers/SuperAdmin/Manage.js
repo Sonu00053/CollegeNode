@@ -1,30 +1,21 @@
 const UserModel = require('../../models/UserModel');
 const View = require('../../helpers/View');
-const SuperHelper = require('../../helpers/superHelper');
 const XLSX = require('xlsx');
-
 const path = require('path');
 exports.dashboard = async (req, res) => {
     try {
-
         const email = req.user.email;
-
         const user = await UserModel.getSingleRecord(
-            'staff',
+            'admins',
             { email:email },
             '*'
         );
-        console.log(user);
-
-
         return View.Sview(res, 'dashboard', {
             user: user,
             header:'User Dashboard'
         });
-
     } catch (err) {
         console.log(err);
-
         return res.status(500).json({
             status: false,
             message: 'Server Error'
@@ -65,7 +56,7 @@ exports.users = async (req, res) => {
 
     }
     return View.Sview(res, 'reports', {
-        title: 'Users Report',
+       title: 'All Students Report',
         thead: thead,
         tableRows,
     });

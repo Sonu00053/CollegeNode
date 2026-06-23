@@ -11,7 +11,7 @@ exports.Aview = (res, fileName, data = {}) => {
         'utf8'
     );
 
-    const noLayoutPages = ['login', 'register'];
+    const noLayoutPages = ['login'];
 
     if (!noLayoutPages.includes(fileName)) {
 
@@ -165,27 +165,27 @@ exports.Sview = (res, fileName, data = {}) => {
     return res.send(html);
 };
 
-exports.Uview = (res, fileName, data = {}) => {
+exports.Rview = (res, fileName, data = {}) => {
 
     const fs = require('fs');
     const path = require('path');
 
     let body = fs.readFileSync(
-        path.join(process.cwd(), 'views/User', `${fileName}.html`),
+        path.join(process.cwd(), 'views/Roles', `${fileName}.html`),
         'utf8'
     );
 
-    const noLayoutPages = ['login', 'register'];
+    const noLayoutPages = ['login'];
 
     if (!noLayoutPages.includes(fileName)) {
 
         const header = fs.readFileSync(
-            path.join(process.cwd(), 'views/User/layouts/header.html'),
+            path.join(process.cwd(), 'views/Roles/layouts/aheader.html'),
             'utf8'
         );
 
         const footer = fs.readFileSync(
-            path.join(process.cwd(), 'views/User/layouts/footer.html'),
+            path.join(process.cwd(), 'views/Roles/layouts/afooter.html'),
             'utf8'
         );
 
@@ -193,7 +193,9 @@ exports.Uview = (res, fileName, data = {}) => {
     }
 
     let html = body;
-
+    if (res.locals.permissions) {
+        data.permissionsJSON = res.locals.permissions;
+    }
     // =========================
     // 1. SAFE NESTED + FLAT SUPPORT
     // =========================
@@ -206,11 +208,18 @@ exports.Uview = (res, fileName, data = {}) => {
             const value = obj[key];
             const fullKey = prefix ? `${prefix}.${key}` : key;
 
-            if (value && typeof value === 'object' && !Array.isArray(value)) {
+            // array skip karo
+            if (Array.isArray(value)) return;
+
+            if (value && typeof value === 'object') {
                 replaceVars(value, fullKey);
             } else {
-                html = html.replaceAll(`{{${fullKey}}}`, value ?? '');
+                html = html.replaceAll(
+                    `{{${fullKey}}}`,
+                    value ?? ''
+                );
             }
+
         });
     };
 
@@ -220,23 +229,18 @@ exports.Uview = (res, fileName, data = {}) => {
     // 2. ARRAY SUPPORT (JSON SAFE)
     // =========================
     Object.keys(data).forEach(key => {
+        if (Array.isArray(data[key])) {
 
-        const value = data[key];
-
-        if (Array.isArray(value)) {
             html = html.replaceAll(
                 `{{${key}}}`,
-                JSON.stringify(value)
+                JSON.stringify(data[key])
             );
         }
-
     });
-
     // =========================
     // 3. CONSTANTS SUPPORT
     // =========================
     const CONSTANTS = global.CONSTANTS || {};
-
     Object.keys(CONSTANTS).forEach(key => {
         html = html.replaceAll(
             `{{CONSTANTS.${key}}}`,

@@ -1,7 +1,6 @@
 <script>
     let menuBtn = document.getElementById("menuBtn");
     let sidebar = document.getElementById("sidebar");
-
     menuBtn.onclick = () => {
 
         if (window.innerWidth <= 767) {
@@ -10,11 +9,7 @@
 
     };
 </script>
-
-
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-<!-- Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- DataTables -->
@@ -35,20 +30,16 @@
 
 <script>
     $(document).ready(function () {
-
         $('#example').DataTable({
-            pageLength: 5,   // 👈 yahi main setting hai
-
+            pageLength: 10,   // 👈 yahi main setting hai
             dom:
                 "<'row mb-3'<'col-md-8 d-flex flex-wrap gap-2'B><'col-md-4'f>>" +
                 "<'row'<'col-12'tr>>" +
                 "<'row mt-3 align-items-center'<'col-md-3'l><'col-md-6'i><'col-md-3'p>>",
-
             lengthMenu: [
                 [5, 10, 25, 50, 100, -1],
                 [5, 10, 25, 50, 100, "All"]
             ],
-
             buttons: [
                 {
                     extend: 'copy',

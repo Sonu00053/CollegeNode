@@ -1,10 +1,6 @@
 const UserModel = require('../../models/UserModel');
 const View = require('../../helpers/View');
 const SuperHelper = require('../../helpers/superHelper');
-const Form = require('../../helpers/FormHelper');
-
-const XLSX = require('xlsx');
-
 const path = require('path');
 exports.dashboard = async (req, res) => {
     try {
@@ -14,8 +10,20 @@ exports.dashboard = async (req, res) => {
             { email: email },
             '*'
         );
+        const students = await UserModel.getSingleRecord(
+            'students',
+            {},
+            'count(id) as total'
+        );
+        const staff = await UserModel.getSingleRecord(
+            'staff',
+            {},
+            'count(id) as total'
+        );
         return View.Aview(res, 'dashboard', {
             user: user,
+            students: students.total,
+            staff: staff.total,
             header: 'User Dashboard'
         });
     } catch (err) {
@@ -111,7 +119,7 @@ exports.users = async (req, res) => {
 
     }
     return View.Aview(res, 'reports', {
-        title: 'Students Report',
+        title: 'All Students Report',
         thead: thead,
         tableRows,
     });
@@ -141,99 +149,99 @@ exports.updateStudentStatus = async (req, res) => {
     }
 };
 
-exports.add = async (req, res) => {
+// exports.add = async (req, res) => {
 
-    const errors = {};
-    let email = '', password = '', role = '';
-    let message = '', messageType = '';
-    if (req.method === 'POST') {
-        ({ email = '', password = '', role = '' } = req.body);
-        errors.email = !email ? 'Email required' : !/\S+@\S+\.\S+/.test(email) ? 'Invalid email' : '';
-        errors.password = !password ? 'Password required' : password.length < 4 ? 'Min 4 chars' : '';
-        errors.role = !role ? 'Role required' : '';
-        Object.keys(errors).forEach(k => !errors[k] && delete errors[k]);
-        if (Object.keys(errors).length) {
-            message = 'Fix validation errors';
-            messageType = 'error';
-        } else {
-            const staff = await UserModel.getSingleRecord('staff', { email }, '*');
-            const exists = await UserModel.getSingleRecord('admins', { email }, '*');
-            if (staff) {
-                if (!exists) {
-                    await UserModel.addRecord('admins', {
-                        email,
-                        password,
-                        role,
-                        access: JSON.stringify(["super/index"]),
-                        created_at: new Date()
-                    });
-                    message = 'User added successfully!';
-                    messageType = 'success';
-                    email = '';
-                    password = '';
-                    role = '';
-                } else {
-                    message = 'This Email already exists';
-                    messageType = 'error';
-                }
-            } else {
-                message = 'This user does not exist';
-                messageType = 'error';
-            }
-        }
-    }
-    const fields = `
-            ${Form.label("Email")}
-            ${Form.email("email", email, {
-        class: `form-control ${errors.email ? "is-invalid" : ""}`,
-        placeholder: "Enter Email"
-    })}
-            ${errors.email ? `<div class="text-danger small mt-1">${errors.email}</div>` : ""}
+//     const errors = {};
+//     let email = '', password = '', role = '';
+//     let message = '', messageType = '';
+//     if (req.method === 'POST') {
+//         ({ email = '', password = '', role = '' } = req.body);
+//         errors.email = !email ? 'Email required' : !/\S+@\S+\.\S+/.test(email) ? 'Invalid email' : '';
+//         errors.password = !password ? 'Password required' : password.length < 4 ? 'Min 4 chars' : '';
+//         errors.role = !role ? 'Role required' : '';
+//         Object.keys(errors).forEach(k => !errors[k] && delete errors[k]);
+//         if (Object.keys(errors).length) {
+//             message = 'Fix validation errors';
+//             messageType = 'error';
+//         } else {
+//             const staff = await UserModel.getSingleRecord('staff', { email }, '*');
+//             const exists = await UserModel.getSingleRecord('admins', { email }, '*');
+//             if (staff) {
+//                 if (!exists) {
+//                     await UserModel.addRecord('admins', {
+//                         email,
+//                         password,
+//                         role,
+//                         access: JSON.stringify(["super/index"]),
+//                         created_at: new Date()
+//                     });
+//                     message = 'User added successfully!';
+//                     messageType = 'success';
+//                     email = '';
+//                     password = '';
+//                     role = '';
+//                 } else {
+//                     message = 'This Email already exists';
+//                     messageType = 'error';
+//                 }
+//             } else {
+//                 message = 'This user does not exist';
+//                 messageType = 'error';
+//             }
+//         }
+//     }
+//     const fields = `
+//             ${Form.label("Email")}
+//             ${Form.email("email", email, {
+//         class: `form-control ${errors.email ? "is-invalid" : ""}`,
+//         placeholder: "Enter Email"
+//     })}
+//             ${errors.email ? `<div class="text-danger small mt-1">${errors.email}</div>` : ""}
 
-            ${Form.label("Password")}
-            ${Form.password("password", password, {
-        class: `form-control ${errors.password ? "is-invalid" : ""}`,
-        placeholder: "Enter Password"
-    })}
-            ${errors.password ? `<div class="text-danger small mt-1">${errors.password}</div>` : ""}
+//             ${Form.label("Password")}
+//             ${Form.password("password", password, {
+//         class: `form-control ${errors.password ? "is-invalid" : ""}`,
+//         placeholder: "Enter Password"
+//     })}
+//             ${errors.password ? `<div class="text-danger small mt-1">${errors.password}</div>` : ""}
 
-            ${Form.label("Role")}
-            ${Form.dropdown(
-        "role",
-        {
-            "": "Select Role",
-            SA: "Subadmin",
-            AC: "Accountant"
-        },
-        role,
-        {
-            class: `form-control ${errors.role ? "is-invalid" : ""}`
-        }
-    )}
-            ${errors.role ? `<div class="text-danger small mt-1">${errors.role}</div>` : ""}
-        `;
-    const buttons = `
-            ${Form.submit("Save", {
-        class: "btn btn-success"
-    })}
-            ${Form.button("Back", {
-        class: "btn btn-secondary",
-        onclick: "window.location.href='/admin/report'"
-    })}
-        `;
-    const response = {
-        title: 'Add Role',
-        action: '/admin/add',
-        method: 'POST',
-        message,
-        messageType,
-        errors,
-        fields: fields,
-        buttons: buttons
-    };
+//             ${Form.label("Role")}
+//             ${Form.dropdown(
+//         "role",
+//         {
+//             "": "Select Role",
+//             SA: "Subadmin",
+//             AC: "Accountant"
+//         },
+//         role,
+//         {
+//             class: `form-control ${errors.role ? "is-invalid" : ""}`
+//         }
+//     )}
+//             ${errors.role ? `<div class="text-danger small mt-1">${errors.role}</div>` : ""}
+//         `;
+//     const buttons = `
+//             ${Form.submit("Save", {
+//         class: "btn btn-dark"
+//     })}
+//             ${Form.button("Back", {
+//         class: "btn btn-secondary",
+//         onclick: "window.location.href='/admin/report'"
+//     })}
+//         `;
+//     const response = {
+//         title: 'Add Role',
+//         action: '/admin/add',
+//         method: 'POST',
+//         message,
+//         messageType,
+//         errors,
+//         fields: fields,
+//         buttons: buttons
+//     };
 
-    return View.Aview(res, 'forms', response);
-};
+//     return View.Aview(res, 'forms', response);
+// };
 
 
 exports.logout = (req, res) => {
@@ -242,4 +250,72 @@ exports.logout = (req, res) => {
     });
 
     return res.redirect('/admin/login');
+};
+
+exports.add = async (req, res) => {
+    const errors = {};
+    let course_name = '', course_code = '';
+    let message = '', messageType = '';
+
+    if (req.method === 'POST') {
+
+        ({ course_name = '', course_code = '' } = req.body);
+        errors.course_name = !course_name ? 'Course Name required' : '';
+        errors.course_code = !course_code ? 'Course Code required' : '';
+
+        Object.keys(errors).forEach(k => !errors[k] && delete errors[k]);
+
+        if (Object.keys(errors).length) {
+            message = 'Fix validation errors';
+            messageType = 'error';
+        } else {
+
+
+            await UserModel.addRecord('courses', {
+                course_name,
+                course_code,
+            });
+
+            message = 'Course added successfully!';
+            messageType = 'success';
+
+            course_name = '';
+            course_code = '';
+        }
+    }
+
+    const fields = `
+        ${Form.label("Course Name")}
+        ${Form.text("course_name", course_name, {
+            class: `form-control ${errors.course_name ? "is-invalid" : ""}`,
+            placeholder: "Enter Course Name"
+        })}
+        ${errors.course_name ? `<div class="text-danger small mt-1">${errors.course_name}</div>` : ""}
+
+        ${Form.label("Course Code")}
+        ${Form.text("course_code", course_code, {
+            class: `form-control ${errors.course_code ? "is-invalid" : ""}`,
+            placeholder: "Enter Course Code"
+        })}
+        ${errors.course_code ? `<div class="text-danger small mt-1">${errors.course_code}</div>` : ""}
+    `;
+
+    const buttons = `
+        ${Form.submit("Add Course", {
+            class: "btn btn-dark"
+        })}
+    `;
+
+    const response = {
+        title: 'Add New Course',
+        action: '/admin/add',
+        method: 'POST',
+        message,
+        messageType,
+        errors,
+        fields,
+        buttons
+    };
+
+    return View.Aview(res, 'forms', response);
 };

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin Login</title>
+<title>{{CONSTANTS.TITLE}}</title>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
@@ -92,62 +92,65 @@ small{
 
     <small>Secure JWT Authentication</small>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+            const email = document.querySelector('[name="email"]').value;
+            const password = document.querySelector('[name="password"]').value;
 
-<script>
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+            try {
+                const res = await fetch('/admin/loginPost', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password })
+                });
 
-    const email = document.querySelector('[name="email"]').value;
-    const password = document.querySelector('[name="password"]').value;
+                const data = await res.json();
 
-    try {
-        const res = await fetch('/admin/loginPost', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify({ email, password })
+                if (!data.status) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: "error",
+                        title: data.message,
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
+                    
+                } else {
+
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: "success",
+                        title: data.message,
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
+                    setTimeout(() => {
+                        window.location.href = data.redirect;
+                    }, 2000);
+                }
+            } catch (err) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: "error",
+                    title: "Server Error",
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                });
+            }
         });
-
-        const data = await res.json();
-
-        if (!data.status) {
-            Toastify({
-                text: data.message,
-                duration: 3000,
-                gravity: "top",
-                position: "right",
-                backgroundColor: "#ff4d4d"
-            }).showToast();
-            return;
-        }
-
-        Toastify({
-            text: data.message,
-            duration: 2000,
-            gravity: "top",
-            position: "right",
-            backgroundColor: "#28a745"
-        }).showToast();
-
-        setTimeout(() => {
-            window.location.href = data.redirect;
-        }, 700);
-
-    } catch (err) {
-        Toastify({
-            text: "Server Error",
-            duration: 3000,
-            gravity: "top",
-            position: "right",
-            backgroundColor: "#ff4d4d"
-        }).showToast();
-    }
-});
-</script>
+    </script>
 
 </body>
 </html>

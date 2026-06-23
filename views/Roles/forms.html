@@ -1,0 +1,68 @@
+<div class="content">
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">{{title}}</h4>
+        </div>
+        <div class="card-body">
+            <form action="{{action}}" method="{{method}}">
+                {{fields}}
+                <div class="d-flex gap-2 mt-2">
+                    {{buttons}}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    const message = "{{message}}";
+    const type = "{{messageType}}";
+    const url = "{{action}}";
+    if (message) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: type,
+            title: message,
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+        setTimeout(() => {
+            window.location.href = url;
+        }, 2000);
+    }
+</script>
+
+<script>
+    function togglePaymentField() {
+        const mode = document.getElementById('payment_mode').value;
+        const div = document.getElementById('payment_details_div');
+        const label = document.getElementById('payment_details_label');
+        const input = document.getElementById('payment_details');
+
+        if (mode === 'Cash' || mode === '') {
+            div.style.display = 'none';
+            input.value = '';
+        } else {
+            div.style.display = 'block';
+
+            if (mode === 'UPI') {
+                label.innerText = 'Transaction ID';
+                input.placeholder = 'Enter Transaction ID';
+            }
+            else if (mode === 'Card') {
+                label.innerText = 'Card Number';
+                input.placeholder = 'Enter Card Number';
+            }
+            else if (mode === 'Bank Transfer') {
+                label.innerText = 'Transfer Reference No';
+                input.placeholder = 'Enter Transfer Reference No';
+            }
+            else if (mode === 'Cheque') {
+                label.innerText = 'Cheque Number';
+                input.placeholder = 'Enter Cheque Number';
+            }
+        }
+    }
+</script>
