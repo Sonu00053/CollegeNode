@@ -3,4 +3,5 @@ module.exports = {
     role: '/role/',
     admin: '/admin/',
     super: '/super/',
+    currency: 'Rs.',
 };

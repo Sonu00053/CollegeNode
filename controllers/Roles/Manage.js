@@ -33,17 +33,19 @@ exports.users = async (req, res) => {
     thead = `
             <tr>
                 <th>#</th>
+                <th>Roll No</th>
                 <th>Email</th>
                 <th>Course</th>
                 <th>Subjects</th>
                 <th>Total Fees</th>
                 <th>Pending Fees</th>
-                <th>Date</th>
+                <th>Joining Date & Time</th>
             </tr>
         `;
     const rows = Array.isArray(result) ? result : (result?.rows || []);
 
     let tableRows = '';
+
 
     for (const [index, u] of rows.entries()) {
 
@@ -70,7 +72,7 @@ exports.users = async (req, res) => {
                     subjects += subject.subject_name + ', ';
                 }
             }
-            
+
 
             subjects = subjects.replace(/, $/, '');
         }
@@ -78,11 +80,12 @@ exports.users = async (req, res) => {
         tableRows += `
             <tr>
                 <td>${index + 1}</td>
+                <td>${u.roll_no}</td>
                 <td>${u.email}</td>
                 <td>${course?.course_name || ''}</td>
                 <td>${subjects || ''}</td>
-                <td>${u.total_fees}</td>
-                <td>${u.total_fees - u.pending_fees}</td>
+                <td>${CONSTANTS.currency}${u.total_fees}</td>
+                <td>${CONSTANTS.currency}${u.total_fees - u.pending_fees}</td>
                 <td>${SuperHelper.formatDate(u.created_at)}</td>
             </tr>
             `;
@@ -94,8 +97,17 @@ exports.users = async (req, res) => {
         </tr>
     `;
     }
-    return View.Rview(res, 'reports', {
-        title: 'All Students Report',
+    const action = `
+<a href="/role/create-reciept" class="btn btn-warning">
+    Create Receipt
+</a>
+`; return View.Rview(res, 'reports', {
+        title: `
+        <div class="d-flex justify-content-between align-items-center">
+            <span>All Students Report</span>
+            ${action}
+        </div>
+    `,
         thead: thead,
         tableRows,
     });
@@ -105,11 +117,11 @@ exports.users = async (req, res) => {
 
 exports.reciptcreate = async (req, res) => {
     const errors = {};
-    let roll_no = '', amount = '', payment_mode = '', payment_details = '';
+    let roll_no = '', amount = '', payment_mode = '', transaction_id = '';
     let message = '', messageType = '';
 
     if (req.method === 'POST') {
-        ({ roll_no = '', amount = '', payment_mode = '', payment_details = '' } = req.body);
+        ({ roll_no = '', amount = '', payment_mode = '', transaction_id = '' } = req.body);
         errors.roll_no = !roll_no
             ? 'Roll No field required'
             : '';
@@ -124,8 +136,8 @@ exports.reciptcreate = async (req, res) => {
             ? 'Payment Mode field required'
             : '';
 
-        if (payment_mode !== 'Cash' && !payment_details) {
-            errors.payment_details = 'This field is required';
+        if (payment_mode !== 'Cash' && !transaction_id) {
+            errors.transaction_id = 'This field is required';
         }
 
         Object.keys(errors).forEach(k => !errors[k] && delete errors[k]);
@@ -134,30 +146,60 @@ exports.reciptcreate = async (req, res) => {
             message = 'Fix validation errors';
             messageType = 'error';
         } else {
+            const receipt_no = await exports.generaterecieptId();
+            const students = await UserModel.getSingleRecord(
+                'students',
+                { roll_no: roll_no },
+                'pending_fees,total_fees'
+            );
+            let remainingfees = Number(students.total_fees) - Number(students.pending_fees);
+            if (students) {
+                if (Number(students.pending_fees) < Number(students.total_fees)) {
+                    if (Number(amount) <= remainingfees) {
+                        await UserModel.addRecord('receipt_details', {
+                            roll_no,
+                            receipt_no,
+                            amount,
+                            payment_mode,
+                            transaction_id
+                        });
+                        await UserModel.updateRecord(
+                            'students',
+                            {
+                                pending_fees: Number(students.pending_fees) + Number(amount)
+                            },
+                            {
+                                roll_no: roll_no
+                            }
+                        );
+                        message = 'Receipt created successfully!';
+                        messageType = 'success';
+                        roll_no = '';
+                        amount = '';
+                        payment_mode = '';
+                        transaction_id = '';
+                    } else {
+                        message = `Remaining fees is ${CONSTANTS.currency}${remainingfees}. Amount cannot exceed remaining fees.`;
+                        messageType = 'error';
 
-            await UserModel.addRecord('receipt_details', {
-                roll_no,
-                amount,
-                payment_mode,
-                payment_details
-            });
 
-            message = 'Receipt created successfully!';
-            messageType = 'success';
-
-            roll_no = '';
-            amount = '';
-            payment_mode = '';
-            payment_details = '';
+                    }
+                } else {
+                    messageType = 'error';
+                    message = 'Fees already paid in full. No pending fees remaining.';
+                }
+            } else {
+                messageType = 'error';
+                message = 'Invalid Roll No!';
+            }
         }
     }
-
     const fields = `
         ${Form.label("Roll No")}
         ${Form.text("roll_no", roll_no, {
-            class: `form-control ${errors.roll_no ? "is-invalid" : ""}`,
-            placeholder: "Enter Roll No"
-        })}
+        class: `form-control ${errors.roll_no ? "is-invalid" : ""}`,
+        placeholder: "Enter Roll No"
+    })}
         ${errors.roll_no ? `<div class="text-danger small mt-1">${errors.roll_no}</div>` : ""}
 
         ${Form.label("Amount")}
@@ -186,11 +228,11 @@ exports.reciptcreate = async (req, res) => {
         <div id="payment_details_div" style="display:none;" class="mt-3">
             <label id="payment_details_label"></label>
             <input type="text"
-                   name="payment_details"
+                   name="transaction_id"
                    id="payment_details"
-                   value="${payment_details}"
-                   class="form-control ${errors.payment_details ? "is-invalid" : ""}">
-            ${errors.payment_details ? `<div class="text-danger small mt-1">${errors.payment_details}</div>` : ""}
+                   value="${transaction_id}"
+                   class="form-control ${errors.transaction_id ? "is-invalid" : ""}">
+            ${errors.transaction_id ? `<div class="text-danger small mt-1">${errors.transaction_id}</div>` : ""}
         </div>
 
         <script>
@@ -228,8 +270,8 @@ exports.reciptcreate = async (req, res) => {
 
     const buttons = `
         ${Form.submit("Create Receipt", {
-            class: "btn btn-dark"
-        })}
+        class: "btn btn-dark"
+    })}
     `;
 
     const response = {
@@ -255,13 +297,109 @@ exports.generaterecieptId = async () => {
     );
 
     if (!lastReceipt || !lastReceipt.receipt_no) {
-        return 'REC000001';
+        return 1;
+    }
+    return Number(lastReceipt.receipt_no) + 1;
+};
+
+exports.reciept = async (req, res) => {
+    try {
+        return View.Rview(res, 'reciept'
+        );
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            status: false,
+            message: 'Server Error'
+        });
+    }
+};
+
+exports.recieptHistory = async (req, res) => {
+
+    const result = await UserModel.getRecords('receipt_details', {}, '*');
+
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Receipt No</th>
+            <th>Roll No</th>
+            <th>Amount</th>
+            <th>Payment Mode</th>
+            <th>Date</th>
+            <th>Action</th>
+        </tr>
+    `;
+
+    const rows = Array.isArray(result) ? result : (result?.rows || []);
+
+    let tableRows = '';
+
+    for (const [index, u] of rows.entries()) {
+
+        tableRows += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${u.receipt_no}</td>
+                <td>${u.roll_no}</td>
+                <td>${CONSTANTS.currency}${u.amount}</td>
+                <td>${u.payment_mode}</td>
+                <td>${SuperHelper.formatDate(u.created_at)}</td>
+                <td>
+                    <a href="/role/reciept/${u.id}"
+                       class="btn btn-sm btn-primary">
+                       View Receipt
+                    </a>
+                </td>
+            </tr>
+        `;
     }
 
-    const lastNumber = parseInt(lastReceipt.receipt_no.replace('REC', ''), 10);
-    const nextNumber = lastNumber + 1;
+    if (!rows.length) {
+        tableRows = `
+        <tr>
+            <td colspan="8">No Data Found</td>
+        </tr>
+        `;
+    }
 
-    return `REC${String(nextNumber).padStart(6, '0')}`;
+    const action = `
+        <a href="/role/create-reciept" class="btn btn-warning">
+            Create Receipt
+        </a>
+    `;
+
+    return View.Rview(res, 'reports', {
+        title: `
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Receipt History</span>
+                ${action}
+            </div>
+        `,
+        thead,
+        tableRows,
+    });
+
+};
+
+exports.reciept = async (req, res) => {
+
+    const receipt = await UserModel.getSingleRecord(
+        'receipt_details',
+        { id: req.params.id }
+    );
+    const name = await UserModel.getSingleRecord(
+        'students',
+        { roll_no: receipt.roll_no }, '*'
+    );
+
+    return View.Rview(res, 'reciept', {
+        receipt,
+        receipt_date: SuperHelper.formatDate(receipt.created_at),
+        name: name.first_name + ' ' + name.last_name
+
+    });
+
 };
 
 

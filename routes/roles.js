@@ -23,6 +23,10 @@ router.get('/index', jwtAuth.verifyToken, Manage.dashboard);
 router.get('/all-students', jwtAuth.verifyToken, Manage.users);
 router.get('/subjects/:course_id', Login.getSubjectsByCourse);
 
+router.get('/recieps-detail',jwtAuth.verifyToken, Manage.recieptHistory);
+router.get('/reciept/:id',jwtAuth.verifyToken, Manage.reciept);
+
+
 router.route('/create-reciept')
     .get(jwtAuth.verifyToken,Manage.reciptcreate)
     .post(jwtAuth.verifyToken,Manage.reciptcreate);

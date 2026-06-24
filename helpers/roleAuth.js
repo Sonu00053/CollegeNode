@@ -1,31 +1,38 @@
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/UserModel');
+
 exports.verifyToken = async (req, res, next) => {
     try {
+
         const token = req.cookies.token;
+
         if (!token) {
             return res.redirect('/role/logout');
         }
+
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
         const user = await UserModel.getSingleRecord(
             'staff',
             { email: decoded.email },
             '*'
         );
 
-
         if (!user) {
             return res.redirect('/role/logout');
         }
 
         let permissions = user.access || [];
-        // console.log(permissions);
+
         if (typeof permissions === 'string') {
             permissions = permissions.trim();
+
             try {
                 permissions = JSON.parse(permissions);
             } catch (err) {
+
                 console.log("JSON parse failed, using fallback...");
+
                 permissions = permissions
                     .replace(/[\[\]"']/g, '')
                     .split(',')
@@ -33,12 +40,36 @@ exports.verifyToken = async (req, res, next) => {
                     .filter(Boolean);
             }
         }
+
         if (!Array.isArray(permissions)) {
             permissions = [];
         }
+
         const currentPath = req.originalUrl.split('?')[0];
-        if (!permissions.includes(currentPath)) {
+
+        // Exact + Dynamic route support
+        const hasAccess = permissions.some(permission => {
+
+            // Exact URL match
+            if (currentPath === permission) {
+                return true;
+            }
+
+            // Dynamic route support
+            // Example:
+            // Permission => /role/reciept
+            // URL        => /role/reciept/1
+            if (currentPath.startsWith(permission + '/')) {
+                return true;
+            }
+
+            return false;
+        });
+
+        if (!hasAccess) {
+
             const backUrl = req.get('Referer') || '';
+
             return res.status(403).send(`
 <!DOCTYPE html>
 <html lang="en">
@@ -138,21 +169,23 @@ exports.verifyToken = async (req, res, next) => {
 </div>
 
 <script>
+
 function goBack() {
 
     const backUrl = "${backUrl}";
 
-    if(backUrl && backUrl !== "undefined"){
+    if (backUrl && backUrl !== "undefined") {
         window.location.href = backUrl;
     }
-    else if(document.referrer){
+    else if (document.referrer) {
         window.location.href = document.referrer;
     }
-    else{
+    else {
         history.back();
     }
 
 }
+
 </script>
 
 </body>
@@ -161,9 +194,11 @@ function goBack() {
         }
 
         req.user = decoded;
+
         res.locals.user = user;
         res.locals.permissions = permissions;
-        res.locals.permissionsJSON = JSON.stringify(permissions)
+        res.locals.permissionsJSON = JSON.stringify(permissions);
+
         next();
 
     } catch (err) {

@@ -1,0 +1,195 @@
+<div class="content">
+    <div class="card shadow-sm mt-4">
+
+        <!-- Header -->
+        <div class="card-header bg-dark text-white no-print">
+            <h5 class="mb-0">Fee Receipt</h5>
+        </div>
+
+        <!-- Buttons -->
+        <div class="card-footer d-flex gap-2 justify-content-end no-print">
+            <button class="btn btn-primary" onclick="printReceipt()">
+                Print Receipt
+            </button>
+
+            <button class="btn btn-success" onclick="downloadPDF()">
+                Download PDF
+            </button>
+        </div>
+
+        <!-- Receipt -->
+        <div class="card-body bg-white p-4" id="receiptArea">
+
+            <div class="text-center mb-4">
+                <h2 class="fw-bold mb-1">Global College</h2>
+                <p class="mb-2">Bathinda, Punjab</p>
+                <h4 class="fw-bold">Fee Receipt</h4>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle mb-0 receipt-table">
+                    <tbody>
+
+                        <tr>
+                            <th width="20%">Receipt No</th>
+                            <td width="30%">{{receipt.receipt_no}}</td>
+
+                            <th width="20%">Date</th>
+                            <td width="30%">{{receipt_date}}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Roll No</th>
+                            <td>{{receipt.roll_no}}</td>
+
+                            <th>Student Name</th>
+                            <td>{{name}}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Payment Mode</th>
+                            <td colspan="3">{{receipt.payment_mode}}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Amount Paid</th>
+                            <td colspan="3" class="fw-bold text-success">
+                                {{CONSTANTS.currency}} {{receipt.amount}}
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="row mt-5 pt-5">
+                <div class="col-6">
+                    ___________________
+                    <br>
+                    <strong>Received By</strong>
+                </div>
+
+                <div class="col-6 text-end">
+                    ___________________
+                    <br>
+                    <strong>Authorized Signature</strong>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+<style>
+
+body{
+    background:#f5f5f5;
+}
+
+#receiptArea{
+    border:2px solid #000 !important;
+    background:#fff !important;
+}
+
+.receipt-table{
+    width:100%;
+    border-collapse:collapse !important;
+}
+
+.receipt-table th,
+.receipt-table td{
+    border:1px solid #000 !important;
+    padding:10px !important;
+    vertical-align:middle !important;
+}
+
+@media print{
+
+    .no-print{
+        display:none !important;
+    }
+
+    body{
+        background:#fff !important;
+    }
+
+    .card{
+        border:none !important;
+        box-shadow:none !important;
+    }
+
+    #receiptArea{
+        border:2px solid #000 !important;
+        padding:20px !important;
+    }
+
+    .receipt-table{
+        border-collapse:collapse !important;
+    }
+
+    .receipt-table th,
+    .receipt-table td{
+        border:1px solid #000 !important;
+    }
+
+    @page{
+        size:A5 portrait;
+        margin:5mm;
+    }
+
+}
+
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+
+function printReceipt() {
+    window.print();
+}
+
+function downloadPDF() {
+
+    const element = document.getElementById("receiptArea");
+
+    const options = {
+
+        margin: [5,5,5,5],
+
+        filename: "Fee_Receipt_{{receipt.receipt_no}}.pdf",
+
+        image: {
+            type: "jpeg",
+            quality: 1
+        },
+
+        html2canvas: {
+            scale: 4,
+            useCORS: true,
+            letterRendering: true
+        },
+
+        jsPDF: {
+            unit: "mm",
+            format: "a5",
+            orientation: "portrait"
+        },
+
+        pagebreak: {
+            mode: ["avoid-all"]
+        }
+
+    };
+
+    html2pdf()
+        .set(options)
+        .from(element)
+        .save();
+
+}
+
+</script>

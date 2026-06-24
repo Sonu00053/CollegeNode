@@ -5,7 +5,7 @@ exports.getSingleRecord = async (table, where = {}, select = '*') => {
   return result.length ? result[0] : null;
 };
 
-exports.getRecords = async (table, where = {}, select = '*') => {
+exports.getRecords = async (table, where = {}, select = '*', orderBy = '') => {
 
   let finalSelect = '*';
 
@@ -27,9 +27,44 @@ exports.getRecords = async (table, where = {}, select = '*') => {
     sql += ` WHERE ` + conditions.join(' AND ');
   }
 
+  if (orderBy) {
+    sql += ` ORDER BY ${orderBy}`;
+  }
+
   const [rows] = await db.query(sql, values);
   return rows;
 };
+
+exports.getSingleRecord = async (table, where = {}, select = '*', orderBy = '') => {
+  const result = await exports.getRecords(table, where, select, orderBy);
+  return result.length ? result[0] : null;
+};
+
+// exports.getRecords = async (table, where = {}, select = '*') => {
+
+//   let finalSelect = '*';
+
+//   if (Array.isArray(select)) {
+//     finalSelect = select.join(',');
+//   } else if (typeof select === 'string' && select.trim() !== '') {
+//     finalSelect = select;
+//   }
+
+//   let sql = `SELECT ${finalSelect} FROM ${table}`;
+//   const values = [];
+
+//   if (Object.keys(where).length) {
+//     const conditions = Object.keys(where).map(key => {
+//       values.push(where[key]);
+//       return `${key} = ?`;
+//     });
+
+//     sql += ` WHERE ` + conditions.join(' AND ');
+//   }
+
+//   const [rows] = await db.query(sql, values);
+//   return rows;
+// };
 
 exports.addRecord = async (table, data) => {
   const keys = Object.keys(data);

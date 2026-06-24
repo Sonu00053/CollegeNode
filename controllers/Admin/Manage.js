@@ -149,99 +149,7 @@ exports.updateStudentStatus = async (req, res) => {
     }
 };
 
-// exports.add = async (req, res) => {
 
-//     const errors = {};
-//     let email = '', password = '', role = '';
-//     let message = '', messageType = '';
-//     if (req.method === 'POST') {
-//         ({ email = '', password = '', role = '' } = req.body);
-//         errors.email = !email ? 'Email required' : !/\S+@\S+\.\S+/.test(email) ? 'Invalid email' : '';
-//         errors.password = !password ? 'Password required' : password.length < 4 ? 'Min 4 chars' : '';
-//         errors.role = !role ? 'Role required' : '';
-//         Object.keys(errors).forEach(k => !errors[k] && delete errors[k]);
-//         if (Object.keys(errors).length) {
-//             message = 'Fix validation errors';
-//             messageType = 'error';
-//         } else {
-//             const staff = await UserModel.getSingleRecord('staff', { email }, '*');
-//             const exists = await UserModel.getSingleRecord('admins', { email }, '*');
-//             if (staff) {
-//                 if (!exists) {
-//                     await UserModel.addRecord('admins', {
-//                         email,
-//                         password,
-//                         role,
-//                         access: JSON.stringify(["super/index"]),
-//                         created_at: new Date()
-//                     });
-//                     message = 'User added successfully!';
-//                     messageType = 'success';
-//                     email = '';
-//                     password = '';
-//                     role = '';
-//                 } else {
-//                     message = 'This Email already exists';
-//                     messageType = 'error';
-//                 }
-//             } else {
-//                 message = 'This user does not exist';
-//                 messageType = 'error';
-//             }
-//         }
-//     }
-//     const fields = `
-//             ${Form.label("Email")}
-//             ${Form.email("email", email, {
-//         class: `form-control ${errors.email ? "is-invalid" : ""}`,
-//         placeholder: "Enter Email"
-//     })}
-//             ${errors.email ? `<div class="text-danger small mt-1">${errors.email}</div>` : ""}
-
-//             ${Form.label("Password")}
-//             ${Form.password("password", password, {
-//         class: `form-control ${errors.password ? "is-invalid" : ""}`,
-//         placeholder: "Enter Password"
-//     })}
-//             ${errors.password ? `<div class="text-danger small mt-1">${errors.password}</div>` : ""}
-
-//             ${Form.label("Role")}
-//             ${Form.dropdown(
-//         "role",
-//         {
-//             "": "Select Role",
-//             SA: "Subadmin",
-//             AC: "Accountant"
-//         },
-//         role,
-//         {
-//             class: `form-control ${errors.role ? "is-invalid" : ""}`
-//         }
-//     )}
-//             ${errors.role ? `<div class="text-danger small mt-1">${errors.role}</div>` : ""}
-//         `;
-//     const buttons = `
-//             ${Form.submit("Save", {
-//         class: "btn btn-dark"
-//     })}
-//             ${Form.button("Back", {
-//         class: "btn btn-secondary",
-//         onclick: "window.location.href='/admin/report'"
-//     })}
-//         `;
-//     const response = {
-//         title: 'Add Role',
-//         action: '/admin/add',
-//         method: 'POST',
-//         message,
-//         messageType,
-//         errors,
-//         fields: fields,
-//         buttons: buttons
-//     };
-
-//     return View.Aview(res, 'forms', response);
-// };
 
 
 exports.logout = (req, res) => {
@@ -319,3 +227,4 @@ exports.add = async (req, res) => {
 
     return View.Aview(res, 'forms', response);
 };
+
