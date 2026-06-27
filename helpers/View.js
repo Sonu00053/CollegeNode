@@ -93,7 +93,7 @@ exports.Sview = (res, fileName, data = {}) => {
         'utf8'
     );
 
-    const noLayoutPages = ['login', 'register'];
+    const noLayoutPages = ['login'];
 
     if (!noLayoutPages.includes(fileName)) {
 
@@ -193,11 +193,13 @@ exports.Rview = (res, fileName, data = {}) => {
     }
 
     let html = body;
+
     if (res.locals.permissions) {
-        data.permissionsJSON = res.locals.permissions;
+        data.permissionsJSON = JSON.stringify(res.locals.permissions);
     }
+
     // =========================
-    // 1. SAFE NESTED + FLAT SUPPORT
+    // Replace Variables
     // =========================
     const replaceVars = (obj, prefix = '') => {
 
@@ -208,45 +210,65 @@ exports.Rview = (res, fileName, data = {}) => {
             const value = obj[key];
             const fullKey = prefix ? `${prefix}.${key}` : key;
 
-            // array skip karo
             if (Array.isArray(value)) return;
 
             if (value && typeof value === 'object') {
                 replaceVars(value, fullKey);
             } else {
+
                 html = html.replaceAll(
                     `{{${fullKey}}}`,
                     value ?? ''
                 );
+
             }
 
         });
+
     };
 
     replaceVars(data);
 
     // =========================
-    // 2. ARRAY SUPPORT (JSON SAFE)
+    // permissionsJSON replace
+    // =========================
+    if (data.permissionsJSON) {
+        html = html.replaceAll(
+            '{{permissionsJSON}}',
+            data.permissionsJSON
+        );
+    }
+
+    // =========================
+    // Other arrays
     // =========================
     Object.keys(data).forEach(key => {
+
         if (Array.isArray(data[key])) {
 
             html = html.replaceAll(
                 `{{${key}}}`,
                 JSON.stringify(data[key])
             );
+
         }
+
     });
+
     // =========================
-    // 3. CONSTANTS SUPPORT
+    // CONSTANTS
     // =========================
     const CONSTANTS = global.CONSTANTS || {};
+
     Object.keys(CONSTANTS).forEach(key => {
+
         html = html.replaceAll(
             `{{CONSTANTS.${key}}}`,
             CONSTANTS[key]
         );
+
     });
 
     return res.send(html);
+
 };

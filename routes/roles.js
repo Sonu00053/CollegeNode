@@ -27,6 +27,8 @@ router.get('/recieps-detail',jwtAuth.verifyToken, Manage.recieptHistory);
 router.get('/reciept/:id',jwtAuth.verifyToken, Manage.reciept);
 
 
+
+
 router.route('/create-reciept')
     .get(jwtAuth.verifyToken,Manage.reciptcreate)
     .post(jwtAuth.verifyToken,Manage.reciptcreate);

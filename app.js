@@ -34,7 +34,7 @@ const mainroute = require('./routes/route');
 const userroute = require('./routes/roles');
 app.use('/admin', adminRoutes);
 app.use('/super', superRoutes);
-app.use('/role', userroute);
+app.use(CONSTANTS.role, userroute);
 app.use('/', mainroute);
 
 // ============================

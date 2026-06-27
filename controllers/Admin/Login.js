@@ -8,6 +8,10 @@ const bcrypt = require('bcrypt');
 
 
 exports.loginView = (req, res) => {
+    const token = req.cookies.token;
+    if (token) {
+        return res.redirect(`${global.CONSTANTS.admin}index`);
+    }
     View.Aview(res, 'login');
 };
 

@@ -87,7 +87,7 @@
             <i class="bi bi-list fs-4"></i>
         </button>
         <span class="navbar-brand fw-bold">
-            Roles Panel
+            Staff Panel
         </span>
 
     </nav>
@@ -96,7 +96,7 @@
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
 
-        <a href="/role/index" data-access="/role/index">
+        <a href="{{CONSTANTS.role}}index" data-access="/role/index">
             <i class="bi bi-speedometer2"></i> Dashboard
         </a>
 
@@ -105,14 +105,14 @@
         </a>
 
         <div class="collapse submenu" id="usersMenu">
-            <a href="/role/register">
+            <a href="{{CONSTANTS.role}}register">
                 Add Student
             </a>
 
-            <a href="/role/all-students">
+            <a href="{{CONSTANTS.role}}all-students">
                 All Students
             </a>
-            <a href="/role/recieps-detail">
+            <a href="{{CONSTANTS.role}}recieps-detail">
                 Reciept History
             </a>
         </div>
@@ -124,46 +124,42 @@
                 Profile
             </a>
 
-            <a href="/role/change-password">
+            <a href="{{CONSTANTS.role}}change-password">
                 Change Password
             </a>
 
         </div>
 
-        <a href="/role/logout">
+        <a href="{{CONSTANTS.role}}logout">
             <i class="bi bi-box-arrow-right"></i> Logout
         </a>
 
     </div>
 
     <script>
+        // const permissions = {{ permissionsJSON }};
         const permissions = {{ permissionsJSON }};
-        document.querySelectorAll('.sidebar a[href]').forEach(link => {
-            const href = link.getAttribute('href');
-            if (
-                href.startsWith('#usersMenu') ||
-                href.startsWith('#settingsMenu') ||
-                href === '/role/logout'
-            ) {
+        document.querySelectorAll('.sidebar a').forEach(link => {
+            let href = link.getAttribute('href');
+            if (href === '{{CONSTANTS.role}}logout') {
                 return;
             }
-            if (!permissions.includes(href)) {
-                link.style.display = "none";
+            let permissionName = href.replace('{{CONSTANTS.role}}', '');
+            if (!permissions.includes(permissionName)) {
+                link.classList.add('d-none');
             }
         });
         document.querySelectorAll('.submenu').forEach(menu => {
-
-            const visibleLinks = [...menu.querySelectorAll('a[href]')]
-                .filter(link => link.style.display !== "none");
+            const visibleLinks = [...menu.querySelectorAll('a')]
+                .filter(link => !link.classList.contains('d-none'));
             if (visibleLinks.length === 0) {
                 const parent = document.querySelector(
                     '[href="#' + menu.id + '"]'
                 );
                 if (parent) {
-                    parent.style.display = "none";
+                    parent.classList.add('d-none');
                 }
-                menu.style.display = "none";
+                menu.classList.add('d-none');
             }
-
         });
     </script>

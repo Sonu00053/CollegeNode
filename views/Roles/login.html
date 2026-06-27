@@ -82,7 +82,7 @@
 <body>
 
     <div class="box">
-        <h2>Role Login</h2>
+        <h2>Staff Login</h2>
 
         <form id="loginForm">
             <input type="email" name="email" placeholder="Email" required>
@@ -103,7 +103,7 @@
             const password = document.querySelector('[name="password"]').value;
 
             try {
-                const res = await fetch('/role/loginPost', {
+                const res = await fetch('{{CONSTANTS.role}}loginPost', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

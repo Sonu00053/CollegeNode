@@ -1,5 +1,6 @@
 const UserModel = require('../../models/UserModel');
 const View = require('../../helpers/View');
+
 exports.dashboard = async (req, res) => {
     try {
         const email = req.user.email;
@@ -97,8 +98,9 @@ exports.users = async (req, res) => {
         </tr>
     `;
     }
+    var url = CONSTANTS.role + 'create-reciept';
     const action = `
-<a href="/role/create-reciept" class="btn btn-warning">
+<a href="${url}" class="btn btn-warning">
     Create Receipt
 </a>
 `; return View.Rview(res, 'reports', {
@@ -152,9 +154,10 @@ exports.reciptcreate = async (req, res) => {
                 { roll_no: roll_no },
                 'pending_fees,total_fees'
             );
-            let remainingfees = Number(students.total_fees) - Number(students.pending_fees);
             if (students) {
                 if (Number(students.pending_fees) < Number(students.total_fees)) {
+                    let remainingfees = Number(students.total_fees) - Number(students.pending_fees);
+
                     if (Number(amount) <= remainingfees) {
                         await UserModel.addRecord('receipt_details', {
                             roll_no,
@@ -276,7 +279,7 @@ exports.reciptcreate = async (req, res) => {
 
     const response = {
         title: 'Create Student Receipt',
-        action: '/role/create-reciept',
+        action: CONSTANTS.role + 'create-reciept',
         method: 'POST',
         message,
         messageType,
@@ -346,7 +349,7 @@ exports.recieptHistory = async (req, res) => {
                 <td>${u.payment_mode}</td>
                 <td>${SuperHelper.formatDate(u.created_at)}</td>
                 <td>
-                    <a href="/role/reciept/${u.id}"
+                    <a href="${CONSTANTS.role}reciept/${u.id}"
                        class="btn btn-sm btn-primary">
                        View Receipt
                     </a>
@@ -364,7 +367,7 @@ exports.recieptHistory = async (req, res) => {
     }
 
     const action = `
-        <a href="/role/create-reciept" class="btn btn-warning">
+        <a href="${CONSTANTS.role}create-reciept" class="btn btn-warning">
             Create Receipt
         </a>
     `;
@@ -381,6 +384,10 @@ exports.recieptHistory = async (req, res) => {
     });
 
 };
+
+
+
+
 
 exports.reciept = async (req, res) => {
 
@@ -409,5 +416,5 @@ exports.logout = (req, res) => {
         httpOnly: true
     });
 
-    return res.redirect('/role/login');
+    return res.redirect(CONSTANTS.role + 'login');
 };

@@ -20,5 +20,10 @@ router.get('/logout', Manage.logout);
 router.get('/index', jwtAuth.verifyToken, Manage.dashboard);
 router.get('/report', jwtAuth.verifyToken, Manage.users);
 router.post('/report', jwtAuth.verifyToken, Manage.users);
+router.get('/all-staff', jwtAuth.verifyToken, Manage.StaffHistory);
+router.route('/add')
+    .get(jwtAuth.verifyToken,Manage.add)
+    .post(jwtAuth.verifyToken,Manage.add);
+
 // router.get('/dashboardData', jwtAuth.verifyToken, Manage.dashboardData);
 module.exports = router;

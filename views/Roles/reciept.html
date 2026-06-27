@@ -18,18 +18,17 @@
         </div>
 
         <!-- Receipt -->
-        <div class="card-body bg-white p-4" id="receiptArea">
+        <div class="card-body border border-dark bg-white p-4" id="receiptArea">
 
             <div class="text-center mb-4">
-                <h2 class="fw-bold mb-1">Global College</h2>
+                <h2 class="fw-bold mb-1">ABC College</h2>
                 <p class="mb-2">Bathinda, Punjab</p>
                 <h4 class="fw-bold">Fee Receipt</h4>
             </div>
 
             <div class="table-responsive">
-                <table class="table table-bordered align-middle mb-0 receipt-table">
+                <table class="table table-bordered align-middle mb-0">
                     <tbody>
-
                         <tr>
                             <th width="20%">Receipt No</th>
                             <td width="30%">{{receipt.receipt_no}}</td>
@@ -37,11 +36,9 @@
                             <th width="20%">Date</th>
                             <td width="30%">{{receipt_date}}</td>
                         </tr>
-
                         <tr>
                             <th>Roll No</th>
                             <td>{{receipt.roll_no}}</td>
-
                             <th>Student Name</th>
                             <td>{{name}}</td>
                         </tr>
@@ -57,23 +54,27 @@
                                 {{CONSTANTS.currency}} {{receipt.amount}}
                             </td>
                         </tr>
-
                     </tbody>
                 </table>
             </div>
 
-            <div class="row mt-5 pt-5">
-                <div class="col-6">
-                    ___________________
-                    <br>
-                    <strong>Received By</strong>
-                </div>
+            <!-- Signature Section -->
+            <div class="signature-table">
+                <table width="100%">
+                    <tr>
+                        <td width="50%" style="text-align:left;">
+                            ___________________
+                            <br>
+                            <strong>Received By</strong>
+                        </td>
 
-                <div class="col-6 text-end">
-                    ___________________
-                    <br>
-                    <strong>Authorized Signature</strong>
-                </div>
+                        <td width="50%" style="text-align:right;">
+                            ___________________
+                            <br>
+                            <strong>Authorized Signature</strong>
+                        </td>
+                    </tr>
+                </table>
             </div>
 
         </div>
@@ -81,115 +82,70 @@
     </div>
 </div>
 
-
 <style>
-
-body{
-    background:#f5f5f5;
-}
-
-#receiptArea{
-    border:2px solid #000 !important;
-    background:#fff !important;
-}
-
-.receipt-table{
-    width:100%;
-    border-collapse:collapse !important;
-}
-
-.receipt-table th,
-.receipt-table td{
-    border:1px solid #000 !important;
-    padding:10px !important;
-    vertical-align:middle !important;
-}
-
-@media print{
-
-    .no-print{
-        display:none !important;
+    .signature-table {
+        margin-top: 100px;
     }
 
-    body{
-        background:#fff !important;
+    .signature-table table {
+        width: 100%;
     }
 
-    .card{
-        border:none !important;
-        box-shadow:none !important;
+    .signature-table td {
+        vertical-align: bottom;
     }
 
-    #receiptArea{
-        border:2px solid #000 !important;
-        padding:20px !important;
-    }
+    @media print {
 
-    .receipt-table{
-        border-collapse:collapse !important;
-    }
-
-    .receipt-table th,
-    .receipt-table td{
-        border:1px solid #000 !important;
-    }
-
-    @page{
-        size:A5 portrait;
-        margin:5mm;
-    }
-
-}
-
-</style>
-
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-<script>
-
-function printReceipt() {
-    window.print();
-}
-
-function downloadPDF() {
-
-    const element = document.getElementById("receiptArea");
-
-    const options = {
-
-        margin: [5,5,5,5],
-
-        filename: "Fee_Receipt_{{receipt.receipt_no}}.pdf",
-
-        image: {
-            type: "jpeg",
-            quality: 1
-        },
-
-        html2canvas: {
-            scale: 4,
-            useCORS: true,
-            letterRendering: true
-        },
-
-        jsPDF: {
-            unit: "mm",
-            format: "a5",
-            orientation: "portrait"
-        },
-
-        pagebreak: {
-            mode: ["avoid-all"]
+        .no-print {
+            display: none !important;
         }
 
-    };
+        body {
+            background: #fff;
+        }
 
-    html2pdf()
-        .set(options)
-        .from(element)
-        .save();
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
 
-}
+        #receiptArea {
+            border: 2px solid #000 !important;
+            padding: 20px !important;
+        }
 
+        @page {
+            size: A5 portrait;
+            margin: 8mm;
+        }
+    }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+    function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+
+        const pdf = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: "a4"
+        });
+
+        const receipt = document.getElementById("receiptArea");
+
+        pdf.html(receipt, {
+            x: 10,
+            y: 10,
+            width: 190,
+            windowWidth: receipt.scrollWidth,
+            callback: function (pdf) {
+                pdf.save("Fee_Receipt.pdf");
+            }
+        });
+    }
 </script>

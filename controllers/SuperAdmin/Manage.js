@@ -7,12 +7,24 @@ exports.dashboard = async (req, res) => {
         const email = req.user.email;
         const user = await UserModel.getSingleRecord(
             'admins',
-            { email:email },
+            { email: email },
             '*'
+        );
+        const students = await UserModel.getSingleRecord(
+            'students',
+            {},
+            'count(id) as total'
+        );
+        const staff = await UserModel.getSingleRecord(
+            'staff',
+            {},
+            'count(id) as total'
         );
         return View.Sview(res, 'dashboard', {
             user: user,
-            header:'User Dashboard'
+            students: students.total,
+            staff: staff.total,
+            header: 'User Dashboard'
         });
     } catch (err) {
         console.log(err);
@@ -24,138 +36,209 @@ exports.dashboard = async (req, res) => {
 };
 
 exports.users = async (req, res) => {
-    const result = await UserModel.getRecords('users', {}, '*');
+    const result = await UserModel.getRecords('students', {}, '*');
     thead = `
             <tr>
                 <th>#</th>
+                <th>Roll No</th>
                 <th>Email</th>
-                <th>Date</th>
+                <th>Course</th>
+                <th>Subjects</th>
+                <th>Total Fees</th>
+                <th>Pending Fees</th>
+                <th>Joining Date & Time</th>
             </tr>
         `;
-
     const rows = Array.isArray(result) ? result : (result?.rows || []);
+
     let tableRows = '';
 
-    rows.forEach((u, index) => {
+
+    for (const [index, u] of rows.entries()) {
+
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            { id: u.course },
+            '*'
+        );
+        let subjects = '';
+
+        if (u.subject_ids) {
+
+            const ids = JSON.parse(u.subject_ids);
+
+            for (const id of ids) {
+
+                const subject = await UserModel.getSingleRecord(
+                    'subjects',
+                    { id },
+                    'subject_name'
+                );
+
+                if (subject) {
+                    subjects += subject.subject_name + ', ';
+                }
+            }
+
+
+            subjects = subjects.replace(/, $/, '');
+        }
+
         tableRows += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${u.email}</td>
-                    <td>${SuperHelper.formatDate(u.created_at)}</td>
-                </tr>
-            `;
-    });
-
-    if (!rows.length) {
-
-        tableRows = `
             <tr>
-                <td colspan="3">No Data Found</td>
+                <td>${index + 1}</td>
+                <td>${u.roll_no}</td>
+                <td>${u.email}</td>
+                <td>${course?.course_name || ''}</td>
+                <td>${subjects || ''}</td>
+                <td>${CONSTANTS.currency}${u.total_fees}</td>
+                <td>${CONSTANTS.currency}${u.total_fees - u.pending_fees}</td>
+                <td>${SuperHelper.formatDate(u.created_at)}</td>
             </tr>
-        `;
-
+            `;
+    }
+    if (!rows.length) {
+        tableRows = `
+        <tr>
+            <td colspan="5">No Data Found</td>
+        </tr>
+    `;
     }
     return View.Sview(res, 'reports', {
-       title: 'All Students Report',
+        title: "All Students",
         thead: thead,
         tableRows,
     });
 
 };
 
-// exports.add = async (req, res) => {
+exports.StaffHistory = async (req, res) => {
 
-//     const errors = {};
-//     let email = '', password = '', role = '';
-//     let message = '', messageType = '';
+    const result = await UserModel.getRecords('staff', {}, '*');
 
-//     if (req.method === 'POST') {
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Staff Id</th>
+            <th>Name</th>
+            <th>Mobile No</th>
+            <th>Gender</th>
+            <th>Role</th>
+            <th>Joining Date</th>
+        </tr>
+    `;
 
-//         ({ email, password, role } = req.body);
+    const rows = Array.isArray(result) ? result : (result?.rows || []);
 
-//         if (!email)
-//             errors.email = 'Email required';
-//         else if (!/\S+@\S+\.\S+/.test(email))
-//             errors.email = 'Invalid email';
+    let tableRows = '';
 
-//         if (!role)
-//             errors.role = 'Role required';
+    for (const [index, u] of rows.entries()) {
+        const name = await UserModel.getSingleRecord(
+            'permissions',
+            { role: u.role },
+            'name'
+        );
 
-//         if (!password)
-//             errors.password = 'Password required';
-//         else if (password.length < 4)
-//             errors.password = 'Min 4 chars';
+        tableRows += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${u.staff_id}</td>
+                <td>${u.first_name} ${u.last_name}</td>
+                <td>${u.mobile}</td>
+                <td>${u.gender}</td>
+                <td>${name.name}</td>
+                <td>${SuperHelper.formatDate(u.created_at)}</td>
+                
+            </tr>
+        `;
+    }
 
-//         if (Object.keys(errors).length) {
-//             message = 'Fix validation errors';
-//             messageType = 'error';
-//         } else {
+    if (!rows.length) {
+        tableRows = `
+        <tr>
+            <td colspan="8">No Data Found</td>
+        </tr>
+        `;
+    }
 
-//             const exists = await UserModel.getSingleRecord('admins', { email: email }, '*');
-//             const roleExist = await UserModel.getSingleRecord('admins', { role: role }, '*');
+    return View.Sview(res, 'reports', {
+        title: "All Staff History",
+        thead,
+        tableRows,
+    });
 
-//             if (exists) {
-//                 message = 'This Email already exists';
-//                 messageType = 'error';
-//             } else {
-//                 if (roleExist) {
-//                     message = 'This Role already exists';
-//                     messageType = 'error';
-//                 } else {
+};
 
-//                     await UserModel.addRecord('admins', {
-//                         email,
-//                         password,
-//                         role,
-//                         created_at: new Date()
-//                     });
 
-//                     message = 'User added successfully!';
-//                     messageType = 'success';
+exports.add = async (req, res) => {
+    const errors = {};
+    let course_name = '', course_code = '';
+    let message = '', messageType = '';
 
-//                     email = password = '';
-//                 }
-//             }
-//         }
-//     }
-//     const fields = `
-//             <div class="mb-3">
-//                 <label>Email</label>
-//                 <input name="email" class="form-control ${errors.email ? 'is-invalid' : ''}" value="${email}">
-//                 ${errors.email ? `<small class="text-danger">${errors.email}</small>` : ''}
-//             </div>
+    if (req.method === 'POST') {
 
-//             <div class="mb-3">
-//                 <label>Password</label>
-//                 <input type="password" name="password" class="form-control ${errors.password ? 'is-invalid' : ''}" value="${password}">
-//                 ${errors.password ? `<small class="text-danger">${errors.password}</small>` : ''}
-//             </div>
+        ({ course_name = '', course_code = '' } = req.body);
+        errors.course_name = !course_name ? 'Course Name required' : '';
+        errors.course_code = !course_code ? 'Course Code required' : '';
 
-//             <div class="mb-3">
-//         <label>Role</label>
-//         <select name="role" class="form-control ${errors.role ? 'is-invalid' : ''}">
-//             <option value="">Select Role</option>
-//             <option value="SA" ${role === 'SUBADMIN' ? 'selected' : ''}>Subadmin</option>
-//             <option value="AC" ${role === 'ACCOUNTANT' ? 'selected' : ''}>Accountant</option>
-//         </select>
-//         ${errors.role ? `<small class="text-danger">${errors.role}</small>` : ''}
-//     </div>
-//         `;
-//     const buttons = `
-//             <button class="btn btn-success">Save</button>
-//             <a href="/admin/report" class="btn btn-secondary">Back</a>
-//         `;
+        Object.keys(errors).forEach(k => !errors[k] && delete errors[k]);
 
-//     return View.Aview(res, 'forms', {
-//         title: 'Add User',
-//         action: '/admin/add',
-//         method: 'POST',
-//         message,
-//         messageType,
-//         fields,
-//         buttons
-//     });
-// };
+        if (Object.keys(errors).length) {
+            message = 'Fix validation errors';
+            messageType = 'error';
+        } else {
+
+
+            await UserModel.addRecord('courses', {
+                course_name,
+                course_code,
+            });
+
+            message = 'Course added successfully!';
+            messageType = 'success';
+
+            course_name = '';
+            course_code = '';
+        }
+    }
+
+    const fields = `
+        ${Form.label("Course Name")}
+        ${Form.text("course_name", course_name, {
+            class: `form-control ${errors.course_name ? "is-invalid" : ""}`,
+            placeholder: "Enter Course Name"
+        })}
+        ${errors.course_name ? `<div class="text-danger small mt-1">${errors.course_name}</div>` : ""}
+
+        ${Form.label("Course Code")}
+        ${Form.text("course_code", course_code, {
+            class: `form-control ${errors.course_code ? "is-invalid" : ""}`,
+            placeholder: "Enter Course Code"
+        })}
+        ${errors.course_code ? `<div class="text-danger small mt-1">${errors.course_code}</div>` : ""}
+    `;
+
+    const buttons = `
+        ${Form.submit("Add Course", {
+            class: "btn btn-dark"
+        })}
+    `;
+
+    const response = {
+        title: 'Add New Course',
+        action: '/super/add',
+        method: 'POST',
+        message,
+        messageType,
+        errors,
+        fields,
+        buttons
+    };
+
+    return View.Sview(res, 'forms', response);
+};
+
+
 
 exports.logout = (req, res) => {
     res.clearCookie('token', {

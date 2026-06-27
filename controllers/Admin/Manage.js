@@ -228,3 +228,60 @@ exports.add = async (req, res) => {
     return View.Aview(res, 'forms', response);
 };
 
+exports.StaffHistory = async (req, res) => {
+
+    const result = await UserModel.getRecords('staff', {}, '*');
+
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Staff Id</th>
+            <th>Name</th>
+            <th>Mobile No</th>
+            <th>Gender</th>
+            <th>Role</th>
+            <th>Joining Date</th>
+        </tr>
+    `;
+
+    const rows = Array.isArray(result) ? result : (result?.rows || []);
+
+    let tableRows = '';
+
+    for (const [index, u] of rows.entries()) {
+        const name = await UserModel.getSingleRecord(
+                'permissions',
+                { role:u.role },
+                'name'
+            );
+
+        tableRows += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${u.staff_id}</td>
+                <td>${u.first_name} ${u.last_name}</td>
+                <td>${u.mobile}</td>
+                <td>${u.gender}</td>
+                <td>${name.name}</td>
+                <td>${SuperHelper.formatDate(u.created_at)}</td>
+                
+            </tr>
+        `;
+    }
+
+    if (!rows.length) {
+        tableRows = `
+        <tr>
+            <td colspan="8">No Data Found</td>
+        </tr>
+        `;
+    }
+
+    return View.Aview(res, 'reports', {
+        title: "All Staff History",
+        thead,
+        tableRows,
+    });
+
+};
+

@@ -108,9 +108,13 @@
             </div>
 
             <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="popupClose()">
+                    Close
+                </button>
                 <button type="button" class="btn btn-primary" id="saveSubjects">
                     Save
                 </button>
+
             </div>
 
         </div>
@@ -121,7 +125,16 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+
+
 <script>
+
+    function popupClose() {
+        bootstrap.Modal.getInstance(
+            document.getElementById('subjectModal')
+        ).hide();
+
+    }
 
     document.addEventListener('click', function (e) {
 
@@ -142,7 +155,7 @@
 
         if (!courseId) return;
 
-        let response = await fetch(`/role/subjects/${courseId}`);
+        let response = await fetch(`{{CONSTANTS.role}}subjects/${courseId}`);
         let result = await response.json();
 
         let html = '';
@@ -171,7 +184,6 @@
 
     });
 </script>
-
 
 <script>
 
@@ -308,7 +320,7 @@
             // checkbox unchecked hone par value bhejo
             formData.transport = document.getElementById('transport').checked ? 'Yes' : 'No';
 
-            const response = await fetch('/role/registerPost', {
+            const response = await fetch('{{CONSTANTS.role}}registerPost', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -330,7 +342,7 @@
                 });
 
                 setTimeout(() => {
-                    window.location.href = '/role/register';
+                    window.location.href = '{{CONSTANTS.role}}register';
                 }, 1000);
 
             } else {

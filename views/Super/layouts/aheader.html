@@ -57,6 +57,9 @@
             margin-left: 250px;
             padding: 80px 20px;
         }
+        a{
+            text-decoration: none;
+        }
 
         /* Mobile */
         @media(max-width:767px) {
@@ -110,9 +113,15 @@
         </a>
 
         <div class="collapse submenu" id="usersMenu">
-            <a href="#">Add User</a>
-            <a href="#">Manage Users</a>
-            <a href="#">All Students</a>
+            <a href="/super/all-staff">All Staff</a>
+            <a href="/super/report/">All Students</a>
+        </div>
+         <a data-bs-toggle="collapse" href="#courseMenu">
+            <i class="bi bi-book"></i> Course
+        </a>
+
+        <div class="collapse submenu" id="courseMenu">
+            <a href="/super/add">Add New Course</a>
         </div>
         <a data-bs-toggle="collapse" href="#settingsMenu">
             <i class="bi bi-gear"></i> Settings
@@ -120,7 +129,7 @@
 
         <div class="collapse submenu" id="settingsMenu">
             <a href="#">Profile</a>
-            <a href="">Change Password</a>
+            <a href="#">Change Password</a>
         </div>
         <a href="/super/logout">
             <i class="bi bi-box-arrow-right"></i> Logout

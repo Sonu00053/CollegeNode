@@ -9,6 +9,11 @@ const bcrypt = require('bcrypt');
 
 
 exports.loginView = (req, res) => {
+    const token = req.cookies.token;
+
+    if (token) {
+        return res.redirect(`${global.CONSTANTS.role}index`);
+    }
     View.Rview(res, 'login');
 };
 
@@ -26,7 +31,8 @@ exports.login = async (req, res) => {
             {
                 id: user.id,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                check: CONSTANTS.role,
             },
             process.env.JWT_SECRET,
             { expiresIn: '1d' }
@@ -45,7 +51,7 @@ exports.login = async (req, res) => {
         return res.json({
             status: true,
             message: 'Login Successful',
-            redirect: '/role/index'
+            redirect: CONSTANTS.role + 'index'
         });
 
     } catch (err) {
@@ -113,7 +119,7 @@ exports.changePassword = async (req, res) => {
         `;
     const response = {
         title: 'Change Password',
-        action: '/role/change-password',
+        action: CONSTANTS.role + 'change-password',
         method: 'POST',
         message,
         messageType,
@@ -129,7 +135,7 @@ exports.registerView = async (req, res) => {
     try {
         const course = await UserModel.getRecords('courses', {}, '*');
         const subjects = await UserModel.getRecords('subjects', {}, '*');
-        return View.Rview(res, 'register',{
+        return View.Rview(res, 'register', {
             course
         });
     } catch (err) {
