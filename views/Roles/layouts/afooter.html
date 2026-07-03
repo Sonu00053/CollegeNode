@@ -29,46 +29,100 @@
 
 
 <script>
+    // $(document).ready(function () {
+    //     $('#example').DataTable({
+    //         pageLength: 10,   // 👈 yahi main setting hai
+    //         dom:
+    //             "<'row mb-3'<'col-md-8 d-flex flex-wrap gap-2'B><'col-md-4'f>>" +
+    //             "<'row'<'col-12'tr>>" +
+    //             "<'row mt-3 align-items-center'<'col-md-3'l><'col-md-6'i><'col-md-3'p>>",
+    //         lengthMenu: [
+    //             [5, 10, 25, 50, 100, -1],
+    //             [5, 10, 25, 50, 100, "All"]
+    //         ],
+    //         buttons: [
+    //             {
+    //                 extend: 'copy',
+    //                 className: 'btn btn-primary btn-sm',
+    //                 text: '<i class="bi bi-clipboard"></i> Copy'
+    //             },
+    //             {
+    //                 extend: 'csv',
+    //                 className: 'btn btn-success btn-sm',
+    //                 text: '<i class="bi bi-filetype-csv"></i> CSV'
+    //             },
+    //             {
+    //                 extend: 'excel',
+    //                 className: 'btn btn-success btn-sm',
+    //                 text: '<i class="bi bi-file-earmark-excel"></i> Excel'
+    //             },
+    //             {
+    //                 extend: 'pdf',
+    //                 className: 'btn btn-danger btn-sm',
+    //                 text: '<i class="bi bi-file-earmark-pdf"></i> PDF'
+    //             },
+    //             {
+    //                 extend: 'print',
+    //                 className: 'btn btn-info btn-sm',
+    //                 text: '<i class="bi bi-printer"></i> Print'
+    //             }
+    //         ],
+
+    //         responsive: true
+    //     });
+
+    // });
+
     $(document).ready(function () {
+
         $('#example').DataTable({
-            pageLength: 10,   // 👈 yahi main setting hai
-            dom:
-                "<'row mb-3'<'col-md-8 d-flex flex-wrap gap-2'B><'col-md-4'f>>" +
-                "<'row'<'col-12'tr>>" +
-                "<'row mt-3 align-items-center'<'col-md-3'l><'col-md-6'i><'col-md-3'p>>",
+
+            paging: true,
+            pageLength: 10,
             lengthMenu: [
-                [5, 10, 25, 50, 100, -1],
-                [5, 10, 25, 50, 100, "All"]
-            ],
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "All"]
+            ], ordering: true,
+            searching: true,
+            info: true,
+            responsive: true,
+            autoWidth: false,
+
+            language: {
+                paginate: {
+                    previous: "&laquo;",
+                    next: "&raquo;"
+                }
+            },
+
+            dom:
+                "<'row mb-3'<'col-md-8'B><'col-md-4'f>>" +
+                "<'row'<'col-12'tr>>" +
+                "<'row mt-3'<'col-md-3'l><'col-md-5'i><'col-md-4'p>>",
+
             buttons: [
                 {
                     extend: 'copy',
-                    className: 'btn btn-primary btn-sm',
-                    text: '<i class="bi bi-clipboard"></i> Copy'
+                    className: 'btn btn-secondary btn-sm'
                 },
                 {
                     extend: 'csv',
-                    className: 'btn btn-success btn-sm',
-                    text: '<i class="bi bi-filetype-csv"></i> CSV'
+                    className: 'btn btn-success btn-sm'
                 },
                 {
                     extend: 'excel',
-                    className: 'btn btn-success btn-sm',
-                    text: '<i class="bi bi-file-earmark-excel"></i> Excel'
+                    className: 'btn btn-success btn-sm'
                 },
                 {
                     extend: 'pdf',
-                    className: 'btn btn-danger btn-sm',
-                    text: '<i class="bi bi-file-earmark-pdf"></i> PDF'
+                    className: 'btn btn-danger btn-sm'
                 },
                 {
                     extend: 'print',
-                    className: 'btn btn-info btn-sm',
-                    text: '<i class="bi bi-printer"></i> Print'
+                    className: 'btn btn-info btn-sm'
                 }
-            ],
+            ]
 
-            responsive: true
         });
 
     });

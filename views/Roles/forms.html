@@ -65,4 +65,16 @@
             }
         }
     }
+
+    function loadCourseFees(){
+        document.getElementById('action_type').value='load';
+        document.forms[0].submit();
+    }
+    function updateFees(){
+        document.getElementById('action_type').value='update';
+        return true;
+    }
+
+    
 </script>
+

@@ -18,6 +18,7 @@ exports.loginView = (req, res) => {
 };
 
 exports.login = async (req, res) => {
+
     try {
         const { email, password } = req.body;
         const user = await UserModel.getSingleRecord('staff', { email: email, password: password }, '*');
@@ -157,9 +158,16 @@ exports.getSubjectsByCourse = async (req, res) => {
             '*'
         );
 
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            { id: course_id },
+            '*'
+        );
+
         return res.json({
             status: true,
-            subjects
+            subjects,
+            duration: course.duration
         });
 
     } catch (err) {
@@ -168,6 +176,8 @@ exports.getSubjectsByCourse = async (req, res) => {
         });
     }
 };
+
+
 
 
 
@@ -190,7 +200,6 @@ exports.register = async (req, res) => {
             state,
             course,
             semester,
-            password,
             transport,
             vehicle_name,
             vehicle_no,
@@ -214,8 +223,7 @@ exports.register = async (req, res) => {
             !city ||
             !state ||
             !course ||
-            !semester ||
-            !password
+            !semester
         ) {
             return res.status(400).json({
                 status: false,
@@ -265,6 +273,12 @@ exports.register = async (req, res) => {
             '*'
         );
 
+        const coursechek = await UserModel.getSingleRecord(
+            'courses',
+            { id: course },
+            '*'
+        );
+
         if (existingUser) {
             return res.status(400).json({
                 status: false,
@@ -273,7 +287,7 @@ exports.register = async (req, res) => {
         }
         const existingRollNo = await UserModel.getSingleRecord(
             'students',
-            { roll_no },
+            { roll_no, course },
             '*'
         );
 
@@ -289,7 +303,7 @@ exports.register = async (req, res) => {
         } catch (e) {
             subjectsArray = [];
         }
-
+        const yearColumn = `${semester}y`;
         const student_id = await exports.generateStaffId();
         const insertData = {
             student_id,
@@ -308,17 +322,47 @@ exports.register = async (req, res) => {
             city,
             state,
             course,
-            semester,
+            course_year: semester,
+            total_fees: Number(coursechek[yearColumn]),
             transport,
             vehicle_name: transport === 'Yes' ? vehicle_name : '',
             vehicle_no: transport === 'Yes' ? vehicle_no : '',
-            password,
             subject_ids: JSON.stringify(subjectsArray)
+        };
+        const year = new Date().getFullYear();
+        let subjects = '';
+        if (subjectsArray) {
+            const ids = subjectsArray;
+            for (const id of ids) {
+                const subject = await UserModel.getSingleRecord(
+                    'subjects',
+                    { id },
+                    'subject_name'
+                );
+                if (subject) {
+                    subjects += subject.subject_name + ', ';
+                }
+            }
+            subjects = subjects.replace(/, $/, '');
+        }
+        const insertDatasession = {
+            student_id,
+            roll_no,
+            course: (coursechek.course_name),
+            session_start: year,
+            year: semester,
+            session_end: (year + 1),
+            subjects: subjects
         };
 
         const result = await UserModel.addRecord(
             'students',
             insertData
+        );
+
+        const result2 = await UserModel.addRecord(
+            'session_detail',
+            insertDatasession
         );
 
         return res.status(200).json({

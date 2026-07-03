@@ -13,11 +13,9 @@
                             class="form-control"><small class="error"></small></div>
                     <div class="col-md-6"><label>DOB *</label><input type="date" name="dob" id="dob"
                             class="form-control"><small class="error"></small></div>
-                    <div class="col-md-6"><label>Gender *</label><select id="gender" name="gender" class="form-control">
-                            <option value="">Select</option>
-                            <option>Male</option>
+                    <div class="col-md-6"><label>Gender *</label><select id="gender" name="gender" class="form-control"
+                            readonly>
                             <option>Female</option>
-                            <option>Other</option>
                         </select><small class="error"></small></div>
                     <div class="col-md-6"><label>Father Name *</label><input name="father_name" id="father_name"
                             class="form-control"><small class="error"></small></div>
@@ -52,19 +50,10 @@
                         <small class="error"></small>
                     </div>
                     <input type="hidden" name="subject_ids" id="subject_ids">
-                    <div class="col-md-6"><label>Semester *</label><select id="semester" name="semester"
+                    <div class="col-md-6"><label>Year *</label><select id="semester" name="semester"
                             class="form-control">
-                            <option value="">Select</option>
-                            <option>1</option>
-                            <option>2</option>
-                            <option>3</option>
-                            <option>4</option>
-                            <option>5</option>
-                            <option>6</option>
                         </select><small class="error"></small></div>
 
-                    <div class="col-md-6"><label>Password *</label><input type="password" name="password" id="password"
-                            class="form-control"><small class="error"></small></div>
                     <div class="col-md-12">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="transport" name="transport" value="Yes">
@@ -159,6 +148,7 @@
         let result = await response.json();
 
         let html = '';
+        let html2 = '';
         result.subjects.forEach(subject => {
 
             html += `
@@ -177,6 +167,16 @@
         });
 
         document.getElementById('subjectList').innerHTML = html;
+
+        let duration = parseInt(result.duration) || 0;
+
+        let semesterHtml = '';
+
+        for (let i = 1; i <= duration; i++) {
+            semesterHtml += `<option value="${i}">${i}</option>`;
+        }
+
+        document.getElementById('semester').innerHTML = semesterHtml;
 
         new bootstrap.Modal(
             document.getElementById('subjectModal')
@@ -250,7 +250,6 @@
             'email',
             'course',
             'semester',
-            'password',
             'city',
             'address',
             'pincode',
@@ -305,11 +304,6 @@
 
         });
 
-        let p = document.getElementById('password').value;
-
-        if (p && p.length < 6) {
-            err('password', 'Minimum 6 characters');
-        }
 
         if (!valid) return;
 

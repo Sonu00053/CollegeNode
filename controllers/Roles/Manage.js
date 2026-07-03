@@ -30,23 +30,27 @@ exports.dashboard = async (req, res) => {
 };
 
 exports.users = async (req, res) => {
+
     const result = await UserModel.getRecords('students', {}, '*');
-    thead = `
-            <tr>
-                <th>#</th>
-                <th>Roll No</th>
-                <th>Email</th>
-                <th>Course</th>
-                <th>Subjects</th>
-                <th>Total Fees</th>
-                <th>Pending Fees</th>
-                <th>Joining Date & Time</th>
-            </tr>
-        `;
+
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Student Id</th>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Course</th>
+            <th>Subjects</th>
+            <th>Total Fees</th>
+            <th>Pending Fees</th>
+            <th>Joining Date & Time</th>
+        </tr>
+    `;
+
     const rows = Array.isArray(result) ? result : (result?.rows || []);
 
     let tableRows = '';
-
 
     for (const [index, u] of rows.entries()) {
 
@@ -55,7 +59,8 @@ exports.users = async (req, res) => {
             { id: u.course },
             '*'
         );
-        let subjects = '';
+
+        let subjectList = [];
 
         if (u.subject_ids) {
 
@@ -70,48 +75,63 @@ exports.users = async (req, res) => {
                 );
 
                 if (subject) {
-                    subjects += subject.subject_name + ', ';
+                    subjectList.push(subject.subject_name);
                 }
+
             }
 
-
-            subjects = subjects.replace(/, $/, '');
         }
 
         tableRows += `
-            <tr>
-                <td>${index + 1}</td>
-                <td>${u.roll_no}</td>
-                <td>${u.email}</td>
-                <td>${course?.course_name || ''}</td>
-                <td>${subjects || ''}</td>
-                <td>${CONSTANTS.currency}${u.total_fees}</td>
-                <td>${CONSTANTS.currency}${u.total_fees - u.pending_fees}</td>
-                <td>${SuperHelper.formatDate(u.created_at)}</td>
-            </tr>
-            `;
+        <tr>
+
+            <td>${index + 1}</td>
+            <td>${u.student_id}</td>
+            <td>${u.roll_no}</td>
+            <td>${u.first_name} ${u.last_name}</td>
+            <td>${u.email}</td>
+            <td>${course?.course_name || ''}</td>
+
+            <td>
+                <button
+                    class="btn btn-primary btn-sm view-subjects"
+                    data-subjects='${JSON.stringify(subjectList)}'>
+                    View
+                </button>
+            </td>
+
+            <td>${CONSTANTS.currency}${u.total_fees}</td>
+            <td>${CONSTANTS.currency}${u.total_fees - u.pending_fees}</td>
+            <td>${SuperHelper.formatDate(u.created_at)}</td>
+
+        </tr>
+        `;
+
     }
+
     if (!rows.length) {
+
         tableRows = `
         <tr>
-            <td colspan="5">No Data Found</td>
+            <td colspan="10" class="text-center">
+                No Data Found
+            </td>
         </tr>
-    `;
+        `;
+
     }
-    var url = CONSTANTS.role + 'create-reciept';
-    const action = `
-<a href="${url}" class="btn btn-warning">
-    Create Receipt
-</a>
-`; return View.Rview(res, 'reports', {
+
+    return View.Rview(res, 'reports', {
+
         title: `
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between">
             <span>All Students Report</span>
-            ${action}
         </div>
-    `,
-        thead: thead,
-        tableRows,
+        `,
+
+        thead,
+        tableRows
+
     });
 
 };

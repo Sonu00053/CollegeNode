@@ -3,6 +3,7 @@ const router = express.Router();
 const Login = require('../controllers/Roles/Login');
 const Manage = require('../controllers/Roles/Manage');
 const Permission = require('../controllers/Roles/Permission');
+const Course = require('../controllers/Roles/Course');
 const jwtAuth = require('../helpers/roleAuth');
 
 
@@ -32,5 +33,12 @@ router.get('/reciept/:id',jwtAuth.verifyToken, Manage.reciept);
 router.route('/create-reciept')
     .get(jwtAuth.verifyToken,Manage.reciptcreate)
     .post(jwtAuth.verifyToken,Manage.reciptcreate);
+
+    router.route('/fees-update')
+    .get(jwtAuth.verifyToken,Course.coursefessupdate)
+    .post(jwtAuth.verifyToken,Course.coursefessupdate);
+    router.get('/recieps-detail',jwtAuth.verifyToken, Manage.recieptHistory);
+    router.get('/course-fees-history',jwtAuth.verifyToken, Course.coursefeeshistory);
+    router.get('/heads-detail',jwtAuth.verifyToken, Course.headsHistory);
 
 module.exports = router;

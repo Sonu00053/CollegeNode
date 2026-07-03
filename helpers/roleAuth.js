@@ -7,7 +7,7 @@ exports.verifyToken = async (req, res, next) => {
         const token = req.cookies.token;
 
         if (!token) {
-            return res.redirect(`/${global.CONSTANTS.role}/logout`);
+            return res.redirect(`${global.CONSTANTS.role}logout`);
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -19,7 +19,7 @@ exports.verifyToken = async (req, res, next) => {
         );
 
         if (!user) {
-            return res.redirect(`/${global.CONSTANTS.role}/logout`);
+            return res.redirect(`${global.CONSTANTS.role}logout`);
         }
 
         // ========================
@@ -203,7 +203,7 @@ exports.verifyToken = async (req, res, next) => {
 
         console.log(err);
 
-        return res.redirect(`/${global.CONSTANTS.role}/logout`);
+        return res.redirect(`${global.CONSTANTS.role}logout`);
 
     }
 };
