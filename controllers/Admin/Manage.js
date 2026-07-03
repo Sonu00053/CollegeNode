@@ -80,34 +80,81 @@ exports.users = async (req, res) => {
 
 exports.users = async (req, res) => {
     const result = await UserModel.getRecords('students', {}, '*');
-    thead = `
+    const thead = `
             <tr>
                 <th>#</th>
+                <th>Student Id</th>
+                <th>Roll No</th>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Phone</th>
                 <th>Course</th>
-                <th>Joining Date</th>
+                <th>Subjects</th>
+                <th>Total Fees</th>
+                <th>Pending Fees</th>
+                <th>Joining Date & Time</th>
             </tr>
         `;
 
     const rows = Array.isArray(result) ? result : (result?.rows || []);
+
     let tableRows = '';
 
-    rows.forEach((u, index) => {
-        
-        tableRows += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${u.first_name} ${u.last_name}</td>
-                    <td>${u.email}</td>
-                    <td>${u.mobile}</td>
-                    <td>${u.course}</td>
-                    <td>${SuperHelper.formatDate(u.created_at)}</td>
+    for (const [index, u] of rows.entries()) {
 
-                </tr>
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            { id: u.course },
+            '*'
+        );
+
+        let subjectList = [];
+
+        if (u.subject_ids) {
+
+            const ids = JSON.parse(u.subject_ids);
+
+            for (const id of ids) {
+
+                const subject = await UserModel.getSingleRecord(
+                    'subjects',
+                    { id },
+                    'subject_name'
+                );
+
+                if (subject) {
+                    subjectList.push(subject.subject_name);
+                }
+
+            }
+
+        }
+
+        tableRows += `
+            <tr>
+    
+                <td>${index + 1}</td>
+                <td>${u.student_id}</td>
+                <td>${u.roll_no}</td>
+                <td>${u.first_name} ${u.last_name}</td>
+                <td>${u.email}</td>
+                <td>${course?.course_name || ''}</td>
+    
+                <td>
+                    <button
+                        class="btn btn-primary btn-sm view-subjects"
+                        data-subjects='${JSON.stringify(subjectList)}'>
+                        View
+                    </button>
+                </td>
+    
+                <td>${CONSTANTS.currency}${u.total_fees}</td>
+                <td>${CONSTANTS.currency}${u.total_fees - u.pending_fees}</td>
+                <td>${SuperHelper.formatDate(u.created_at)}</td>
+    
+            </tr>
             `;
-    });
+
+    }
 
     if (!rows.length) {
 
@@ -195,23 +242,23 @@ exports.add = async (req, res) => {
     const fields = `
         ${Form.label("Course Name")}
         ${Form.text("course_name", course_name, {
-            class: `form-control ${errors.course_name ? "is-invalid" : ""}`,
-            placeholder: "Enter Course Name"
-        })}
+        class: `form-control ${errors.course_name ? "is-invalid" : ""}`,
+        placeholder: "Enter Course Name"
+    })}
         ${errors.course_name ? `<div class="text-danger small mt-1">${errors.course_name}</div>` : ""}
 
         ${Form.label("Course Code")}
         ${Form.text("course_code", course_code, {
-            class: `form-control ${errors.course_code ? "is-invalid" : ""}`,
-            placeholder: "Enter Course Code"
-        })}
+        class: `form-control ${errors.course_code ? "is-invalid" : ""}`,
+        placeholder: "Enter Course Code"
+    })}
         ${errors.course_code ? `<div class="text-danger small mt-1">${errors.course_code}</div>` : ""}
     `;
 
     const buttons = `
         ${Form.submit("Add Course", {
-            class: "btn btn-dark"
-        })}
+        class: "btn btn-dark"
+    })}
     `;
 
     const response = {
@@ -250,10 +297,10 @@ exports.StaffHistory = async (req, res) => {
 
     for (const [index, u] of rows.entries()) {
         const name = await UserModel.getSingleRecord(
-                'permissions',
-                { role:u.role },
-                'name'
-            );
+            'permissions',
+            { role: u.role },
+            'name'
+        );
 
         tableRows += `
             <tr>
