@@ -2,7 +2,7 @@ require('dotenv').config();
 
 global.CONSTANTS = require('./constants/constant');
 global.Form = require('./helpers/FormHelper');
-global.SuperHelper = require('./helpers/SuperHelper');
+global.SuperHelper = require('./helpers/superHelper');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
