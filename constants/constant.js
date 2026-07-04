@@ -1,5 +1,5 @@
 module.exports = {
-    TITLE: 'College Management System',
+    TITLE: 'Gopi Chand College',
     role: '/staff/',
     admin: '/admin/',
     super: '/super/',
