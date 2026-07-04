@@ -37,7 +37,6 @@ exports.users = async (req, res) => {
         <tr>
             <th>#</th>
             <th>Student Id</th>
-            <th>Roll No</th>
             <th>Name</th>
             <th>Email</th>
             <th>Course</th>
@@ -87,7 +86,6 @@ exports.users = async (req, res) => {
 
             <td>${index + 1}</td>
             <td>${u.student_id}</td>
-            <td>${u.roll_no}</td>
             <td>${u.first_name} ${u.last_name}</td>
             <td>${u.email}</td>
             <td>${course?.course_name || ''}</td>
@@ -139,13 +137,13 @@ exports.users = async (req, res) => {
 
 exports.reciptcreate = async (req, res) => {
     const errors = {};
-    let roll_no = '', amount = '', payment_mode = '', transaction_id = '';
+    let student_id = '', amount = '', payment_mode = '', transaction_id = '';
     let message = '', messageType = '';
 
     if (req.method === 'POST') {
-        ({ roll_no = '', amount = '', payment_mode = '', transaction_id = '' } = req.body);
-        errors.roll_no = !roll_no
-            ? 'Roll No field required'
+        ({ student_id = '', amount = '', payment_mode = '', transaction_id = '' } = req.body);
+        errors.student_id = !student_id
+            ? 'Student ID field required'
             : '';
 
         errors.amount = !amount
@@ -171,7 +169,7 @@ exports.reciptcreate = async (req, res) => {
             const receipt_no = await exports.generaterecieptId();
             const students = await UserModel.getSingleRecord(
                 'students',
-                { roll_no: roll_no },
+                { student_id: student_id },
                 'pending_fees,total_fees'
             );
             if (students) {
@@ -180,7 +178,7 @@ exports.reciptcreate = async (req, res) => {
 
                     if (Number(amount) <= remainingfees) {
                         await UserModel.addRecord('receipt_details', {
-                            roll_no,
+                            student_id,
                             receipt_no,
                             amount,
                             payment_mode,
@@ -192,12 +190,12 @@ exports.reciptcreate = async (req, res) => {
                                 pending_fees: Number(students.pending_fees) + Number(amount)
                             },
                             {
-                                roll_no: roll_no
+                                student_id: student_id
                             }
                         );
                         message = 'Receipt created successfully!';
                         messageType = 'success';
-                        roll_no = '';
+                        student_id = '';
                         amount = '';
                         payment_mode = '';
                         transaction_id = '';
@@ -213,17 +211,17 @@ exports.reciptcreate = async (req, res) => {
                 }
             } else {
                 messageType = 'error';
-                message = 'Invalid Roll No!';
+                message = 'Invalid Student ID!';
             }
         }
     }
     const fields = `
-        ${Form.label("Roll No")}
-        ${Form.text("roll_no", roll_no, {
-        class: `form-control ${errors.roll_no ? "is-invalid" : ""}`,
-        placeholder: "Enter Roll No"
+        ${Form.label("Student ID")}
+        ${Form.text("student_id", student_id, {
+        class: `form-control ${errors.student_id ? "is-invalid" : ""}`,
+        placeholder: "Enter Student ID"
     })}
-        ${errors.roll_no ? `<div class="text-danger small mt-1">${errors.roll_no}</div>` : ""}
+        ${errors.student_id ? `<div class="text-danger small mt-1">${errors.student_id}</div>` : ""}
 
         ${Form.label("Amount")}
         <input type="text"
@@ -346,7 +344,7 @@ exports.recieptHistory = async (req, res) => {
         <tr>
             <th>#</th>
             <th>Receipt No</th>
-            <th>Roll No</th>
+            <th>Student ID</th>
             <th>Amount</th>
             <th>Payment Mode</th>
             <th>Date</th>
@@ -364,7 +362,7 @@ exports.recieptHistory = async (req, res) => {
             <tr>
                 <td>${index + 1}</td>
                 <td>${u.receipt_no}</td>
-                <td>${u.roll_no}</td>
+                <td>${u.student_id}</td>
                 <td>${CONSTANTS.currency}${u.amount}</td>
                 <td>${u.payment_mode}</td>
                 <td>${SuperHelper.formatDate(u.created_at)}</td>
@@ -417,7 +415,7 @@ exports.reciept = async (req, res) => {
     );
     const name = await UserModel.getSingleRecord(
         'students',
-        { roll_no: receipt.roll_no }, '*'
+        { student_id: receipt.student_id }, '*'
     );
 
     return View.Rview(res, 'reciept', {
