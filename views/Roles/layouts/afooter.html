@@ -95,10 +95,19 @@
                 }
             },
 
+            // dom:
+            //     "<'row mb-3'<'col-md-8'B><'col-md-4'f>>" +
+            //     "<'row'<'col-12'tr>>" +
+            //     "<'row mt-3'<'col-md-3'l><'col-md-5'i><'col-md-4'p>>",
+
             dom:
-                "<'row mb-3'<'col-md-8'B><'col-md-4'f>>" +
-                "<'row'<'col-12'tr>>" +
-                "<'row mt-3'<'col-md-3'l><'col-md-5'i><'col-md-4'p>>",
+    "<'row mb-3 align-items-center'\
+        <'col-md-6 d-flex gap-2 align-items-center'Bl>\
+        <'col-md-6 text-end'f>>" +
+    "<'row'<'col-12'tr>>" +
+    "<'row mt-3'\
+        <'col-md-6'i>\
+        <'col-md-6 d-flex justify-content-end'p>>",
 
             buttons: [
                 {

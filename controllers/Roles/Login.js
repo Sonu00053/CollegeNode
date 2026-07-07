@@ -300,9 +300,18 @@ exports.register = async (req, res) => {
         let subjectsArray = [];
         try {
             subjectsArray = subject_ids ? JSON.parse(subject_ids) : [];
+
         } catch (e) {
             subjectsArray = [];
         }
+        if (subjectsArray.length < 6) {
+            return res.status(400).json({
+                status: false,
+                message: 'At least six subjects must be selected'
+            });
+        }
+        
+
         const yearColumn = `${semester}y`;
         const student_id = await exports.generateStaffId();
         const insertData = {
@@ -349,6 +358,7 @@ exports.register = async (req, res) => {
             student_id,
             roll_no,
             course: (coursechek.course_name),
+            course_id: course,
             session_start: year,
             year: semester,
             session_end: (year + 1),
@@ -359,6 +369,12 @@ exports.register = async (req, res) => {
             'students',
             insertData
         );
+        if (!result) {
+            return res.status(400).json({
+                status: false,
+                message: "Student registration failed"
+            });
+        }
 
         const result2 = await UserModel.addRecord(
             'session_detail',

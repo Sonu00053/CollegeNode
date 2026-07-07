@@ -232,9 +232,22 @@ exports.coursefeeshistory = async (req, res) => {
 
 
 exports.headsHistory = async (req, res) => {
+    const student_id = req.params.student_id;
+    const student = await UserModel.getSingleRecord(
+        'students',
+        { student_id },
+        '*'
+    );
+    // if (!student) {
+    //     return res.status(404).send('<span class="text-center">Student not found</span>');
+    // }
+
+    if (!student) {
+        return SuperHelper.send404(res);
+    }
     const result = await UserModel.getRecords(
         'fee_structure',
-        { course_id: 1, year: 1 },
+        { course_id: student.course, year: student.course_year },
         '*'
     );
     const thead = `
@@ -249,13 +262,13 @@ exports.headsHistory = async (req, res) => {
     `;
     const rows = Array.isArray(result) ? result : (result?.rows || []);
     let tableRows = '';
-    let totalAmount = 2000;
+    let totalAmount = Number(student.pending_fees);
     rows.forEach((row, index) => {
         const amount = Number(row.amount);
         let checkAmount = 0;
         if (totalAmount >= amount) {
             checkAmount = '<span class="badge bg-success">Clear</span>';
-             totalAmount -= amount;
+            totalAmount -= amount;
         } else {
             checkAmount = amount - Math.max(totalAmount, 0);
             checkAmount = `<span class="badge bg-warning">${CONSTANTS.currency}${checkAmount}</span>`;
@@ -283,8 +296,9 @@ exports.headsHistory = async (req, res) => {
     }
     return View.Rview(res, 'reports', {
         title: `
-            <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between align-items-center">
                 <span>Fees Structure</span>
+                Pending Fees : ${CONSTANTS.currency}${Number(student.total_fees - student.pending_fees)}
             </div>
         `,
         thead,

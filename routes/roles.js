@@ -39,6 +39,6 @@ router.route('/create-reciept')
     .post(jwtAuth.verifyToken,Course.coursefessupdate);
     router.get('/recieps-detail',jwtAuth.verifyToken, Manage.recieptHistory);
     router.get('/course-fees-history',jwtAuth.verifyToken, Course.coursefeeshistory);
-    router.get('/heads-detail',jwtAuth.verifyToken, Course.headsHistory);
+    router.get('/heads-detail/:student_id',jwtAuth.verifyToken, Course.headsHistory);
 
 module.exports = router;

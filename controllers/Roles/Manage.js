@@ -32,7 +32,6 @@ exports.dashboard = async (req, res) => {
 exports.users = async (req, res) => {
 
     const result = await UserModel.getRecords('students', {}, '*');
-
     const thead = `
         <tr>
             <th>#</th>
@@ -43,6 +42,7 @@ exports.users = async (req, res) => {
             <th>Subjects</th>
             <th>Total Fees</th>
             <th>Pending Fees</th>
+            <th>Heads</th>
             <th>Joining Date & Time</th>
         </tr>
     `;
@@ -81,6 +81,8 @@ exports.users = async (req, res) => {
 
         }
 
+        const headsView = '<a href="' + CONSTANTS.role + 'heads-detail/' + u.student_id + '" class="btn btn-sm btn-dark">View</a>';
+
         tableRows += `
         <tr>
 
@@ -100,6 +102,7 @@ exports.users = async (req, res) => {
 
             <td>${CONSTANTS.currency}${u.total_fees}</td>
             <td>${CONSTANTS.currency}${u.total_fees - u.pending_fees}</td>
+            <td>${headsView}</td>
             <td>${SuperHelper.formatDate(u.created_at)}</td>
 
         </tr>
@@ -411,12 +414,14 @@ exports.reciept = async (req, res) => {
 
     const receipt = await UserModel.getSingleRecord(
         'receipt_details',
-        { id: req.params.id }
+        { id: req.params.id },'*'
     );
     const name = await UserModel.getSingleRecord(
         'students',
         { student_id: receipt.student_id }, '*'
     );
+    // console.log('receipt', receipt);
+    // console.log('name', name);
 
     return View.Rview(res, 'reciept', {
         receipt,
