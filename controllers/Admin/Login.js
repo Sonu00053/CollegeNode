@@ -71,7 +71,13 @@ exports.login = async (req, res) => {
 
 exports.registerView = async (req, res) => {
     try {
-        return View.Aview(res, 'register',);
+        const states = await UserModel.getRecords('states', {}, '*');
+        console.log('States:', states);
+        return View.Aview(res, 'register',
+            {
+                states
+            }
+        );
     } catch (err) {
         console.log(err);
         return res.status(500).json({
@@ -93,9 +99,7 @@ exports.register = async (req, res) => {
             gender,
             role,
             father_name,
-            father_occupation,
             mother_name,
-            mother_occupation,
             email,
             mobile,
             pincode,
@@ -201,9 +205,7 @@ exports.register = async (req, res) => {
             role,
             father_name,
             access: permission.permission,
-            father_occupation,
             mother_name,
-            mother_occupation,
             email,
             mobile,
             pincode,

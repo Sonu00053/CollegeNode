@@ -35,37 +35,6 @@
 </script>
 
 <script>
-    function togglePaymentField() {
-        const mode = document.getElementById('payment_mode').value;
-        const div = document.getElementById('payment_details_div');
-        const label = document.getElementById('payment_details_label');
-        const input = document.getElementById('payment_details');
-
-        if (mode === 'Cash' || mode === '') {
-            div.style.display = 'none';
-            input.value = '';
-        } else {
-            div.style.display = 'block';
-
-            if (mode === 'UPI') {
-                label.innerText = 'Transaction ID';
-                input.placeholder = 'Enter Transaction ID';
-            }
-            else if (mode === 'Card') {
-                label.innerText = 'Card Number';
-                input.placeholder = 'Enter Card Number';
-            }
-            else if (mode === 'Bank Transfer') {
-                label.innerText = 'Transfer Reference No';
-                input.placeholder = 'Enter Transfer Reference No';
-            }
-            else if (mode === 'Cheque') {
-                label.innerText = 'Cheque Number';
-                input.placeholder = 'Enter Cheque Number';
-            }
-        }
-    }
-
     function loadCourseFees(){
         document.getElementById('action_type').value='load';
         document.forms[0].submit();

@@ -33,37 +33,70 @@ exports.Aview = (res, fileName, data = {}) => {
     // =========================
     // 1. SAFE NESTED + FLAT SUPPORT
     // =========================
+    // const replaceVars = (obj, prefix = '') => {
+
+    //     if (!obj || typeof obj !== 'object') return;
+
+    //     Object.keys(obj).forEach(key => {
+
+    //         const value = obj[key];
+    //         const fullKey = prefix ? `${prefix}.${key}` : key;
+
+    //         if (value && typeof value === 'object' && !Array.isArray(value)) {
+    //             replaceVars(value, fullKey);
+    //         } else {
+    //             html = html.replaceAll(`{{${fullKey}}}`, value ?? '');
+    //         }
+    //     });
+    // };
+
     const replaceVars = (obj, prefix = '') => {
 
-        if (!obj || typeof obj !== 'object') return;
+    if (!obj || typeof obj !== 'object') return;
 
-        Object.keys(obj).forEach(key => {
+    Object.keys(obj).forEach(key => {
 
-            const value = obj[key];
-            const fullKey = prefix ? `${prefix}.${key}` : key;
+        const value = obj[key];
+        const fullKey = prefix ? `${prefix}.${key}` : key;
 
-            if (value && typeof value === 'object' && !Array.isArray(value)) {
-                replaceVars(value, fullKey);
-            } else {
-                html = html.replaceAll(`{{${fullKey}}}`, value ?? '');
-            }
-        });
-    };
+        // Array ko skip karo
+        if (Array.isArray(value)) return;
+
+        if (value && typeof value === 'object') {
+            replaceVars(value, fullKey);
+        } else {
+            html = html.replaceAll(`{{${fullKey}}}`, value ?? '');
+        }
+    });
+};
 
     replaceVars(data);
 
     // =========================
     // 2. ARRAY SUPPORT (JSON SAFE)
     // =========================
+    // Object.keys(data).forEach(key => {
+
+    //     const value = data[key];
+
+    //     if (Array.isArray(value)) {
+    //         html = html.replaceAll(
+    //             `{{${key}}}`,
+    //             JSON.stringify(value)
+    //         );
+    //     }
+
+    // });
+
     Object.keys(data).forEach(key => {
 
-        const value = data[key];
+        if (Array.isArray(data[key])) {
 
-        if (Array.isArray(value)) {
             html = html.replaceAll(
                 `{{${key}}}`,
-                JSON.stringify(value)
+                JSON.stringify(data[key])
             );
+
         }
 
     });

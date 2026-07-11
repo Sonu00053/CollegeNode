@@ -7,6 +7,10 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 
+const session = require("express-session");
+
+
+
 const app = express();
 
 // ============================
@@ -14,6 +18,11 @@ const app = express();
 // ============================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(session({
+    secret: "college-secret",
+    resave: false,
+    saveUninitialized: true
+}));
 
 // ============================
 // COOKIE PARSER

@@ -136,9 +136,23 @@ exports.registerView = async (req, res) => {
     try {
         const course = await UserModel.getRecords('courses', {}, '*');
         const subjects = await UserModel.getRecords('subjects', {}, '*');
+        const states = await UserModel.getRecords('states', {}, '*');
+        // console.log('States:', states); // Debugging line to check the states data
         return View.Rview(res, 'register', {
-            course
+            course, states
         });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            status: false,
+            message: 'Server Error'
+        });
+    }
+};
+
+exports.admission = async (req, res) => {
+    try {
+        return View.Rview(res, 'admission');
     } catch (err) {
         console.log(err);
         return res.status(500).json({
@@ -182,13 +196,13 @@ exports.getSubjectsByCourse = async (req, res) => {
 
 
 exports.register = async (req, res) => {
+    console.log('Request Body:', req.body); // Debugging line to check the request body
     try {
         const {
             first_name,
             last_name,
             roll_no,
             dob,
-            gender,
             father_name,
             father_mobile,
             mother_name,
@@ -203,27 +217,34 @@ exports.register = async (req, res) => {
             transport,
             vehicle_name,
             vehicle_no,
-            subject_ids
+            subject_ids,
+            student_id,
+            apaar_id,
+            category
         } = req.body;
 
         // Required Validation
+
+        // !last_name ||
+        // !email ||
         if (
             !first_name ||
-            !last_name ||
+
             !dob ||
             !roll_no ||
-            !gender ||
             !father_name ||
             !father_mobile ||
             !mother_name ||
             !mobile ||
-            !email ||
             !pincode ||
             !address ||
             !city ||
             !state ||
             !course ||
-            !semester
+            !semester ||
+            !student_id ||
+            !apaar_id ||
+            !category
         ) {
             return res.status(400).json({
                 status: false,
@@ -241,14 +262,28 @@ exports.register = async (req, res) => {
 
         }
 
-        // Email Validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({
-                status: false,
-                message: 'Invalid email address'
-            });
+        // Email Validation
+
+        if (email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Invalid email address'
+                });
+            }
+            const existingUser = await UserModel.getSingleRecord(
+                'students',
+                { email },
+                '*'
+            );
+            if (existingUser) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Email already registered'
+                });
+            }
         }
 
         // Mobile Validation
@@ -266,12 +301,30 @@ exports.register = async (req, res) => {
             });
         }
 
-        // Check Email Exists
-        const existingUser = await UserModel.getSingleRecord(
+        const existingStudent = await UserModel.getSingleRecord(
             'students',
-            { email },
+            { student_id },
             '*'
         );
+
+        const existingAparId = await UserModel.getSingleRecord(
+            'students',
+            { apaar_id },
+            '*'
+        );
+
+        if (existingAparId) {
+            return res.status(400).json({
+                status: false,
+                message: 'Apaar ID already exists'
+            });
+        }
+        if (existingStudent) {
+            return res.status(400).json({
+                status: false,
+                message: 'Student ID already exists'
+            });
+        }
 
         const coursechek = await UserModel.getSingleRecord(
             'courses',
@@ -279,18 +332,11 @@ exports.register = async (req, res) => {
             '*'
         );
 
-        if (existingUser) {
-            return res.status(400).json({
-                status: false,
-                message: 'Email already registered'
-            });
-        }
         const existingRollNo = await UserModel.getSingleRecord(
             'students',
             { roll_no, course },
             '*'
         );
-
         if (existingRollNo) {
             return res.status(400).json({
                 status: false,
@@ -300,7 +346,6 @@ exports.register = async (req, res) => {
         let subjectsArray = [];
         try {
             subjectsArray = subject_ids ? JSON.parse(subject_ids) : [];
-
         } catch (e) {
             subjectsArray = [];
         }
@@ -310,26 +355,32 @@ exports.register = async (req, res) => {
                 message: 'At least six subjects must be selected'
             });
         }
-        
 
+        const statedetail = await UserModel.getSingleRecord(
+            'states',
+            { id: state },
+            '*'
+        );
         const yearColumn = `${semester}y`;
-        const student_id = await exports.generateStaffId();
+        // const student_id = await exports.generateStaffId();
+        var gender = 'female';
         const insertData = {
             student_id,
             roll_no,
             first_name,
             last_name,
+            category,
             dob,
             gender,
             father_name,
             father_mobile,
             mother_name,
             mobile,
-            email,
+            email: email?.trim() || null,
             pincode,
             address,
             city,
-            state,
+            state: statedetail.name,
             course,
             course_year: semester,
             total_fees: Number(coursechek[yearColumn]),
@@ -364,7 +415,6 @@ exports.register = async (req, res) => {
             session_end: (year + 1),
             subjects: subjects
         };
-
         const result = await UserModel.addRecord(
             'students',
             insertData
@@ -375,22 +425,17 @@ exports.register = async (req, res) => {
                 message: "Student registration failed"
             });
         }
-
         const result2 = await UserModel.addRecord(
             'session_detail',
             insertDatasession
         );
-
         return res.status(200).json({
             status: true,
             message: 'Student Registered Successfully',
             student_id
         });
-
     } catch (error) {
-
         console.log(error);
-
         return res.status(500).json({
             status: false,
             message: 'Internal Server Error'
@@ -399,20 +444,15 @@ exports.register = async (req, res) => {
 };
 
 exports.generateStaffId = async () => {
-
     let randomId;
     let exists = true;
-
     while (exists) {
-
         randomId = Math.floor(100000 + Math.random() * 900000);
-
         const check = await UserModel.getSingleRecord(
             'students',
             { student_id: randomId },
             'student_id'
         );
-
         exists = !!check;
     }
     return randomId;

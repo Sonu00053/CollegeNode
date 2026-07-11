@@ -52,20 +52,14 @@
                         <input type="text" name="father_name" class="form-control">
                     </div>
 
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Father Occupation</label>
-                        <input type="text" name="father_occupation" class="form-control">
-                    </div>
+                   
 
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Mother Name</label>
                         <input type="text" name="mother_name" class="form-control">
                     </div>
 
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Mother Occupation</label>
-                        <input type="text" name="mother_occupation" class="form-control">
-                    </div>
+                    
 
                 </div>
 
@@ -83,17 +77,15 @@
 
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Mobile Number</label>
-                        <input type="text" name="mobile" class="form-control">
-                    </div>
+                        <input type="text" id="mobile" name="mobile" class="form-control">
+                        <small class="error text-danger"></small>
 
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Pincode</label>
-                        <input type="text" name="pincode" class="form-control">
                     </div>
-
-                    <div class="col-12 mb-3">
-                        <label class="form-label">Address</label>
-                        <textarea name="address" rows="3" class="form-control"></textarea>
+                     <div class="col-md-4 mb-3">
+                        <label class="form-label">State</label>
+                        <select name="state" id="state" class="form-select">
+                            <option value="">Select State</option>
+                        </select>
                     </div>
 
                     <div class="col-md-4 mb-3">
@@ -102,13 +94,18 @@
                     </div>
 
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">State</label>
-                        <input type="text" name="state" class="form-control">
+                        <label class="form-label">Pincode</label>
+                        <input type="text" id="pincode" name="pincode" class="form-control">
+                        <small class="error text-danger"></small>
+
                     </div>
 
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Address</label>
+                        <textarea name="address" rows="3" class="form-control"></textarea>
+                    </div>
+                    </div>
                 </div>
-
-                <!-- Account Information -->
                 <h5 class="border-bottom pb-2 text-dark mb-4 mt-4">
                     Account Information
                 </h5>
@@ -154,6 +151,8 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+    pincodeValidation('pincode', 6);
+    pincodeValidation('mobile', 10);
     document.getElementById('staffForm').addEventListener('submit', async function (e) {
         e.preventDefault();
 
@@ -177,6 +176,7 @@
             isValid = false;
         }
 
+
         const first_name = document.querySelector('[name="first_name"]').value.trim();
         const last_name = document.querySelector('[name="last_name"]').value.trim();
         const dob = document.querySelector('[name="dob"]').value;
@@ -191,6 +191,7 @@
         const city = document.querySelector('[name="city"]').value.trim();
         const state = document.querySelector('[name="state"]').value.trim();
         const password = document.querySelector('[name="password"]').value;
+
 
         if (!first_name) showError('first_name', 'First Name is required');
         if (!last_name) showError('last_name', 'Last Name is required');
@@ -255,196 +256,63 @@
             });
         }
     });
-</script>
-
-<!-- <script>
-    document.getElementById('staffForm').addEventListener('submit', function (e) {
-
-        let isValid = true;
-
-        // Purane errors remove karo
-        document.querySelectorAll('.error-message').forEach(el => el.remove());
-        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-
-        function showError(fieldName, message) {
-
-            const field = document.querySelector(`[name="${fieldName}"]`);
-
-            field.classList.add('is-invalid');
-
-            const error = document.createElement('div');
-            error.className = 'text-danger error-message mt-1';
-            error.innerText = message;
-
-            field.parentNode.appendChild(error);
-
-            isValid = false;
-        }
-
-        const first_name = document.querySelector('[name="first_name"]').value.trim();
-        const last_name = document.querySelector('[name="last_name"]').value.trim();
-        const dob = document.querySelector('[name="dob"]').value;
-        const gender = document.querySelector('[name="gender"]').value;
-        const father_name = document.querySelector('[name="father_name"]').value.trim();
-        const mother_name = document.querySelector('[name="mother_name"]').value.trim();
-        const email = document.querySelector('[name="email"]').value.trim();
-        const mobile = document.querySelector('[name="mobile"]').value.trim();
-        const alternate_mobile = document.querySelector('[name="alternate_mobile"]').value.trim();
-        const pincode = document.querySelector('[name="pincode"]').value.trim();
-        const address = document.querySelector('[name="address"]').value.trim();
-        const city = document.querySelector('[name="city"]').value.trim();
-        const state = document.querySelector('[name="state"]').value.trim();
-        const login_email = document.querySelector('[name="login_email"]').value.trim();
-        const password = document.querySelector('[name="password"]').value;
-
-        // First Name
-        if (first_name === '') {
-            showError('first_name', 'First Name is required');
-        }
-
-        // Last Name
-        if (last_name === '') {
-            showError('last_name', 'Last Name is required');
-        }
-
-        // DOB
-        if (dob === '') {
-            showError('dob', 'Date of Birth is required');
-        }
-
-        // Gender
-        if (gender === '') {
-            showError('gender', 'Please select gender');
-        }
-
-        // Father Name
-        if (father_name === '') {
-            showError('father_name', 'Father Name is required');
-        }
-
-        // Mother Name
-        if (mother_name === '') {
-            showError('mother_name', 'Mother Name is required');
-        }
-
-        // Email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        if (email === '') {
-            showError('email', 'Email is required');
-        }
-        else if (!emailRegex.test(email)) {
-            showError('email', 'Enter valid email');
-        }
-
-        // Mobile
-        if (mobile === '') {
-            showError('mobile', 'Mobile Number is required');
-        }
-        else if (!/^[0-9]{10}$/.test(mobile)) {
-            showError('mobile', 'Enter valid 10 digit mobile number');
-        }
 
 
+    function pincodeValidation(id, digit) {
 
-        // Pincode
-        if (pincode === '') {
-            showError('pincode', 'Pincode is required');
-        }
-        else if (!/^[0-9]{6}$/.test(pincode)) {
-            showError('pincode', 'Enter valid 6 digit pincode');
-        }
+        const input = document.getElementById(id);
 
-        // Address
-        if (address === '') {
-            showError('address', 'Address is required');
-        }
+        input.addEventListener('input', function () {
 
-        // City
-        if (city === '') {
-            showError('city', 'City is required');
-        }
+            const error = this.parentElement.querySelector('.error');
 
-        // State
-        if (state === '') {
-            showError('state', 'State is required');
-        }
+            // Sirf numbers allow
+            this.value = this.value.replace(/\D/g, '');
 
-
-
-        // Password
-        if (password === '') {
-            showError('password', 'Password is required');
-        }
-        else if (password.length < 6) {
-            showError('password', 'Password must be at least 6 characters');
-        }
-
-        if (!isValid) {
-            e.preventDefault();
-        }
-
-    });
-</script>
-
-
-
-
- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
-    document.getElementById('staffForm').addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        let form = e.target;
-        let formData = new FormData(form);
-
-        let data = Object.fromEntries(formData.entries());
-
-        try {
-            let res = await fetch('/admin/registerPost', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-
-            let result = await res.json();
-
-            // Toastify({
-            //     text: result.message,
-            //     duration: 2000,
-            //     gravity: "top",
-            //     position: "right",
-            //     backgroundColor: result.status ? "green" : "red"
-            // }).showToast();
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: result.status ? "success" : "error",
-                title: result.message,
-                showConfirmButton: false,
-                timer: 2000,
-                timerProgressBar: true
-            });
-
-            if (result.status) {
-                setTimeout(() => {
-                    window.location.href = "/admin/register";
-                }, 1000);
+            // Max 6 digits
+            if (this.value.length > digit) {
+                this.value = this.value.substring(0, digit);
             }
 
-        } catch (err) {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'error',
-                title: 'Server Error',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true
-            });
+            var fieldLabel = fieldName(id);
+
+            if (this.value.length > 0 && this.value.length < digit) {
+                this.classList.add('is-invalid');
+                error.innerHTML = fieldLabel + ` must be ${digit} digits`;
+            } else {
+                this.classList.remove('is-invalid');
+                error.innerHTML = '';
+            }
+
+        });
+
+        input.addEventListener('keypress', function (e) {
+            if (!/[0-9]/.test(e.key)) {
+                e.preventDefault();
+                alert('Only numbers are allowed.');
+            }
+        });
+
+        function fieldName(id) {
+            return id
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, c => c.toUpperCase());
         }
+    }
+
+    // const states = {{ states }};
+    const states = JSON.parse(`{{states}}`);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const stateSelect = document.getElementById('state');
+
+        stateSelect.innerHTML = '<option value="">Select State</option>';
+
+        states.forEach(state => {
+            stateSelect.insertAdjacentHTML(
+                'beforeend',
+                `<option value="${state.id}">${state.name}</option>`
+            );
+        });
     });
-</script> -->
+</script>

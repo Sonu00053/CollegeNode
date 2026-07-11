@@ -151,6 +151,7 @@
     <script>
         // const permissions = {{ permissionsJSON }};
         const permissions = {{ permissionsJSON }};
+        // const permissions = JSON.parse('{{permissionsJSON}}');
         document.querySelectorAll('.sidebar a').forEach(link => {
             let href = link.getAttribute('href');
             if (href === '{{CONSTANTS.role}}logout') {

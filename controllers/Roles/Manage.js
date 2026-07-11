@@ -162,6 +162,7 @@ exports.reciptcreate = async (req, res) => {
         if (payment_mode !== 'Cash' && !transaction_id) {
             errors.transaction_id = 'This field is required';
         }
+        var redirectUrl = CONSTANTS.role + 'create-reciept'; // Default redirect URL
 
         Object.keys(errors).forEach(k => !errors[k] && delete errors[k]);
 
@@ -202,6 +203,10 @@ exports.reciptcreate = async (req, res) => {
                         amount = '';
                         payment_mode = '';
                         transaction_id = '';
+                        return res.redirect(
+                            CONSTANTS.role + 'reciept/' + receipt_no
+                        );
+                        // var redirectUrl = CONSTANTS.role + 'reciept/' + receipt_no; // Redirect to the receipt page
                     } else {
                         message = `Remaining fees is ${CONSTANTS.currency}${remainingfees}. Amount cannot exceed remaining fees.`;
                         messageType = 'error';
@@ -306,10 +311,11 @@ exports.reciptcreate = async (req, res) => {
         messageType,
         errors,
         fields,
+        redirectUrl,
         buttons
     };
 
-    return View.Rview(res, 'forms', response);
+    return View.Rview(res, 'reciept2', response);
 };
 
 exports.generaterecieptId = async () => {
@@ -414,19 +420,56 @@ exports.reciept = async (req, res) => {
 
     const receipt = await UserModel.getSingleRecord(
         'receipt_details',
-        { id: req.params.id },'*'
+        { id: req.params.id }, '*'
     );
-    const name = await UserModel.getSingleRecord(
+    const user = await UserModel.getSingleRecord(
         'students',
         { student_id: receipt.student_id }, '*'
     );
+
+    const course = await UserModel.getSingleRecord(
+        'courses',
+        { id: user.course }, '*'
+    );
     // console.log('receipt', receipt);
     // console.log('name', name);
+    var totalFees = Number(user.total_fees);
+    var PendingFess = Number(user.total_fees);
+    const session = await UserModel.getSingleRecord(
+        'session_update',
+        { id: 1 }, '*'
+    );
+    var start = session.start;
+    var end = String(session.end).slice(-2);
 
-    return View.Rview(res, 'reciept', {
+    let subjects = '';
+
+    if (user.subject_ids) {
+        const ids = JSON.parse(user.subject_ids);
+
+        for (const id of ids) {
+            const subject = await UserModel.getSingleRecord(
+                'subjects',
+                { id },
+                'subject_name'
+            );
+
+            if (subject) {
+                subjects += `<span class="badge bg-light text-dark border me-1">${subject.subject_name}</span>`;
+            }
+        }
+    }
+    const amountInWords = SuperHelper.numberToWords(receipt.amount);
+    return View.Rview(res, 'admission', {
         receipt,
+        user,
+        start,
+        end,
+        course,
+        subjects,
+        amountInWords,
         receipt_date: SuperHelper.formatDate(receipt.created_at),
-        name: name.first_name + ' ' + name.last_name
+        name: user.first_name + ' ' + user.last_name
 
     });
 

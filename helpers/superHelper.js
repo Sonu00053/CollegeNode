@@ -199,6 +199,18 @@ class SuperHelper {
         return res.status(404).send(this.notFoundPage());
     }
 
+    static numberToWords(amount) {
+        const converter = require('number-to-words');
+        return (
+        converter
+            .toWords(Number(amount))
+            .replace(/,/g, '')
+            .replace(/-/g, ' ')
+            .toUpperCase() +
+        ' ONLY'
+    );
+    }
+
 }
 
 module.exports = SuperHelper;

@@ -13,36 +13,66 @@
                             class="form-control"><small class="error"></small></div>
                     <div class="col-md-6"><label>DOB *</label><input type="date" name="dob" id="dob"
                             class="form-control"><small class="error"></small></div>
-                    <div class="col-md-6"><label>Gender *</label><select id="gender" name="gender" class="form-control"
-                            readonly>
-                            <option>Female</option>
-                        </select><small class="error"></small></div>
+                            <div class="col-md-6">
+                        <label class="form-label">Category</label>
+                        <select name="category" id="category" class="form-select">
+                            <option value="">Select Category</option>
+                            <option value="GENERAL">GENERAL</option>
+                            <option value="SC">SC</option>
+                            <option value="ST">ST</option>
+                            <option value="OBC">OBC</option>
+                        </select>
+                        <small class="error"></small>
+                    </div>
                     <div class="col-md-6"><label>Father Name *</label><input name="father_name" id="father_name"
                             class="form-control"><small class="error"></small></div>
                     <div class="col-md-6"><label>Father Mobile *</label><input name="father_mobile" id="father_mobile"
                             class="form-control"><small class="error"></small></div>
                     <div class="col-md-6"><label>Mother Name *</label><input name="mother_name" id="mother_name"
-                            class="form-control"><small class="error"></small></div>
+                            class="form-control" maxlength="10"><small class="error"></small></div>
                     <div class="col-md-6"><label>Student Mobile *</label><input name="mobile" id="mobile"
-                            class="form-control"><small class="error"></small></div>
+                            class="form-control" maxlength="10"><small class="error"></small></div>
                     <div class="col-md-6"><label>Email *</label><input id="email" name="email"
                             class="form-control"><small class="error"></small></div>
-                    <div class="col-md-6">
-                        <label>Roll No *</label>
+                            <div class="col-md-6">
+                        <label>Student ID *</label>
                         <input type="text" name="roll_no" id="roll_no" class="form-control">
                         <small class="error"></small>
                     </div>
-                    <div class="col-md-6"><label>Pincode</label><input id="pincode" name="pincode"
+                    <div class="col-md-6">
+                        <label>Roll No *</label>
+                        <input type="text" name="student_id" id="student_id" class="form-control">
+                        <small class="error"></small>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Apaar ID *</label>
+                        <input type="text" name="apaar_id" id="apaar_id" class="form-control">
+                        <small class="error"></small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">State</label>
+                        <select name="state" id="state" class="form-select">
+                            <option value="">Select State</option>
+                        </select>
+                        <small class="error"></small>
+                    </div>
+                     <div class="col-md-6"><label>City</label><input id="city" name="city" class="form-control">
+                        <small class="error"></small>
+                    </div>
+                     <div class="col-md-6"><label>Pincode</label><input id="pincode" name="pincode"
                             class="form-control"><small class="error"></small></div>
+
                     <div class="col-md-12"><label>Address</label><textarea id="address" name="address"
                             class="form-control"></textarea><small class="error"></small></div>
-                    <div class="col-md-6"><label>City</label><input id="city" name="city" class="form-control">
+                   
+                    <!-- <div class="col-md-6"><label>State</label><input id="state" name="state" class="form-control">
                         <small class="error"></small>
-                    </div>
-                    <div class="col-md-6"><label>State</label><input id="state" name="state" class="form-control">
-                        <small class="error"></small>
-                    </div>
-                    <div class="col-md-4 mb-3">
+                    </div> -->
+                    <div class="col-md-6 mb-3">
+
+                    
+                   
                         <label class="form-label">Course</label>
                         <select name="course" id="course" class="form-select">
                             <option value="">Select Course</option>
@@ -118,6 +148,8 @@
 
 <script>
 
+    // console.log('States:', '{{states}}'); 
+    
     function popupClose() {
         bootstrap.Modal.getInstance(
             document.getElementById('subjectModal')
@@ -188,6 +220,7 @@
 <script>
 
 
+
     JSON.parse('{{course}}').forEach(course => {
         document.getElementById('course').innerHTML += `
             <option value="${course.id}">
@@ -195,6 +228,9 @@
             </option>
         `;
     });
+
+
+
 
     // Transport checkbox show/hide
     document.getElementById('transport').addEventListener('change', function () {
@@ -208,6 +244,12 @@
         }
 
     });
+
+    // mobileValidation('mobile');
+    // mobileValidation('father_mobile');
+    pincodeValidation('pincode', 6);
+    pincodeValidation('mobile', 10);
+    pincodeValidation('father_mobile', 10);
 
     document.getElementById('registerForm').addEventListener('submit', async function (e) {
 
@@ -240,21 +282,23 @@
 
         [
             'first_name',
-            'last_name',
             'dob',
-            'gender',
             'father_name',
             'father_mobile',
             'mother_name',
             'mobile',
-            'email',
             'course',
             'semester',
             'city',
             'address',
             'pincode',
             'state',
-            'roll_no'
+            'roll_no',
+            'student_id',
+            'apaar_id',
+            'category'
+            // last_name
+            // 'email'
         ].forEach(id => {
 
             let field = document.getElementById(id);
@@ -359,5 +403,94 @@
         }
 
     });
+
+    function pincodeValidation(id,digit) {
+
+    const input = document.getElementById(id);
+
+    input.addEventListener('input', function () {
+
+        const error = this.parentElement.querySelector('.error');
+
+        // Sirf numbers allow
+        this.value = this.value.replace(/\D/g, '');
+
+        // Max 6 digits
+        if (this.value.length > digit) {
+            this.value = this.value.substring(0, digit);
+        }
+
+        var fieldLabel = fieldName(id);
+
+        if (this.value.length > 0 && this.value.length < digit) {
+            this.classList.add('is-invalid');
+            error.innerHTML = fieldLabel +` must be ${digit} digits`;
+        } else {
+            this.classList.remove('is-invalid');
+            error.innerHTML = '';
+        }
+
+    });
+
+    input.addEventListener('keypress', function (e) {
+        if (!/[0-9]/.test(e.key)) {
+            e.preventDefault();
+            alert('Only numbers are allowed.');
+        }
+    });
+
+    function fieldName(id) {
+    return id
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+}
+
+    // function mobileValidation(id) {
+    //     const input = document.getElementById(id);
+    //     input.addEventListener('input', function () {
+    //         const error = this.parentElement.querySelector('.error');
+    //         this.value = this.value.replace(/\D/g, '');
+    //         if (this.value.length > 10) {
+    //             this.value = this.value.substring(0, 10);
+    //         }
+    //         if (this.value.length < 10) {
+    //             this.classList.add('is-invalid');
+    //             error.innerHTML = 'Mobile number must be 10 digits';
+    //         } else {
+    //             this.classList.remove('is-invalid');
+    //             error.innerHTML = '';
+    //         }
+    //     });
+
+    //     // Letter ya invalid key press par rok do
+    //     input.addEventListener('keypress', function (e) {
+
+    //         if (!/[0-9]/.test(e.key)) {
+    //             e.preventDefault();
+    //             alert('Only numbers are allowed.');
+    //         }
+
+    //     });
+
+    // }
+
+
+    const states = {{states}};
+    console.log('States:', states);
+
+    document.addEventListener('DOMContentLoaded', () => {
+    const stateSelect = document.getElementById('state');
+
+    stateSelect.innerHTML = '<option value="">Select State</option>';
+
+    states.forEach(state => {
+        stateSelect.insertAdjacentHTML(
+            'beforeend',
+            `<option value="${state.id}">${state.name}</option>`
+        );
+    });
+});
 
 </script>
