@@ -670,6 +670,7 @@ exports.recieptHistoryToday = async (req, res) => {
     const thead = `
         <tr>
             <th>#</th>
+            <th>Reciept No</th>
             <th>Student ID</th>
             <th>Amount</th>
             <th>Payment Mode</th>
@@ -685,6 +686,7 @@ exports.recieptHistoryToday = async (req, res) => {
         tableRows += `
             <tr>
                 <td>${index + 1}</td>
+                <td>${u.receipt_no}</td>
                 <td>${u.student_id}</td>
                 <td>${CONSTANTS.currency}${u.amount}</td>
                 <td>${u.payment_mode}</td>
@@ -712,7 +714,7 @@ exports.recieptHistoryToday = async (req, res) => {
     return View.Rview(res, 'reports', {
         title: `
             <div class="d-flex justify-content-between align-items-center">
-                <span>Today's Receipt History</span>
+                <span>Daily Cash Summary</span>
 
                 <div>
                     <span class="badge bg-success me-2">
