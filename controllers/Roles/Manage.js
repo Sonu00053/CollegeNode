@@ -42,7 +42,6 @@ exports.users = async (req, res) => {
             <th>Subjects</th>
             <th>Total Fees</th>
             <th>Pending Fees</th>
-            <th>Heads</th>
             <th>Joining Date & Time</th>
         </tr>
     `;
@@ -102,7 +101,6 @@ exports.users = async (req, res) => {
 
             <td>${CONSTANTS.currency}${u.total_fees}</td>
             <td>${CONSTANTS.currency}${u.total_fees - u.pending_fees}</td>
-            <td>${headsView}</td>
             <td>${SuperHelper.formatDate(u.created_at)}</td>
 
         </tr>
@@ -140,11 +138,20 @@ exports.users = async (req, res) => {
 
 exports.reciptcreate = async (req, res) => {
     const errors = {};
-    let student_id = '', amount = '', payment_mode = '', transaction_id = '';
+    let student_id = req.query.student_id || '';
+    let amount = '', payment_mode = '', transaction_id = '', remarks = '';
     let message = '', messageType = '';
+    let rediret = '';
+    if (student_id) {
+        redirect = CONSTANTS.role + 'create-reciept?student_id=' + student_id;
+    } else {
+        redirect = CONSTANTS.role + 'create-reciept';
+    }
+    console.log(rediret);
 
     if (req.method === 'POST') {
-        ({ student_id = '', amount = '', payment_mode = '', transaction_id = '' } = req.body);
+        student_id = req.body.student_id || '';
+        ({ amount = '', payment_mode = '', transaction_id = '', remarks='' } = req.body);
         errors.student_id = !student_id
             ? 'Student ID field required'
             : '';
@@ -157,6 +164,9 @@ exports.reciptcreate = async (req, res) => {
 
         errors.payment_mode = !payment_mode
             ? 'Payment Mode field required'
+            : '';
+        errors.remarks = !remarks
+            ? 'Remarks field required'
             : '';
 
         if (payment_mode !== 'Cash' && !transaction_id) {
@@ -185,6 +195,7 @@ exports.reciptcreate = async (req, res) => {
                             student_id,
                             receipt_no,
                             amount,
+                            remarks,
                             payment_mode,
                             transaction_id
                         });
@@ -223,13 +234,26 @@ exports.reciptcreate = async (req, res) => {
             }
         }
     }
+    let student = null;
+
+    if (student_id) {
+        student = await UserModel.getSingleRecord(
+            "students",
+            { student_id },
+            "student_id,total_fees,pending_fees,first_name,last_name"
+        );
+    }
     const fields = `
         ${Form.label("Student ID")}
         ${Form.text("student_id", student_id, {
         class: `form-control ${errors.student_id ? "is-invalid" : ""}`,
-        placeholder: "Enter Student ID"
+        placeholder: "Enter Student ID",
+        onkeyup: "loadStudentDetails()"
     })}
         ${errors.student_id ? `<div class="text-danger small mt-1">${errors.student_id}</div>` : ""}
+        <div id="studentDetails"></div>
+
+        
 
         ${Form.label("Amount")}
         <input type="text"
@@ -254,6 +278,15 @@ exports.reciptcreate = async (req, res) => {
         </select>
         ${errors.payment_mode ? `<div class="text-danger small mt-1">${errors.payment_mode}</div>` : ""}
 
+        ${Form.label("Remarks")}
+<textarea
+    name="remarks"
+    class="form-control ${errors.remarks ? "is-invalid" : ""}"
+    placeholder="Enter Remarks"
+    rows="3">${remarks}</textarea>
+
+${errors.remarks ? `<div class="text-danger small mt-1">${errors.remarks}</div>` : ""}
+
         <div id="payment_details_div" style="display:none;" class="mt-3">
             <label id="payment_details_label"></label>
             <input type="text"
@@ -263,8 +296,10 @@ exports.reciptcreate = async (req, res) => {
                    class="form-control ${errors.transaction_id ? "is-invalid" : ""}">
             ${errors.transaction_id ? `<div class="text-danger small mt-1">${errors.transaction_id}</div>` : ""}
         </div>
+       
 
         <script>
+       
         function togglePaymentField() {
             const mode = document.getElementById('payment_mode').value;
             const div = document.getElementById('payment_details_div');
@@ -306,6 +341,9 @@ exports.reciptcreate = async (req, res) => {
     const response = {
         title: 'Create Student Receipt',
         action: CONSTANTS.role + 'create-reciept',
+        redirect: rediret,
+        studentFeesUrl: CONSTANTS.role + 'student-fees',
+        currency: CONSTANTS.currency,
         method: 'POST',
         message,
         messageType,
@@ -412,6 +450,29 @@ exports.recieptHistory = async (req, res) => {
 
 };
 
+exports.studentFees = async (req, res) => {
+
+    const student = await UserModel.getSingleRecord(
+        "students",
+        { student_id: req.body.student_id },
+        "total_fees,pending_fees"
+    );
+
+    if (!student) {
+        return res.json({
+            status: false
+        });
+    }
+
+    return res.json({
+        status: true,
+        total_fees: student.total_fees,
+        paid_fees: student.pending_fees,
+        pending_fees: Number(student.total_fees) - Number(student.pending_fees)
+    });
+
+};
+
 
 
 
@@ -434,11 +495,23 @@ exports.reciept = async (req, res) => {
     // console.log('receipt', receipt);
     // console.log('name', name);
     var totalFees = Number(user.total_fees);
-    var PendingFess = Number(user.total_fees);
+    var PendingFess = (Number(user.total_fees) - Number(user.pending_fees));
+    var dueamount = (Number(PendingFess) + (Number(receipt.amount)));
+    var balance = dueamount - (receipt.amount);
+
     const session = await UserModel.getSingleRecord(
         'session_update',
         { id: 1 }, '*'
     );
+    const receiptHead = await UserModel.getSingleRecord(
+        'roll_no',
+        {
+            course_id: user.course,
+            year: user.course_year
+        },
+        '*'
+    );
+
     var start = session.start;
     var end = String(session.end).slice(-2);
 
@@ -459,14 +532,60 @@ exports.reciept = async (req, res) => {
             }
         }
     }
+
+    let feeRows = `
+        <tr><td>Examination Fees</td><td class="text-end">${receiptHead.uni_examination}</td></tr>
+        <tr><td>Admission Fees</td><td class="text-end">${receiptHead.admission}</td></tr>
+        <tr><td>Tuition Fees</td><td class="text-end">${receiptHead.tution}</td></tr>
+        <tr><td>College Security</td><td class="text-end">${receiptHead.security}</td></tr>
+    `;
+
+    // Practical sirf practical_status = 1 par
+    if (Number(user.practical_status) === 1) {
+        feeRows += `
+            <tr>
+                <td>Practical Fees</td>
+                <td class="text-end">${receiptHead.practical}</td>
+            </tr>
+        `;
+    }
+
+    feeRows += `
+        <tr><td>A.F. Charges</td><td class="text-end">${receiptHead.af_charges}</td></tr>
+        <tr><td>Annual Charges</td><td class="text-end">${receiptHead.anual}</td></tr>
+        <tr><td>Other PU Charges</td><td class="text-end">${receiptHead.pu_charges}</td></tr>
+        <tr><td>CDF & DILP</td><td class="text-end">${receiptHead.cdf_dilp}</td></tr>
+    `;
     const amountInWords = SuperHelper.numberToWords(receipt.amount);
+    let paymentRow = '';
+
+    if (receipt.payment_mode === 'Cash') {
+        paymentRow = `
+        <tr>
+            <td>CASH RECEIVED</td>
+            <td class="text-end">${receipt.amount}</td>
+        </tr>
+    `;
+    } else {
+        paymentRow = `
+        <tr>
+            <td>${receipt.payment_mode.toUpperCase()} (${receipt.transaction_id})</td>
+            <td class="text-end">${receipt.amount}</td>
+        </tr>
+    `;
+    }
     return View.Rview(res, 'admission', {
         receipt,
         user,
         start,
         end,
         course,
+        balance,
+        paymentRow,
+        feeRows,
         subjects,
+        dueamount,
+        // PendingFess,
         amountInWords,
         receipt_date: SuperHelper.formatDate(receipt.created_at),
         name: user.first_name + ' ' + user.last_name
@@ -483,4 +602,49 @@ exports.logout = (req, res) => {
     });
 
     return res.redirect(CONSTANTS.role + 'login');
+};
+
+
+exports.getSubjectNames = async (req, res) => {
+    try {
+        let { subject_ids } = req.body;
+
+        if (!subject_ids || subject_ids.length === 0) {
+            return res.json({
+                status: true,
+                subjects: []
+            });
+        }
+
+        // Agar string aayi ho to parse kar lo
+        if (typeof subject_ids === 'string') {
+            subject_ids = JSON.parse(subject_ids);
+        }
+
+        const subjects = [];
+
+        for (const id of subject_ids) {
+            const subject = await UserModel.getSingleRecord(
+                'subjects',
+                { id },
+                'id, subject_name'
+            );
+
+            if (subject) {
+                subjects.push(subject);
+            }
+        }
+
+        return res.json({
+            status: true,
+            subjects
+        });
+
+    } catch (err) {
+        console.log(err);
+        return res.json({
+            status: false,
+            message: 'Something went wrong'
+        });
+    }
 };

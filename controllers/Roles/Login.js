@@ -201,7 +201,7 @@ exports.register = async (req, res) => {
         const {
             first_name,
             last_name,
-            roll_no,
+            // roll_no,
             dob,
             father_name,
             father_mobile,
@@ -220,6 +220,7 @@ exports.register = async (req, res) => {
             subject_ids,
             student_id,
             apaar_id,
+            aadhar_no,
             category
         } = req.body;
 
@@ -231,7 +232,7 @@ exports.register = async (req, res) => {
             !first_name ||
 
             !dob ||
-            !roll_no ||
+            // !roll_no ||
             !father_name ||
             !father_mobile ||
             !mother_name ||
@@ -242,7 +243,7 @@ exports.register = async (req, res) => {
             !state ||
             !course ||
             !semester ||
-            !student_id ||
+            !aadhar_no ||
             !apaar_id ||
             !category
         ) {
@@ -307,6 +308,12 @@ exports.register = async (req, res) => {
             '*'
         );
 
+        const addhaarExist = await UserModel.getSingleRecord(
+                'students',
+                { aadhar_no },
+                '*'
+            );
+
         const existingAparId = await UserModel.getSingleRecord(
             'students',
             { apaar_id },
@@ -319,6 +326,12 @@ exports.register = async (req, res) => {
                 message: 'Apaar ID already exists'
             });
         }
+         if (addhaarExist) {
+            return res.status(400).json({
+                status: false,
+                message: 'Aadhaar No already exists'
+            });
+        }
         if (existingStudent) {
             return res.status(400).json({
                 status: false,
@@ -327,33 +340,18 @@ exports.register = async (req, res) => {
         }
 
         const coursechek = await UserModel.getSingleRecord(
-            'courses',
-            { id: course },
+            'roll_no',
+            { course_id: course, year: semester },
             '*'
         );
 
-        const existingRollNo = await UserModel.getSingleRecord(
-            'students',
-            { roll_no, course },
-            '*'
-        );
-        if (existingRollNo) {
-            return res.status(400).json({
-                status: false,
-                message: 'Roll No already exists'
-            });
-        }
+        let totalFees = (Number(coursechek.admission) + Number(coursechek.tution) + Number(coursechek.security) + Number(coursechek.af_charges) + Number(coursechek.anual) + Number(coursechek.pu_charges) + Number(coursechek.cdf_dilp) + Number(coursechek.uni_examination));
+
         let subjectsArray = [];
         try {
             subjectsArray = subject_ids ? JSON.parse(subject_ids) : [];
         } catch (e) {
             subjectsArray = [];
-        }
-        if (subjectsArray.length < 6) {
-            return res.status(400).json({
-                status: false,
-                message: 'At least six subjects must be selected'
-            });
         }
 
         const statedetail = await UserModel.getSingleRecord(
@@ -363,7 +361,39 @@ exports.register = async (req, res) => {
         );
         const yearColumn = `${semester}y`;
         // const student_id = await exports.generateStaffId();
+        const roll_no = await exports.rollNoGenerate(course, semester);
+
         var gender = 'female';
+
+        const year = new Date().getFullYear();
+        let subjects = '';
+        let practical = 0;
+        if (subjectsArray) {
+            const ids = subjectsArray;
+            for (const id of ids) {
+                const subject = await UserModel.getSingleRecord(
+                    'subjects',
+                    { id },
+                    'subject_name'
+                );
+                if (subject) {
+                    subjects += subject.subject_name + ', ';
+                    if (course == 1) {
+                        if (subject.subject_name == 'Physical Education') {
+                            const practicalfees = await UserModel.getSingleRecord(
+                                'roll_no',
+                                { course_id: course },
+                                'practical'
+                            );
+                            totalFees = (totalFees + Number(practicalfees.practical));
+                            practical = 1;
+                        }
+                    }
+                }
+            }
+            subjects = subjects.replace(/, $/, '');
+        }
+        console.log(totalFees);
         const insertData = {
             student_id,
             roll_no,
@@ -372,6 +402,7 @@ exports.register = async (req, res) => {
             category,
             dob,
             gender,
+            aadhar_no,
             father_name,
             father_mobile,
             mother_name,
@@ -383,28 +414,13 @@ exports.register = async (req, res) => {
             state: statedetail.name,
             course,
             course_year: semester,
-            total_fees: Number(coursechek[yearColumn]),
+            total_fees: totalFees,
+            practical_status: practical,
             transport,
             vehicle_name: transport === 'Yes' ? vehicle_name : '',
             vehicle_no: transport === 'Yes' ? vehicle_no : '',
             subject_ids: JSON.stringify(subjectsArray)
         };
-        const year = new Date().getFullYear();
-        let subjects = '';
-        if (subjectsArray) {
-            const ids = subjectsArray;
-            for (const id of ids) {
-                const subject = await UserModel.getSingleRecord(
-                    'subjects',
-                    { id },
-                    'subject_name'
-                );
-                if (subject) {
-                    subjects += subject.subject_name + ', ';
-                }
-            }
-            subjects = subjects.replace(/, $/, '');
-        }
         const insertDatasession = {
             student_id,
             roll_no,
@@ -429,10 +445,15 @@ exports.register = async (req, res) => {
             'session_detail',
             insertDatasession
         );
+        // return res.status(200).json({
+        //     status: true,
+        //     message: 'Student Registered Successfully',
+        //     student_id
+        // });
         return res.status(200).json({
             status: true,
             message: 'Student Registered Successfully',
-            student_id
+            redirect: CONSTANTS.role + 'create-reciept?student_id=' + student_id
         });
     } catch (error) {
         console.log(error);
@@ -443,17 +464,66 @@ exports.register = async (req, res) => {
     }
 };
 
-exports.generateStaffId = async () => {
-    let randomId;
-    let exists = true;
-    while (exists) {
-        randomId = Math.floor(100000 + Math.random() * 900000);
-        const check = await UserModel.getSingleRecord(
-            'students',
-            { student_id: randomId },
-            'student_id'
+exports.rollNoGenerate = async (course_id, year) => {
+
+    while (true) {
+
+        const roll = await UserModel.getSingleRecord(
+            'roll_no',
+            { course_id, year },
+            '*'
         );
-        exists = !!check;
+
+        if (!roll) {
+            throw new Error('Roll number configuration not found.');
+        }
+
+        const currentYear = new Date().getFullYear();
+
+        let runningNo;
+
+        if (roll.last_year != currentYear) {
+            // New Year
+            runningNo = roll.start;
+        } else {
+            runningNo = roll.last_rno == null
+                ? roll.start
+                : Number(roll.last_rno) + 1;
+        }
+
+        const finalNo = `${currentYear}${runningNo}`;
+
+        // Check if already exists in students table
+        const exists = await UserModel.getSingleRecord(
+            'students',
+            { roll_no: finalNo },
+            'id'
+        );
+
+        if (!exists) {
+
+            // Update counter only after successful check
+            await UserModel.updateRecord(
+                'roll_no',
+                {
+                    last_rno: runningNo,
+                    last_year: currentYear
+                },
+                { id: roll.id },
+
+            );
+
+            return finalNo;
+        }
+
+        await UserModel.updateRecord(
+            'roll_no',
+            {
+                last_rno: runningNo,
+                last_year: currentYear
+            },
+            { id: roll.id },
+
+        );
     }
-    return randomId;
 };

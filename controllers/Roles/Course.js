@@ -306,3 +306,296 @@ exports.headsHistory = async (req, res) => {
     });
 
 };
+
+
+exports.recieptheadupdate = async (req, res) => {
+
+    // let course = req.body.course || '';
+    // let roll_id = req.body.roll_id || '';
+    const errors = {};
+
+    let course = req.body?.course || '';
+    let message = '';
+    let messageType = '';
+    let selectedCourse = '';
+    let selectedRoll = '';
+
+    const courseList = await UserModel.getRecords(
+        'roll_no',
+        {},
+        '*'
+    );
+    if (course != '') {
+
+        selectedRoll = await UserModel.getSingleRecord(
+            'roll_no',
+            { id: course },
+            '*'
+        );
+
+        console.log(selectedRoll);
+
+    }
+    if (req.method === "POST" && req.body?.action_type === "update") {
+
+        if (!course) {
+            errors.course = "Please select course.";
+        }
+
+        if (!req.body.admission) {
+            errors.admission = "Admission fee required.";
+        }
+
+        if (!req.body.tution) {
+            errors.tution = "Tution fee required.";
+        }
+
+        if (!req.body.security) {
+            errors.security = "Security fee required.";
+        }
+
+        if (!req.body.af_charges) {
+            errors.af_charges = "AF Charges required.";
+        }
+
+        if (!req.body.anual) {
+            errors.anual = "Annual fee required.";
+        }
+
+        if (!req.body.pu_charges) {
+            errors.pu_charges = "PU Charges required.";
+        }
+
+        if (!req.body.cdf_dilp) {
+            errors.cdf_dilp = "CDF/DILP required.";
+        }
+        if (!req.body.uni_examination) {
+            errors.uni_examination = "Uni Examination Fee required.";
+        }
+
+        if (
+            selectedRoll &&
+            Number(selectedRoll.course_id) === 1 &&
+            !req.body.practical
+        ) {
+            errors.practical = "Practical fee required.";
+        }
+
+        if (Object.keys(errors).length === 0) {
+
+            const updateData = {
+                admission: req.body.admission,
+                tution: req.body.tution,
+                security: req.body.security,
+                af_charges: req.body.af_charges,
+                anual: req.body.anual,
+                pu_charges: req.body.pu_charges,
+                cdf_dilp: req.body.cdf_dilp,
+                uni_examination:req.body.uni_examination
+            };
+
+            if (selectedRoll && Number(selectedRoll.course_id) === 1) {
+                updateData.practical = req.body.practical;
+            }
+
+            await UserModel.updateRecord(
+                "roll_no",
+                updateData,
+                { id: course }
+            );
+
+            message = "Fees Updated Successfully.";
+            messageType = "success";
+
+            selectedRoll = await UserModel.getSingleRecord(
+                "roll_no",
+                { id: course },
+                "*"
+            );
+        }
+    }
+
+    let courseOptions = `<option value="">Select Course</option>`;
+
+    for (const item of courseList) {
+
+        const name = await UserModel.getSingleRecord(
+            "courses",
+            { id: item.course_id },
+            "*"
+        );
+
+        courseOptions += `
+        <option value="${item.id}" ${course == item.id ? 'selected' : ''}>
+            ${name.course_name} ${item.year} Year
+        </option>
+        
+    `;
+
+    }
+    let yearFields = '';
+    // console.log(selectedRoll);
+
+    if (selectedRoll) {
+
+        yearFields += `
+
+    <div class="col-md-3 mb-3">
+        <label>Admission</label>
+        <input type="text"
+            class="form-control"
+            name="admission"
+            value="${selectedRoll.admission || ''}"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        ${errors.admission ? `<div class="text-danger small mt-1">${errors.admission}</div>` : ""}
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label>Tution</label>
+        <input type="text"
+            class="form-control"
+            name="tution"
+            value="${selectedRoll.tution || ''}"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        ${errors.tution ? `<div class="text-danger small mt-1">${errors.tution}</div>` : ""}
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label>Security</label>
+        <input type="text"
+            class="form-control"
+            name="security"
+            value="${selectedRoll.security || ''}"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        ${errors.security ? `<div class="text-danger small mt-1">${errors.security}</div>` : ""}
+    </div>
+    `;
+
+        if (Number(selectedRoll.course_id) === 1) {
+
+            yearFields += `
+        <div class="col-md-3 mb-3">
+            <label>Practical Fees</label>
+            <input type="text"
+                class="form-control"
+                name="practical"
+                value="${selectedRoll.practical || ''}"
+                oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            ${errors.practical ? `<div class="text-danger small mt-1">${errors.practical}</div>` : ""}
+        </div>
+        `;
+        }
+
+        yearFields += `
+
+    <div class="col-md-3 mb-3">
+        <label>AF Charges</label>
+        <input type="text"
+            class="form-control"
+            name="af_charges"
+            value="${selectedRoll.af_charges || ''}"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        ${errors.af_charges ? `<div class="text-danger small mt-1">${errors.af_charges}</div>` : ""}
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label>Annual</label>
+        <input type="text"
+            class="form-control"
+            name="anual"
+            value="${selectedRoll.anual || ''}"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        ${errors.anual ? `<div class="text-danger small mt-1">${errors.anual}</div>` : ""}
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label>PU Charges</label>
+        <input type="text"
+            class="form-control"
+            name="pu_charges"
+            value="${selectedRoll.pu_charges || ''}"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        ${errors.pu_charges ? `<div class="text-danger small mt-1">${errors.pu_charges}</div>` : ""}
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label>CDF DILP</label>
+        <input type="text"
+            class="form-control"
+            name="cdf_dilp"
+            value="${selectedRoll.cdf_dilp || ''}"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        ${errors.cdf_dilp ? `<div class="text-danger small mt-1">${errors.cdf_dilp}</div>` : ""}
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label>Uni Examination</label>
+        <input type="text"
+            class="form-control"
+            name="uni_examination"
+            value="${selectedRoll.uni_examination || ''}"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        ${errors.uni_examination ? `<div class="text-danger small mt-1">${errors.uni_examination}</div>` : ""}
+    </div>
+
+    `;
+    }
+
+    const fields = `
+
+    <div class="row">
+
+        <div class="col-md-6">
+
+            <label>Course</label>
+
+            <select
+                name="course"
+                id="course"
+                class="form-control"
+                onchange="receiptHeadLoad()">
+
+                ${courseOptions}
+
+            </select>
+
+        </div>
+
+    </div>
+
+    <br>
+
+    <div class="row" id="yearFields">
+
+        ${yearFields}
+
+    </div>
+
+    <input type="hidden" name="action_type" id="action_type" value="">
+
+    
+
+    `;
+
+    const buttons = selectedRoll ? `
+            <button
+                type="submit"
+                class="btn btn-dark"
+                onclick="return receiptHeadUpdate()">
+                Update Head
+            </button>
+        `
+        : '';
+
+    return View.Rview(res, "forms", {
+        title: "Reciept Heads Update",
+        action: CONSTANTS.role + "update-reciept-heads",
+        method: "POST",
+        message,
+        messageType,
+        fields,
+        buttons
+
+    });
+
+};

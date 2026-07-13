@@ -35,6 +35,7 @@
 </script>
 
 <script>
+
     function loadCourseFees(){
         document.getElementById('action_type').value='load';
         document.forms[0].submit();
@@ -44,6 +45,115 @@
         return true;
     }
 
+    function receiptHeadLoad(){
+
+    document.getElementById('action_type').value = 'load';
+
+    document.forms[0].submit();
+
+}
+
+function receiptHeadUpdate(){
+
+    document.getElementById('action_type').value = 'update';
+
+    return true;
+
+}
+
+
+
     
 </script>
+
+<script>
+
+window.loadStudentDetails = function () {
+
+    let student_id = document.querySelector('[name="student_id"]').value;
+
+    if (student_id.trim() === '') {
+        document.getElementById('studentDetails').innerHTML = '';
+        return;
+    }
+
+    fetch('${CONSTANTS.role}student-fees', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            student_id: student_id
+        })
+    })
+    .then(res => res.json())
+    .then(res => {
+
+        if (!res.status) {
+            document.getElementById('studentDetails').innerHTML = '';
+            return;
+        }
+
+        document.getElementById('studentDetails').innerHTML = `
+            <div class="card mt-3 border-primary">
+                <div class="card-body">
+                    <table class="table table-bordered mb-0">
+                        <tr>
+                            <th>Total Fees</th>
+                            <td>${CONSTANTS.currency}\${res.total_fees}</td>
+                        </tr>
+                        <tr>
+                            <th>Paid Fees</th>
+                            <td>${CONSTANTS.currency}\${res.paid_fees}</td>
+                        </tr>
+                        <tr>
+                            <th>Pending Fees</th>
+                            <td class="text-danger fw-bold">
+                                ${CONSTANTS.currency}\${res.pending_fees}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>`;
+    });
+
+};
+
+window.togglePaymentField = function () {
+
+    const mode = document.getElementById('payment_mode').value;
+    const div = document.getElementById('payment_details_div');
+    const label = document.getElementById('payment_details_label');
+    const input = document.getElementById('payment_details');
+
+    if (mode === 'Cash' || mode === '') {
+        div.style.display = 'none';
+        input.value = '';
+    } else {
+        div.style.display = 'block';
+
+        if (mode === 'UPI') {
+            label.innerText = 'Transaction ID';
+            input.placeholder = 'Enter Transaction ID';
+        } else if (mode === 'Card') {
+            label.innerText = 'Card Number';
+            input.placeholder = 'Enter Card Number';
+        } else if (mode === 'Bank Transfer') {
+            label.innerText = 'Transfer Reference No';
+            input.placeholder = 'Enter Transfer Reference No';
+        } else {
+            label.innerText = 'Cheque Number';
+            input.placeholder = 'Enter Cheque Number';
+        }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function () {
+    togglePaymentField();
+    loadStudentDetails();
+});
+
+</script>
+
+
 

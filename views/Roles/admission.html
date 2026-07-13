@@ -162,7 +162,7 @@
                 <!-- College Header -->
                 <div class="border-bottom pb-3 mb-3">
                     <h3 class="fw-bold text-primary mb-1">{{CONSTANTS.TITLE}}</h3>
-                    <p class="text-muted mb-1">Under D.A.V. College Managing Committee (New Delhi)</p>
+                    <p class="text-muted mb-1">Under DAV College Managing Committee (New Delhi)</p>
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <h5 class="fw-semibold">ADMISSION RECEIPT <span class="badge bg-warning text-dark ms-2">SESSION:
                                 {{start}}-{{end}}</span></h5>
@@ -213,34 +213,32 @@
                 <!-- Fee Table -->
                 <div class="table-responsive">
                     <table class="table table-sm table-borderless">
-                        <thead class="border-bottom border-2">
+                        <!-- <thead class="border-bottom border-2">
                             <tr>
                                 <th style="width:70%">Amount</th>
                                 <th class="text-end" style="width:30%"> {{CONSTANTS.currency}}{{receipt.amount}}</th>
                             </tr>
-                        </thead>
-                        <!-- <tbody>
-                                <tr><td>Admission Fees</td><td class="text-end">200.00</td></tr>
+                        </thead> -->
+                        <tbody>
+                                <!-- <tr><td>Admission Fees</td><td class="text-end">200.00</td></tr>
                                 <tr><td>Tuition Fees</td><td class="text-end">910.00</td></tr>
                                 <tr><td>College Security</td><td class="text-end">340.00</td></tr>
                                 <tr><td>Practical Fees</td><td class="text-end">1300.00</td></tr>
                                 <tr><td>A.F.Charges</td><td class="text-end">7320.00</td></tr>
                                 <tr><td>Annual Charges</td><td class="text-end">6450.00</td></tr>
                                 <tr><td>Other PU Charges</td><td class="text-end">3325.00</td></tr>
-                                <tr><td>CDF & DILP</td><td class="text-end">500.00</td></tr>
+                                <tr><td>CDF & DILP</td><td class="text-end">500.00</td></tr> -->
+                                {{feeRows}}
                                 <tr class="fw-bold border-top border-2">
                                     <td>TOTAL AMOUNT DUE</td>
-                                    <td class="text-end">{{user.total_fees}}</td>
+                                    <td class="text-end">{{dueamount}}</td>
                                 </tr>
-                                <tr>
-                                    <td>CASH RECEIVED</td>
-                                    <td class="text-end">7500.00</td>
-                                </tr>
+                                {{paymentRow}}
                                 <tr class="fw-bold fs-5 border-top border-2">
                                     <td>BALANCE AMOUNT</td>
-                                    <td class="text-end">{{user.total_fees - user.pending_fees}}</td>
+                                    <td class="text-end">{{balance}}</td>
                                 </tr>
-                            </tbody> -->
+                            </tbody>
                     </table>
                 </div>
 

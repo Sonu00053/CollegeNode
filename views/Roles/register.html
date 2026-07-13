@@ -36,18 +36,17 @@
                             class="form-control"><small class="error"></small></div>
                             <div class="col-md-6">
                         <label>Student ID *</label>
-                        <input type="text" name="roll_no" id="roll_no" class="form-control">
-                        <small class="error"></small>
-                    </div>
-                    <div class="col-md-6">
-                        <label>Roll No *</label>
                         <input type="text" name="student_id" id="student_id" class="form-control">
                         <small class="error"></small>
                     </div>
-
                     <div class="col-md-6">
                         <label>Apaar ID *</label>
                         <input type="text" name="apaar_id" id="apaar_id" class="form-control">
+                        <small class="error"></small>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Aadhar No *</label>
+                        <input type="text" name="aadhar_no" id="aadhar_no" class="form-control">
                         <small class="error"></small>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -170,51 +169,60 @@
             ).hide();
         }
     });
+   
+
     document.getElementById('course').addEventListener('change', async function () {
 
-        let courseId = this.value;
+    let courseId = this.value;
 
-        if (!courseId) return;
+    if (!courseId) return;
 
-        let response = await fetch(`{{CONSTANTS.role}}subjects/${courseId}`);
-        let result = await response.json();
+    let response = await fetch(`{{CONSTANTS.role}}subjects/${courseId}`);
+    let result = await response.json();
 
-        let html = '';
-        let html2 = '';
-        result.subjects.forEach(subject => {
+    // Year / Semester
+    let duration = parseInt(result.duration) || 0;
+    let semesterHtml = '';
 
-            html += `
-        <div class="form-check">
-            <input
-                class="form-check-input subjectCheckbox"
-                type="checkbox"
-                value="${subject.id}"
-                id="subject_${subject.id}">
+    for (let i = 1; i <= duration; i++) {
+        semesterHtml += `<option value="${i}">${i}</option>`;
+    }
 
-            <label class="form-check-label">
-                ${subject.subject_name}
-            </label>
-        </div>
+    document.getElementById('semester').innerHTML = semesterHtml;
+
+    // Reset previous subjects
+    document.getElementById('subject_ids').value = '';
+    document.getElementById('subjectList').innerHTML = '';
+
+    // 👇 Sirf BA (Course ID = 1) ke liye popup kholo
+    if (parseInt(courseId) !== 1) {
+        return;
+    }
+
+    let html = '';
+
+    result.subjects.forEach(subject => {
+        html += `
+            <div class="form-check">
+                <input
+                    class="form-check-input subjectCheckbox"
+                    type="checkbox"
+                    value="${subject.id}"
+                    id="subject_${subject.id}">
+                <label class="form-check-label">
+                    ${subject.subject_name}
+                </label>
+            </div>
         `;
-        });
-
-        document.getElementById('subjectList').innerHTML = html;
-
-        let duration = parseInt(result.duration) || 0;
-
-        let semesterHtml = '';
-
-        for (let i = 1; i <= duration; i++) {
-            semesterHtml += `<option value="${i}">${i}</option>`;
-        }
-
-        document.getElementById('semester').innerHTML = semesterHtml;
-
-        new bootstrap.Modal(
-            document.getElementById('subjectModal')
-        ).show();
-
     });
+
+    document.getElementById('subjectList').innerHTML = html;
+
+    new bootstrap.Modal(
+        document.getElementById('subjectModal')
+    ).show();
+
+});
 </script>
 
 <script>
@@ -250,6 +258,7 @@
     pincodeValidation('pincode', 6);
     pincodeValidation('mobile', 10);
     pincodeValidation('father_mobile', 10);
+    pincodeValidation('aadhar_no', 12);
 
     document.getElementById('registerForm').addEventListener('submit', async function (e) {
 
@@ -293,10 +302,10 @@
             'address',
             'pincode',
             'state',
-            'roll_no',
             'student_id',
             'apaar_id',
-            'category'
+            'category',
+            'aadhar_no'
             // last_name
             // 'email'
         ].forEach(id => {
@@ -332,11 +341,11 @@
         if (em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
             err('email', 'Invalid email');
         }
-        let roll_no = document.getElementById('roll_no').value;
+        // let roll_no = document.getElementById('roll_no').value;
 
-        if (roll_no && !/^[0-9]+$/.test(roll_no)) {
-            err('roll_no', 'Roll No must contain only digits');
-        }
+        // if (roll_no && !/^[0-9]+$/.test(roll_no)) {
+        //     err('roll_no', 'Roll No must contain only digits');
+        // }
 
         ['mobile', 'father_mobile'].forEach(id => {
 
@@ -380,7 +389,7 @@
                 });
 
                 setTimeout(() => {
-                    window.location.href = '{{CONSTANTS.role}}register';
+                    window.location.href = result.redirect;
                 }, 1000);
 
             } else {
@@ -446,36 +455,6 @@
 }
 
 }
-
-    // function mobileValidation(id) {
-    //     const input = document.getElementById(id);
-    //     input.addEventListener('input', function () {
-    //         const error = this.parentElement.querySelector('.error');
-    //         this.value = this.value.replace(/\D/g, '');
-    //         if (this.value.length > 10) {
-    //             this.value = this.value.substring(0, 10);
-    //         }
-    //         if (this.value.length < 10) {
-    //             this.classList.add('is-invalid');
-    //             error.innerHTML = 'Mobile number must be 10 digits';
-    //         } else {
-    //             this.classList.remove('is-invalid');
-    //             error.innerHTML = '';
-    //         }
-    //     });
-
-    //     // Letter ya invalid key press par rok do
-    //     input.addEventListener('keypress', function (e) {
-
-    //         if (!/[0-9]/.test(e.key)) {
-    //             e.preventDefault();
-    //             alert('Only numbers are allowed.');
-    //         }
-
-    //     });
-
-    // }
-
 
     const states = {{states}};
     console.log('States:', states);

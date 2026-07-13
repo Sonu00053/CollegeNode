@@ -17,7 +17,7 @@
 <script>
     const message = "{{message}}";
     const type = "{{messageType}}";
-    const url = "{{action}}";
+    const url = "{{redirect}}";
     if (message) {
         Swal.fire({
             toast: true,
@@ -35,6 +35,79 @@
 </script>
 
 <script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+    togglePaymentField();
+
+    const studentInput = document.querySelector('[name="student_id"]');
+
+    if (studentInput && studentInput.value.trim() !== "") {
+        loadStudentDetails();
+    }
+
+});
+
+    const studentFeesUrl = "{{studentFeesUrl}}";
+    const currency = "{{currency}}";
+
+    window.loadStudentDetails = function () {
+
+        let student_id = document.querySelector('[name="student_id"]').value;
+
+        if (student_id == "") {
+            document.getElementById("studentDetails").innerHTML = "";
+            return;
+        }
+
+        fetch(studentFeesUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                student_id
+            })
+        })
+            .then(r => r.json())
+            .then(res => {
+
+                if (!res.status) {
+                    document.getElementById("studentDetails").innerHTML = "";
+                    return;
+                }
+
+                document.getElementById("studentDetails").innerHTML = `
+            <div class="card mt-3">
+                <div class="card-body">
+
+                <table class="table table-bordered">
+
+                    <tr>
+                        <th>Total Fees</th>
+                        <td>${currency}${res.total_fees}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Paid Fees</th>
+                        <td>${currency}${res.paid_fees}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Pending Fees</th>
+                        <td>${currency}${res.pending_fees}</td>
+                    </tr>
+
+                </table>
+
+                </div>
+            </div>
+        `;
+
+            });
+
+    };
+
     function togglePaymentField() {
         const mode = document.getElementById('payment_mode').value;
         const div = document.getElementById('payment_details_div');
@@ -66,15 +139,13 @@
         }
     }
 
-    function loadCourseFees(){
-        document.getElementById('action_type').value='load';
+    function loadCourseFees() {
+        document.getElementById('action_type').value = 'load';
         document.forms[0].submit();
     }
-    function updateFees(){
-        document.getElementById('action_type').value='update';
+    function updateFees() {
+        document.getElementById('action_type').value = 'update';
         return true;
     }
 
-    
 </script>
-
