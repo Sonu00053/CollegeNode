@@ -648,3 +648,85 @@ exports.getSubjectNames = async (req, res) => {
         });
     }
 };
+
+
+exports.recieptHistoryToday = async (req, res) => {
+
+    // Sirf aaj ki receipts
+    const rows = await UserModel.getTodayRecords(
+        'receipt_details',
+        '*',
+        'created_at',
+        'created_at ASC'
+    );
+
+    // Summary
+    const todayCount = rows.length;
+
+    const todayAmount = rows.reduce((sum, r) => {
+        return sum + Number(r.amount || 0);
+    }, 0);
+
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Student ID</th>
+            <th>Amount</th>
+            <th>Payment Mode</th>
+            <th>Date & Time</th>
+            <th>Action</th>
+        </tr>
+    `;
+
+    let tableRows = '';
+
+    for (const [index, u] of rows.entries()) {
+
+        tableRows += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${u.student_id}</td>
+                <td>${CONSTANTS.currency}${u.amount}</td>
+                <td>${u.payment_mode}</td>
+                <td>${SuperHelper.formatDate(u.created_at)}</td>
+                <td>
+                    <a href="${CONSTANTS.role}reciept/${u.id}"
+                        class="btn btn-sm btn-primary">
+                        View Receipt
+                    </a>
+                </td>
+            </tr>
+        `;
+    }
+
+    if (!rows.length) {
+        tableRows = `
+            <tr>
+                <td colspan="6" class="text-center">
+                    No Today's Receipt Found
+                </td>
+            </tr>
+        `;
+    }
+
+    return View.Rview(res, 'reports', {
+        title: `
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Today's Receipt History</span>
+
+                <div>
+                    <span class="badge bg-success me-2">
+                        Total Receipts : ${todayCount}
+                    </span>
+
+                    <span class="badge bg-primary">
+                        Today Cash : ${CONSTANTS.currency}${todayAmount}
+                    </span>
+                </div>
+            </div>
+        `,
+        thead,
+        tableRows,
+    });
+
+};

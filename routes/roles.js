@@ -23,6 +23,7 @@ router.get('/logout', Manage.logout);
 router.get('/index', jwtAuth.verifyToken, Manage.dashboard);
 router.get('/all-students', jwtAuth.verifyToken, Manage.users);
 router.get('/subjects/:course_id', Login.getSubjectsByCourse);
+router.get('/subjects-group/:course_id', Login.getSubjectsByCourseGroup);
 
 router.get('/recieps-detail',jwtAuth.verifyToken, Manage.recieptHistory);
 router.get('/reciept/:id',jwtAuth.verifyToken, Manage.reciept);
@@ -37,11 +38,14 @@ router.route('/create-reciept')
     router.route('/fees-update')
     .get(jwtAuth.verifyToken,Course.coursefessupdate)
     .post(jwtAuth.verifyToken,Course.coursefessupdate);
-    router.get('/recieps-detail',jwtAuth.verifyToken, Manage.recieptHistory);
+    // router.get('/recieps-detail',jwtAuth.verifyToken, Manage.recieptHistory);
     router.get('/course-fees-history',jwtAuth.verifyToken, Course.coursefeeshistory);
     router.get('/heads-detail/:student_id',jwtAuth.verifyToken, Course.headsHistory);
     router.get('/adm', jwtAuth.verifyToken, Login.admission);
     router.post('/getSubjectNames', Manage.getSubjectNames);
+
+    router.get('/today-reciepts',jwtAuth.verifyToken,Manage.recieptHistoryToday);
+
 
     router.route('/update-reciept-heads')
     .get(Course.recieptheadupdate)

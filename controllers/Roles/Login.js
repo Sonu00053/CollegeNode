@@ -192,6 +192,49 @@ exports.getSubjectsByCourse = async (req, res) => {
 };
 
 
+exports.getSubjectsByCourseGroup = async (req, res) => {
+    try {
+        const { course_id } = req.params;
+
+        const subjects = await UserModel.getRecords(
+            'subjects',
+            { course_id },
+            '*'
+        );
+
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            { id: course_id },
+            '*'
+        );
+
+        // Group subjects by category
+        const groupedSubjects = subjects.reduce((acc, subject) => {
+            const category = subject.category || "Uncategorized";
+
+            if (!acc[category]) {
+                acc[category] = [];
+            }
+
+            acc[category].push(subject);
+
+            return acc;
+        }, {});
+        // console.log(groupedSubjects);
+        return res.json({
+            status: true,
+            subjects: groupedSubjects,
+            duration: course.duration
+        });
+
+    } catch (err) {
+        return res.json({
+            status: false
+        });
+    }
+};
+
+
 
 
 
@@ -370,6 +413,8 @@ exports.register = async (req, res) => {
         let practical = 0;
         if (subjectsArray) {
             const ids = subjectsArray;
+            let practicalAdded = false;
+
             for (const id of ids) {
                 const subject = await UserModel.getSingleRecord(
                     'subjects',
@@ -378,8 +423,8 @@ exports.register = async (req, res) => {
                 );
                 if (subject) {
                     subjects += subject.subject_name + ', ';
-                    if (course == 1) {
-                        if (subject.subject_name == 'Physical Education') {
+                    if (course == 1 && !practicalAdded) {
+                        if (subject.subject_name == 'Modern Lifestyle and Phy. Edu.' || subject.subject_name == 'Foundation of Physical Education and Sports') {
                             const practicalfees = await UserModel.getSingleRecord(
                                 'roll_no',
                                 { course_id: course },
@@ -387,13 +432,14 @@ exports.register = async (req, res) => {
                             );
                             totalFees = (totalFees + Number(practicalfees.practical));
                             practical = 1;
+                            practicalAdded = true;
                         }
                     }
                 }
             }
             subjects = subjects.replace(/, $/, '');
         }
-        console.log(totalFees);
+        // console.log(totalFees);
         const insertData = {
             student_id,
             roll_no,

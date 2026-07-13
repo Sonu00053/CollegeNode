@@ -40,6 +40,36 @@ exports.getSingleRecord = async (table, where = {}, select = '*', orderBy = '') 
   return result.length ? result[0] : null;
 };
 
+
+exports.getTodayRecords = async (
+    table,
+    select = '*',
+    dateColumn = 'created_at',
+    orderBy = ''
+) => {
+
+    let finalSelect = '*';
+
+    if (Array.isArray(select)) {
+        finalSelect = select.join(',');
+    } else if (typeof select === 'string' && select.trim() !== '') {
+        finalSelect = select;
+    }
+
+    let sql = `
+        SELECT ${finalSelect}
+        FROM ${table}
+        WHERE DATE(${dateColumn}) = CURDATE()
+    `;
+
+    if (orderBy) {
+        sql += ` ORDER BY ${orderBy}`;
+    }
+
+    const [rows] = await db.query(sql);
+    return rows;
+};
+
 // exports.getRecords = async (table, where = {}, select = '*') => {
 
 //   let finalSelect = '*';

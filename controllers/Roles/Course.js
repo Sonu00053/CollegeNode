@@ -383,6 +383,31 @@ exports.recieptheadupdate = async (req, res) => {
 
         if (Object.keys(errors).length === 0) {
 
+            olddetail = await UserModel.getSingleRecord(
+                'roll_no',
+                { id: course },
+                '*'
+            );
+
+
+            const addData = {
+    course_id: olddetail.course_id,
+    year: olddetail.year,
+    admission: olddetail.admission,
+    tution: olddetail.tution,
+    security: olddetail.security,
+    af_charges: olddetail.af_charges,
+    anual: olddetail.anual,
+    pu_charges: olddetail.pu_charges,
+    cdf_dilp: olddetail.cdf_dilp,
+    uni_examination: olddetail.uni_examination,
+    practical: olddetail.practical || 0
+};
+
+await UserModel.addRecord(
+    'fess_update_details',
+    addData
+);
             const updateData = {
                 admission: req.body.admission,
                 tution: req.body.tution,
@@ -391,7 +416,7 @@ exports.recieptheadupdate = async (req, res) => {
                 anual: req.body.anual,
                 pu_charges: req.body.pu_charges,
                 cdf_dilp: req.body.cdf_dilp,
-                uni_examination:req.body.uni_examination
+                uni_examination: req.body.uni_examination
             };
 
             if (selectedRoll && Number(selectedRoll.course_id) === 1) {
