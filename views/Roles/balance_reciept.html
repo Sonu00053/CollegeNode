@@ -391,8 +391,8 @@
 <div class="content">
     <div class="card shadow-sm mt-4">
         <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">Admission Receipt {{start}}-{{end}}</h4>
-            <a href="/staff/create-reciept" class="btn btn-warning btn-sm">
+            <h4 class="mb-0">MISC. Receipt {{start}}-{{end}}</h4>
+            <a href="{{CONSTANTS.role}}balance-create-reciept" class="btn btn-warning btn-sm">
                 Create New Receipt
             </a>
         </div>
@@ -405,7 +405,7 @@
                     <h3 class="fw-bold text-dark mb-1">{{CONSTANTS.TITLE}}</h3>
                     <p class="sub-heading">Under DAV College Managing Committee (New Delhi)</p>
                     <div class="">
-                        <p class="fw-semibold">ADMISSION RECEIPT <span class=" text-dark ms-2">SESSION:
+                        <p class="fw-semibold">MISC. RECEIPT <span class=" text-dark ms-2">SESSION:
                                 {{start}}-{{end}}</span></p>
                         
                     </div>
@@ -444,7 +444,7 @@
                 <!-- Fee Table -->
                 <div class="">
                         <div class=""> 
-                            {{feeRows}}
+                            <!-- {{feeRows}} -->
                             <div class="table-footer-btm">
                                 <div class="d-flex m-0 justify-content-between">
                                     <p class="m-0">TOTAL AMOUNT DUE</p>
@@ -468,10 +468,7 @@
                             <i class="bi bi-pencil me-1"></i> {{CONSTANTS.currency}} {{amountInWords}}
                         </span>
                     </div>
-                    <!-- <div class="col-md-6 text-md-end">
-                        <span class="badge bg-light text-dark border px-3 py-2">Class:
-                            {{course.course_name}}.{{user.course_year}}</span>
-                    </div> -->
+                   
                 </div>
 
                 <!-- Subjects -->
@@ -479,8 +476,6 @@
                     <span class="fw-semibold me-2">Subjects:</span>
                     {{subjects}}
                 </div>
-                  
-
                 <!-- Notes & Signature -->
                 <div class="row g-3 mt-2 pt-2 border-top border-dashed">
                     <div class="col-md-7">
@@ -497,12 +492,8 @@
                 </div>
                 </div>
             </div>
-            
             <div class="d-flex gap-2 mt-4 pt-3 border-top">
-                <!-- <button type="button" class="btn btn-primary" onclick="downloadPDF()">
-                    <i class="bi bi-download me-1"></i> Download Receipt
-                </button> -->
-                <button type="button" class="btn btn-outline-secondary" onclick="printReceiptAdmission()">
+                <button type="button" class="btn btn-outline-secondary" onclick="printReceipt()">
                     <i class="bi bi-printer me-1"></i> Print
                 </button>
                 <button type="reset" class="btn btn-outline-danger">Reset</button>
@@ -581,7 +572,7 @@
     }
 
     // Print function with half-page support
-     function printReceiptAdmission() {
+     function printReceipt() {
         // Add print-specific styles for half page
         const style = document.createElement('style');
         style.innerHTML = `

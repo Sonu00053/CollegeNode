@@ -24,18 +24,19 @@
                 <div class="row g-3">
                     <div class="col-md-6"><label>First Name *</label><input name="first_name" id="first_name"
                             class="form-control"><small class="error"></small></div>
-                    <div class="col-md-6"><label>Last Name *</label><input name="last_name" id="last_name"
+                    <div class="col-md-6"><label>Last Name </label><input name="last_name" id="last_name"
                             class="form-control"><small class="error"></small></div>
                     <div class="col-md-6"><label>DOB *</label><input type="date" name="dob" id="dob"
                             class="form-control"><small class="error"></small></div>
                             <div class="col-md-6">
-                        <label class="form-label">Category</label>
+                        <label class="form-label">Category *</label>
                         <select name="category" id="category" class="form-select">
                             <option value="">Select Category</option>
                             <option value="GENERAL">GENERAL</option>
                             <option value="SC">SC</option>
                             <option value="ST">ST</option>
                             <option value="OBC">OBC</option>
+                            <option value="SIKH">SIKH</option>
                         </select>
                         <small class="error"></small>
                     </div>
@@ -44,10 +45,10 @@
                     <div class="col-md-6"><label>Father Mobile *</label><input name="father_mobile" id="father_mobile"
                             class="form-control"><small class="error"></small></div>
                     <div class="col-md-6"><label>Mother Name *</label><input name="mother_name" id="mother_name"
-                            class="form-control" maxlength="10"><small class="error"></small></div>
+                            class="form-control"><small class="error"></small></div>
                     <div class="col-md-6"><label>Student Mobile *</label><input name="mobile" id="mobile"
                             class="form-control" maxlength="10"><small class="error"></small></div>
-                    <div class="col-md-6"><label>Email *</label><input id="email" name="email"
+                    <div class="col-md-6"><label>Email </label><input id="email" name="email"
                             class="form-control"><small class="error"></small></div>
                             <div class="col-md-6">
                         <label>Student ID *</label>
@@ -55,17 +56,17 @@
                         <small class="error"></small>
                     </div>
                     <div class="col-md-6">
-                        <label>Apaar ID *</label>
+                        <label>Apaar ID </label>
                         <input type="text" name="apaar_id" id="apaar_id" class="form-control">
                         <small class="error"></small>
                     </div>
                     <div class="col-md-6">
-                        <label>Aadhar No *</label>
+                        <label>Aadhar No </label>
                         <input type="text" name="aadhar_no" id="aadhar_no" class="form-control">
                         <small class="error"></small>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">State</label>
+                        <label class="form-label">State *</label>
                         <select name="state" id="state" class="form-select">
                             <option value="">Select State</option>
                         </select>
@@ -98,6 +99,17 @@
                             class="form-control">
                         </select><small class="error"></small></div>
 
+                          <div class="col-md-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="security_allow" name="security_allow" value="Yes">
+                            <label class="form-check-label" for="security_allow">
+                               Security
+                            </label>
+                        </div>
+                    </div>
+
+
+
                     <div class="col-md-12">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="transport" name="transport" value="Yes">
@@ -109,13 +121,13 @@
 
                     <div id="vehicleSection" class="row g-3 mt-2" style="display:none;">
                         <div class="col-md-6">
-                            <label>Vehicle Name *</label>
+                            <label>Vehicle Name </label>
                             <input type="text" id="vehicle_name" name="vehicle_name" class="form-control">
                             <small class="error"></small>
                         </div>
 
                         <div class="col-md-6">
-                            <label>Vehicle No *</label>
+                            <label>Vehicle No </label>
                             <input type="text" id="vehicle_no" name="vehicle_no" class="form-control">
                             <small class="error"></small>
                         </div>
@@ -193,14 +205,34 @@
         }
 
     });
+
+
+       document.getElementById('semester').addEventListener('change', function () {
+    let courseId = document.getElementById('course').value;
+    let year = this.value;
+
+    if (courseId && year) {
+        selectYear(courseId, year);
+    }
+});
+
+
+    function selectYear(cId,year){
+ if (cId == 1 && year ==1) {
+            document.getElementById('security_allow').checked = true;
+        }else{
+                      document.getElementById('security_allow').checked = false;
+  
+        }
+    }
    
 
-document.getElementById('course').addEventListener('change', async function () {
+document.getElementById('course').addEventListener('click', async function () {
 
     let courseId = this.value;
 
     if (!courseId) return;
-
+  
     let response = await fetch(`{{CONSTANTS.role}}subjects-group/${courseId}`);
     let result = await response.json();
 
@@ -209,6 +241,7 @@ document.getElementById('course').addEventListener('change', async function () {
     let semesterHtml = '<option value="">Select Year</option>';
 
     for (let i = 1; i <= duration; i++) {
+        
         semesterHtml += `<option value="${i}">Year ${i}</option>`;
     }
 
@@ -290,6 +323,84 @@ document.getElementById('course').addEventListener('change', async function () {
 });
 
 
+let typingTimer;
+let typedText = '';
+
+document.addEventListener('keydown', function(e) {
+
+    let modal = document.getElementById('subjectModal');
+
+    if (!modal.classList.contains('show')) {
+        return;
+    }
+
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') {
+        return;
+    }
+
+    if (e.key.length === 1 && /^[a-zA-Z]$/.test(e.key)) {
+
+        typedText += e.key.toLowerCase();
+
+        clearTimeout(typingTimer);
+
+        typingTimer = setTimeout(() => {
+            typedText = '';
+        }, 1000);
+
+
+        let subjects = document.querySelectorAll('.subjectCheckbox');
+
+        // pehle sabka highlight remove
+        document.querySelectorAll('.form-check').forEach(x => {
+            x.style.background = '';
+        });
+
+
+        let firstMatch = null;
+
+
+        subjects.forEach(checkbox => {
+
+            let label = document.querySelector(
+                `label[for="${checkbox.id}"]`
+            );
+
+            if (!label) return;
+
+
+            let subjectName = label.innerText.trim().toLowerCase();
+
+
+            if (subjectName.startsWith(typedText)) {
+
+                let item = checkbox.closest('.form-check');
+
+                // sab matching highlight
+                item.style.background = '#ffff99';
+
+
+                // first matching ke liye scroll
+                if (!firstMatch) {
+                    firstMatch = item;
+                }
+            }
+
+        });
+
+
+        // first matching subject par scroll
+        if (firstMatch) {
+
+            let modalBody = document.querySelector('#subjectList');
+
+            modalBody.scrollTop = firstMatch.offsetTop - 50;
+
+        }
+
+    }
+
+});
 
 function updateSelectedSubjects() {
 
@@ -393,12 +504,12 @@ function updateSelectedSubjects() {
             'semester',
             'city',
             'address',
-            'pincode',
+            // 'pincode',
             'state',
             'student_id',
-            'apaar_id',
+            // 'apaar_id',
             'category',
-            'aadhar_no'
+            // 'aadhar_no'
             // last_name
             // 'email'
         ].forEach(id => {
@@ -417,17 +528,17 @@ function updateSelectedSubjects() {
         });
 
         // Transport validation
-        if (document.getElementById('transport').checked) {
+        // if (document.getElementById('transport').checked) {
 
-            if (document.getElementById('vehicle_name').value.trim() === '') {
-                err('vehicle_name', 'Vehicle Name field is required');
-            }
+        //     if (document.getElementById('vehicle_name').value.trim() === '') {
+        //         err('vehicle_name', 'Vehicle Name field is required');
+        //     }
 
-            if (document.getElementById('vehicle_no').value.trim() === '') {
-                err('vehicle_no', 'Vehicle No field is required');
-            }
+        //     if (document.getElementById('vehicle_no').value.trim() === '') {
+        //         err('vehicle_no', 'Vehicle No field is required');
+        //     }
 
-        }
+        // }
 
         let em = document.getElementById('email').value;
 

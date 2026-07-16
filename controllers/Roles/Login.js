@@ -32,6 +32,7 @@ exports.login = async (req, res) => {
             {
                 id: user.id,
                 email: user.email,
+                staff_id: user.staff_id,
                 role: user.role,
                 check: CONSTANTS.role,
             },
@@ -239,6 +240,7 @@ exports.getSubjectsByCourseGroup = async (req, res) => {
 
 
 exports.register = async (req, res) => {
+    const staff_id = req.user.staff_id;
     console.log('Request Body:', req.body); // Debugging line to check the request body
     try {
         const {
@@ -264,7 +266,8 @@ exports.register = async (req, res) => {
             student_id,
             apaar_id,
             aadhar_no,
-            category
+            category,
+            security_allow
         } = req.body;
 
         // Required Validation
@@ -280,14 +283,14 @@ exports.register = async (req, res) => {
             !father_mobile ||
             !mother_name ||
             !mobile ||
-            !pincode ||
+            // !pincode ||
             !address ||
             !city ||
             !state ||
             !course ||
             !semester ||
-            !aadhar_no ||
-            !apaar_id ||
+            // !aadhar_no ||
+            // !apaar_id ||
             !category
         ) {
             return res.status(400).json({
@@ -295,16 +298,32 @@ exports.register = async (req, res) => {
                 message: 'All required fields are mandatory'
             });
         }
-        if (transport === 'Yes') {
+        // if (transport === 'Yes') {
 
-            if (!vehicle_name || !vehicle_no) {
-                return res.status(400).json({
-                    status: false,
-                    message: 'Vehicle Name and Vehicle No are required'
-                });
-            }
+        //     if (!vehicle_name || !vehicle_no) {
+        //         return res.status(400).json({
+        //             status: false,
+        //             message: 'Vehicle Name and Vehicle No are required'
+        //         });
+        //     }
 
-        }
+        // }
+
+
+
+     if (transport === 'Yes') {
+        var parkingfees = 1000;
+
+    }else{
+        var parkingfees = 0;
+
+    }
+
+
+
+
+
+
 
 
         // Email Validation
@@ -352,10 +371,10 @@ exports.register = async (req, res) => {
         );
 
         const addhaarExist = await UserModel.getSingleRecord(
-                'students',
-                { aadhar_no },
-                '*'
-            );
+            'students',
+            { aadhar_no },
+            '*'
+        );
 
         const existingAparId = await UserModel.getSingleRecord(
             'students',
@@ -369,11 +388,13 @@ exports.register = async (req, res) => {
                 message: 'Apaar ID already exists'
             });
         }
-         if (addhaarExist) {
-            return res.status(400).json({
-                status: false,
-                message: 'Aadhaar No already exists'
-            });
+        if (aadhar_no != '') {
+            if (addhaarExist) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Aadhaar No already exists'
+                });
+            }
         }
         if (existingStudent) {
             return res.status(400).json({
@@ -382,19 +403,32 @@ exports.register = async (req, res) => {
             });
         }
 
+
         const coursechek = await UserModel.getSingleRecord(
             'roll_no',
             { course_id: course, year: semester },
             '*'
         );
+        console.log(coursechek);
 
-        let totalFees = (Number(coursechek.admission) + Number(coursechek.tution) + Number(coursechek.security) + Number(coursechek.af_charges) + Number(coursechek.anual) + Number(coursechek.pu_charges) + Number(coursechek.cdf_dilp) + Number(coursechek.uni_examination));
+        let totalPracticalFee = 0;
+        let security = 0;
+
+        let totalFees = (Number(coursechek.admission) + Number(coursechek.tution) + Number(coursechek.af_charges) + Number(coursechek.anual) + Number(coursechek.pu_charges) + Number(coursechek.cdf_dilp) + Number(coursechek.uni_examination) + Number(parkingfees));
 
         let subjectsArray = [];
         try {
             subjectsArray = subject_ids ? JSON.parse(subject_ids) : [];
         } catch (e) {
             subjectsArray = [];
+        }
+        if (Number(course) == 1) {
+            if (subjectsArray.length == 0) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Please Select Subjects'
+                });
+            }
         }
 
         const statedetail = await UserModel.getSingleRecord(
@@ -408,9 +442,23 @@ exports.register = async (req, res) => {
 
         var gender = 'female';
 
+        if (security_allow === 'Yes') {
+            totalFees = (totalFees + Number(coursechek.security));
+            security = Number(coursechek.security);
+
+        }
+
         const year = new Date().getFullYear();
         let subjects = '';
         let practical = 0;
+        var fine_arts_status = 0;
+        var music_vocal_status = 0;
+        var music_instrumnet_status = 0;
+        var computer_science_status = 0;
+        var english_honour_status = 0;
+        var home_science_status = 0;
+        var physical = 0;
+        var physical = 0;
         if (subjectsArray) {
             const ids = subjectsArray;
             let practicalAdded = false;
@@ -419,7 +467,7 @@ exports.register = async (req, res) => {
                 const subject = await UserModel.getSingleRecord(
                     'subjects',
                     { id },
-                    'subject_name'
+                    'subject_name,practical_status,practical_key'
                 );
                 if (subject) {
                     subjects += subject.subject_name + ', ';
@@ -428,11 +476,60 @@ exports.register = async (req, res) => {
                             const practicalfees = await UserModel.getSingleRecord(
                                 'roll_no',
                                 { course_id: course },
-                                'practical'
+                                'practical,practical'
                             );
                             totalFees = (totalFees + Number(practicalfees.practical));
+                            totalPracticalFee = (totalPracticalFee + Number(practicalfees.practical));
                             practical = 1;
+                            physical = Number(practicalfees.practical);
                             practicalAdded = true;
+                        }
+                    }
+
+
+
+
+                    if (Number(subject.practical_status) == 1) {
+                        const addedfees = await UserModel.getSingleRecord(
+                            'roll_no',
+                            { course_id: course },
+                            'fine_arts,music_vocal,music_instrumnet,computer_science,english_honour,home_science'
+                        );
+                        if (subject.practical_key == "fine_arts") {
+                            var fine_arts_status = Number(addedfees.fine_arts);
+                            totalFees = (totalFees + Number(addedfees.fine_arts));
+                            totalPracticalFee = (totalPracticalFee + Number(addedfees.fine_arts));
+                        }
+
+                        if (subject.practical_key == "music_vocal") {
+                            var music_vocal_status = Number(addedfees.music_vocal);
+                            totalFees = (totalFees + Number(addedfees.music_vocal));
+                            totalPracticalFee = (totalPracticalFee + Number(addedfees.music_vocal));
+
+                        }
+                        if (subject.practical_key == "music_instrumnet") {
+                            var music_instrumnet_status = Number(addedfees.music_instrumnet);
+                            totalFees = (totalFees + Number(addedfees.music_instrumnet));
+                            totalPracticalFee = (totalPracticalFee + Number(addedfees.music_instrumnet));
+
+                        }
+                        if (subject.practical_key == "computer_science") {
+                            var computer_science_status = Number(addedfees.computer_science);
+                            totalFees = (totalFees + Number(addedfees.computer_science));
+                            totalPracticalFee = (totalPracticalFee + Number(addedfees.computer_science));
+
+                        }
+                        if (subject.practical_key == "english_honour") {
+                            var english_honour_status = Number(addedfees.english_honour);
+                            totalFees = (totalFees + Number(addedfees.english_honour));
+                            totalPracticalFee = (totalPracticalFee + Number(addedfees.english_honour));
+
+                        }
+                        if (subject.practical_key == "home_science") {
+                            var home_science_status = Number(addedfees.home_science);
+                            totalFees = (totalFees + Number(addedfees.home_science));
+                            totalPracticalFee = (totalPracticalFee + Number(addedfees.home_science));
+
                         }
                     }
                 }
@@ -456,6 +553,7 @@ exports.register = async (req, res) => {
             email: email?.trim() || null,
             pincode,
             address,
+            staff_id,
             city,
             state: statedetail.name,
             course,
@@ -465,7 +563,18 @@ exports.register = async (req, res) => {
             transport,
             vehicle_name: transport === 'Yes' ? vehicle_name : '',
             vehicle_no: transport === 'Yes' ? vehicle_no : '',
-            subject_ids: JSON.stringify(subjectsArray)
+            subject_ids: JSON.stringify(subjectsArray),
+            fine_arts: fine_arts_status,
+            music_vocal: music_vocal_status,
+            music_instrumnet: music_instrumnet_status,
+            computer_science: computer_science_status,
+            english_honour: english_honour_status,
+            home_science: home_science_status,
+            total_practical_fees: totalPracticalFee,
+            physical: physical,
+            security: security,
+            parking_fees:parkingfees
+
         };
         const insertDatasession = {
             student_id,

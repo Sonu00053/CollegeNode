@@ -283,6 +283,7 @@ exports.StaffHistory = async (req, res) => {
         <tr>
             <th>#</th>
             <th>Staff Id</th>
+            <th>Email</th>
             <th>Name</th>
             <th>Mobile No</th>
             <th>Gender</th>
@@ -306,6 +307,7 @@ exports.StaffHistory = async (req, res) => {
             <tr>
                 <td>${index + 1}</td>
                 <td>${u.staff_id}</td>
+                <td>${u.email}</td>
                 <td>${u.first_name} ${u.last_name}</td>
                 <td>${u.mobile}</td>
                 <td>${u.gender}</td>

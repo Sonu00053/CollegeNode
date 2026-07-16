@@ -207,3 +207,123 @@ exports.getReport = async ({
         currentPage: Number(page)
     };
 };
+
+
+exports.getGroupByDate = async (
+    table,
+    dateField = 'created_at',
+    sumField = '',
+    where = {},
+    order = 'DESC'
+) => {
+
+    let sql = `
+        SELECT
+            DATE(${dateField}) AS group_date,
+            COUNT(*) AS total_records
+    `;
+
+    if (sumField) {
+        sql += `, SUM(${sumField}) AS total_amount`;
+    }
+
+    sql += ` FROM ${table}`;
+
+    const values = [];
+
+    if (Object.keys(where).length) {
+        const conditions = Object.keys(where).map(key => {
+            values.push(where[key]);
+            return `${key} = ?`;
+        });
+
+        sql += ` WHERE ${conditions.join(' AND ')}`;
+    }
+
+    sql += `
+        GROUP BY DATE(${dateField})
+        ORDER BY group_date ${order}
+    `;
+
+    const [rows] = await db.query(sql, values);
+    return rows;
+};
+
+exports.getSingleRecorddate = async (
+    table,
+    where = {},
+    select = '*',
+    orderBy = '',
+    dateFields = ['created_at']
+) => {
+
+    let finalSelect = Array.isArray(select) ? select.join(',') : select;
+
+    let sql = `SELECT ${finalSelect} FROM ${table}`;
+    const values = [];
+
+    if (Object.keys(where).length) {
+
+        const conditions = Object.entries(where).map(([key, value]) => {
+
+            let operator = '=';
+
+            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                operator = value.operator || '=';
+                value = value.value;
+            }
+
+            values.push(value);
+
+            if (dateFields.includes(key)) {
+                return `DATE(${key}) ${operator} ?`;
+            }
+
+            return `${key} ${operator} ?`;
+        });
+
+        sql += ` WHERE ${conditions.join(' AND ')}`;
+    }
+
+    if (orderBy) {
+        sql += ` ORDER BY ${orderBy}`;
+    }
+
+    sql += ` LIMIT 1`;
+
+    const [rows] = await db.query(sql, values);
+
+    return rows.length ? rows[0] : null;
+};
+
+exports.getRecordsNew = async (table, where = {}, select = '*', orderBy = '') => {
+
+    let finalSelect = Array.isArray(select) ? select.join(',') : select;
+
+    let sql = `SELECT ${finalSelect} FROM ${table}`;
+    const values = [];
+
+    if (Object.keys(where).length) {
+
+        const conditions = Object.keys(where).map(key => {
+
+            values.push(where[key]);
+
+            // SQL functions allow
+            if (key.includes('(')) {
+                return `${key} = ?`;
+            }
+
+            return `\`${key}\` = ?`;
+        });
+
+        sql += ` WHERE ${conditions.join(' AND ')}`;
+    }
+
+    if (orderBy) {
+        sql += ` ORDER BY ${orderBy}`;
+    }
+
+    const [rows] = await db.query(sql, values);
+    return rows;
+};

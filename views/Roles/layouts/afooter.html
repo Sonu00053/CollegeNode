@@ -29,7 +29,16 @@
 
 
 <script>
-    $(document).ready(function () {
+    $(document).ready(function ()
+     {
+        const firstTd = $('#example tbody tr:first td');
+
+    if (
+        firstTd.length &&
+        firstTd.attr('colspan') == $('#example thead th').length
+    ) {
+        return; // No Data Found row, DataTable mat banao
+    }
 
         $('#example').DataTable({
 

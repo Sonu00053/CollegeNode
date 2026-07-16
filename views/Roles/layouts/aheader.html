@@ -112,8 +112,22 @@
             <a href="{{CONSTANTS.role}}all-students">
                 All Students
             </a>
-            <a href="{{CONSTANTS.role}}recieps-detail">
-                Reciept History
+        </div>
+         <a data-bs-toggle="collapse" href="#reciept">
+            <i class="bi bi-receipt-cutoff"></i> Reciepts
+        </a>
+        <div class="collapse submenu" id="reciept">
+            <a href="{{CONSTANTS.role}}create-reciept">
+                Admission Reciept
+            </a>
+            <a href="{{CONSTANTS.role}}balance-create-reciept">
+                Balance Reciept
+            </a>
+            <a href="{{CONSTANTS.role}}date-wise-reciept-history">
+                Admission Reciept History
+            </a>
+            <a href="{{CONSTANTS.role}}date-wise-balance-reciept-history">
+                Balance Reciept History
             </a>
         </div>
         <a data-bs-toggle="collapse" href="#courseMenu">
@@ -126,18 +140,16 @@
              <a href="{{CONSTANTS.role}}update-reciept-heads">
                 Reciept Heads Update
             </a>
-            <a href="{{CONSTANTS.role}}today-reciepts">
-                Daily Cash Summary
-            </a>
+          
             
         </div>
         <a data-bs-toggle="collapse" href="#settingsMenu">
             <i class="bi bi-gear"></i> Settings
         </a>
         <div class="collapse submenu" id="settingsMenu">
-            <a href="#">
+            <!-- <a href="#">
                 Profile
-            </a>
+            </a> -->
 
             <a href="{{CONSTANTS.role}}change-password">
                 Change Password

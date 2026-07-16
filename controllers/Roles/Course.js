@@ -373,12 +373,32 @@ exports.recieptheadupdate = async (req, res) => {
             errors.uni_examination = "Uni Examination Fee required.";
         }
 
-        if (
-            selectedRoll &&
-            Number(selectedRoll.course_id) === 1 &&
-            !req.body.practical
-        ) {
-            errors.practical = "Practical fee required.";
+        if (selectedRoll && Number(selectedRoll.course_id) === 1) {
+            if (
+                selectedRoll &&
+                Number(selectedRoll.course_id) === 1 &&
+                !req.body.practical
+            ) {
+                errors.practical = "Practical fee required.";
+            }
+            if (!req.body.computer_science) {
+                errors.computer_science = "Computer Science Fee required.";
+            }
+            if (!req.body.home_science) {
+                errors.home_science = "Home Science Fee required.";
+            }
+            if (!req.body.fine_arts) {
+                errors.fine_arts = "Fine Arts Fee required.";
+            }
+            if (!req.body.music_instrumnet) {
+                errors.music_instrumnet = "Music Instrument Fee required.";
+            }
+            if (!req.body.music_vocal) {
+                errors.music_vocal = "Music Vocal Fee required.";
+            }
+            if (!req.body.english_honour) {
+                errors.english_honour = "English Honours Fee required.";
+            }
         }
 
         if (Object.keys(errors).length === 0) {
@@ -391,23 +411,29 @@ exports.recieptheadupdate = async (req, res) => {
 
 
             const addData = {
-    course_id: olddetail.course_id,
-    year: olddetail.year,
-    admission: olddetail.admission,
-    tution: olddetail.tution,
-    security: olddetail.security,
-    af_charges: olddetail.af_charges,
-    anual: olddetail.anual,
-    pu_charges: olddetail.pu_charges,
-    cdf_dilp: olddetail.cdf_dilp,
-    uni_examination: olddetail.uni_examination,
-    practical: olddetail.practical || 0
-};
+                course_id: olddetail.course_id,
+                year: olddetail.year,
+                admission: olddetail.admission,
+                tution: olddetail.tution,
+                security: olddetail.security,
+                af_charges: olddetail.af_charges,
+                anual: olddetail.anual,
+                pu_charges: olddetail.pu_charges,
+                cdf_dilp: olddetail.cdf_dilp,
+                uni_examination: olddetail.uni_examination,
+                computer_science: olddetail.computer_science || 0,
+                home_science: olddetail.home_science || 0,
+                fine_arts: olddetail.fine_arts || 0,
+                music_instrumnet: olddetail.music_instrumnet || 0,
+                music_vocal: olddetail.music_vocal || 0,
+                english_honour: olddetail.english_honour || 0,
+                practical: olddetail.practical || 0
+            };
 
-await UserModel.addRecord(
-    'fess_update_details',
-    addData
-);
+            await UserModel.addRecord(
+                'fess_update_details',
+                addData
+            );
             const updateData = {
                 admission: req.body.admission,
                 tution: req.body.tution,
@@ -416,7 +442,13 @@ await UserModel.addRecord(
                 anual: req.body.anual,
                 pu_charges: req.body.pu_charges,
                 cdf_dilp: req.body.cdf_dilp,
-                uni_examination: req.body.uni_examination
+                uni_examination: req.body.uni_examination,
+                computer_science: req.body.computer_science,
+                home_science: req.body.home_science,
+                fine_arts: req.body.fine_arts,
+                music_instrumnet: req.body.music_instrumnet,
+                music_vocal: req.body.music_vocal,
+                english_honour: req.body.english_honour
             };
 
             if (selectedRoll && Number(selectedRoll.course_id) === 1) {
@@ -508,6 +540,60 @@ await UserModel.addRecord(
                 oninput="this.value=this.value.replace(/[^0-9]/g,'')">
             ${errors.practical ? `<div class="text-danger small mt-1">${errors.practical}</div>` : ""}
         </div>
+        <div class="col-md-3 mb-3">
+        <label>Computer Science</label>
+        <input type="text"
+            class="form-control"
+            name="computer_science"
+            value="${selectedRoll.computer_science || ''}"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        ${errors.computer_science ? `<div class="text-danger small mt-1">${errors.computer_science}</div>` : ""}
+    </div>
+    <div class="col-md-3 mb-3">
+        <label>Home Science</label>
+        <input type="text"
+            class="form-control"
+            name="home_science"
+            value="${selectedRoll.home_science || ''}"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        ${errors.home_science ? `<div class="text-danger small mt-1">${errors.home_science}</div>` : ""}
+    </div>
+    <div class="col-md-3 mb-3">
+        <label>Fine Arts</label>
+        <input type="text"
+            class="form-control"
+            name="fine_arts"
+            value="${selectedRoll.fine_arts || ''}"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        ${errors.fine_arts ? `<div class="text-danger small mt-1">${errors.fine_arts}</div>` : ""}
+    </div>
+    <div class="col-md-3 mb-3">
+        <label>Music Instrument</label>
+        <input type="text"
+            class="form-control"
+            name="music_instrumnet"
+            value="${selectedRoll.music_instrumnet || ''}"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        ${errors.music_instrumnet ? `<div class="text-danger small mt-1">${errors.music_instrumnet}</div>` : ""}
+    </div>
+    <div class="col-md-3 mb-3">
+        <label>Music Vocal</label>
+        <input type="text"
+            class="form-control"
+            name="music_vocal"
+            value="${selectedRoll.music_vocal || ''}"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        ${errors.music_vocal ? `<div class="text-danger small mt-1">${errors.music_vocal}</div>` : ""}
+    </div>
+    <div class="col-md-3 mb-3">
+        <label>English Honours</label>
+        <input type="text"
+            class="form-control"
+            name="english_honour"
+            value="${selectedRoll.english_honour || ''}"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        ${errors.english_honour ? `<div class="text-danger small mt-1">${errors.english_honour}</div>` : ""}
+    </div>
         `;
         }
 
@@ -562,6 +648,7 @@ await UserModel.addRecord(
             oninput="this.value=this.value.replace(/[^0-9]/g,'')">
         ${errors.uni_examination ? `<div class="text-danger small mt-1">${errors.uni_examination}</div>` : ""}
     </div>
+    
 
     `;
     }
