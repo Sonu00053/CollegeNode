@@ -1441,14 +1441,121 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
 
 };
 
-exports.reciptBothhistory = async (req, res) => {
+// exports.reciptBothhistory = async (req, res) => {
 
-    const result = await UserModel.getGroupByDate(
-        'receipt_details',
-        'created_at',
-        'amount'
-    );
-    console.log(result);
+//     const result = await UserModel.getGroupByDate(
+//         'receipt_details',
+//         'created_at',
+//         'amount'
+//     );
+//     console.log(result);
+
+//     const thead = `
+//         <tr>
+//             <th>#</th>
+//             <th>Date</th>
+//             <th>Total Receipts</th>
+//             <th>Total Amount</th>
+//             <th>Cash</th>
+//             <th>Online</th>
+           
+//         </tr>
+//     `;
+//     let tableRows = '';
+//     for (const [index, row] of result.entries()) {
+//         const date = new Date(row.group_date);
+//         const year = date.getFullYear();
+//         const month = String(date.getMonth() + 1).padStart(2, '0');
+//         const day = String(date.getDate()).padStart(2, '0');
+//         const newdate = `${year}-${month}-${day}`;
+//         const cashsum = await UserModel.getSingleRecorddate(
+//             'receipt_details',
+//             {
+//                 created_at: newdate,
+//                 payment_mode: 'Cash'
+//             },
+//             'IFNULL(SUM(amount),0) AS total'
+//         );
+//         const online = await UserModel.getSingleRecorddate(
+//             'receipt_details',
+//             {
+//                 created_at: newdate,
+//                 payment_mode: {
+//                     operator: '!=',
+//                     value: 'Cash'
+//                 },
+//             },
+//             'IFNULL(SUM(amount),0) AS total'
+//         );
+
+
+//         const cashsum_balance = await UserModel.getSingleRecorddate(
+//             'balance_receipt_details',
+//             {
+//                 created_at: newdate,
+//                 payment_mode: 'Cash'
+//             },
+//             'IFNULL(SUM(amount),0) AS total'
+//         );
+
+
+//         const online_balance = await UserModel.getSingleRecorddate(
+//             'balance_receipt_details',
+//             {
+//                 created_at: newdate,
+//                 payment_mode: {
+//                     operator: '!=',
+//                     value: 'Cash'
+//                 },
+//             },
+//             'IFNULL(SUM(amount),0) AS total'
+//         );
+
+
+
+//         const total_balance = await UserModel.getSingleRecorddate(
+//             'balance_receipt_details',
+//             {
+//                 created_at: newdate,
+               
+//             },
+//             'IFNULL(SUM(amount),0) AS total'
+//         );
+
+
+//         tableRows += `
+//         <tr>
+//             <td>${index + 1}</td>
+//             <td>${newdate}</td>
+//             <td>${row.total_records}</td>
+//             <td>${CONSTANTS.currency}${Number(row.total_amount)+Number(total_balance.total)}</td>
+//             <td>${CONSTANTS.currency}${Number(cashsum.total)+Number(cashsum_balance.total)}</td>
+//             <td>${CONSTANTS.currency}${Number(online.total)+Number(online_balance.total)}</td>
+//         </tr>
+//     `;
+//     }
+
+//     if (!result.length) {
+//         tableRows = `
+//             <tr>
+//                 <td colspan="5" class="text-center">No Data Found</td>
+//             </tr>
+//         `;
+//     }
+
+//     return View.Rview(res, 'reports', {
+//         title: `
+//             <div class="d-flex justify-content-between align-items-center">
+//                 <span>Both Receipt History (Date Wise)</span>
+               
+//             </div>
+//         `,
+//         thead,
+//         tableRows
+//     });
+// };
+
+exports.reciptBothhistory = async (req, res) => {
 
     const thead = `
         <tr>
@@ -1458,16 +1565,29 @@ exports.reciptBothhistory = async (req, res) => {
             <th>Total Amount</th>
             <th>Cash</th>
             <th>Online</th>
-           
         </tr>
     `;
+
     let tableRows = '';
-    for (const [index, row] of result.entries()) {
-        const date = new Date(row.group_date);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
+
+    const startDate = new Date('2026-07-13');
+    const endDate = new Date();
+    let index = 1;
+    for (
+        let currentDate = new Date(endDate);
+        currentDate >= startDate;
+        currentDate.setDate(currentDate.getDate() - 1)
+    ) {
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const day = String(currentDate.getDate()).padStart(2, '0');
         const newdate = `${year}-${month}-${day}`;
+        const receipt = await UserModel.getSingleRecorddate(
+            'receipt_details',
+            { created_at: newdate },
+            'COUNT(*) AS total_records, IFNULL(SUM(amount),0) AS total_amount'
+        );
+
         const cashsum = await UserModel.getSingleRecorddate(
             'receipt_details',
             {
@@ -1476,6 +1596,7 @@ exports.reciptBothhistory = async (req, res) => {
             },
             'IFNULL(SUM(amount),0) AS total'
         );
+
         const online = await UserModel.getSingleRecorddate(
             'receipt_details',
             {
@@ -1483,11 +1604,17 @@ exports.reciptBothhistory = async (req, res) => {
                 payment_mode: {
                     operator: '!=',
                     value: 'Cash'
-                },
+                }
             },
             'IFNULL(SUM(amount),0) AS total'
         );
 
+        // Balance Receipt Details
+        const total_balance = await UserModel.getSingleRecorddate(
+            'balance_receipt_details',
+            { created_at: newdate },
+            'IFNULL(SUM(amount),0) AS total'
+        );
 
         const cashsum_balance = await UserModel.getSingleRecorddate(
             'balance_receipt_details',
@@ -1498,7 +1625,6 @@ exports.reciptBothhistory = async (req, res) => {
             'IFNULL(SUM(amount),0) AS total'
         );
 
-
         const online_balance = await UserModel.getSingleRecorddate(
             'balance_receipt_details',
             {
@@ -1506,39 +1632,19 @@ exports.reciptBothhistory = async (req, res) => {
                 payment_mode: {
                     operator: '!=',
                     value: 'Cash'
-                },
+                }
             },
             'IFNULL(SUM(amount),0) AS total'
         );
-
-
-
-        const total_balance = await UserModel.getSingleRecorddate(
-            'balance_receipt_details',
-            {
-                created_at: newdate,
-               
-            },
-            'IFNULL(SUM(amount),0) AS total'
-        );
-
 
         tableRows += `
-        <tr>
-            <td>${index + 1}</td>
-            <td>${newdate}</td>
-            <td>${row.total_records}</td>
-            <td>${CONSTANTS.currency}${Number(row.total_amount)+Number(total_balance.total)}</td>
-            <td>${CONSTANTS.currency}${Number(cashsum.total)+Number(cashsum_balance.total)}</td>
-            <td>${CONSTANTS.currency}${Number(online.total)+Number(online_balance.total)}</td>
-        </tr>
-    `;
-    }
-
-    if (!result.length) {
-        tableRows = `
             <tr>
-                <td colspan="5" class="text-center">No Data Found</td>
+                <td>${index++}</td>
+                <td>${newdate}</td>
+                <td>${receipt.total_records}</td>
+                <td>${CONSTANTS.currency}${Number(receipt.total_amount) + Number(total_balance.total)}</td>
+                <td>${CONSTANTS.currency}${Number(cashsum.total) + Number(cashsum_balance.total)}</td>
+                <td>${CONSTANTS.currency}${Number(online.total) + Number(online_balance.total)}</td>
             </tr>
         `;
     }
@@ -1547,7 +1653,6 @@ exports.reciptBothhistory = async (req, res) => {
         title: `
             <div class="d-flex justify-content-between align-items-center">
                 <span>Both Receipt History (Date Wise)</span>
-               
             </div>
         `,
         thead,
