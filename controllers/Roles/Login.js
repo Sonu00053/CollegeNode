@@ -573,20 +573,20 @@ exports.register = async (req, res) => {
                 );
                 if (subject) {
                     subjects += subject.subject_name + ', ';
-                    if (course == 1 && !practicalAdded) {
-                        if (subject.subject_name == 'Foundation of Physical Education and Sports') {
-                            const practicalfees = await UserModel.getSingleRecord(
-                                'roll_no',
-                                { course_id: course,year:semester },
-                                'practical,practical'
-                            );
-                            totalFees = (totalFees + Number(practicalfees.practical));
-                            totalPracticalFee = (totalPracticalFee + Number(practicalfees.practical));
-                            practical = 1;
-                            physical = Number(practicalfees.practical);
-                            practicalAdded = true;
-                        }
-                    }
+                    // if (course == 1 && !practicalAdded) {
+                    //     if (subject.subject_name == 'Foundation of Physical Education and Sports') {
+                    //         const practicalfees = await UserModel.getSingleRecord(
+                    //             'roll_no',
+                    //             { course_id: course,year:semester },
+                    //             'practical,practical'
+                    //         );
+                    //         totalFees = (totalFees + Number(practicalfees.practical));
+                    //         totalPracticalFee = (totalPracticalFee + Number(practicalfees.practical));
+                    //         practical = 1;
+                    //         physical = Number(practicalfees.practical);
+                    //         practicalAdded = true;
+                    //     }
+                    // }
 
 
 
@@ -595,11 +595,12 @@ exports.register = async (req, res) => {
                         const addedfees = await UserModel.getSingleRecord(
                             'roll_no',
                             { course_id: course,year:semester },
-                            'fine_arts,music_vocal,music_instrumnet,computer_science,english_honour,home_science'
+                            'fine_arts,music_vocal,music_instrumnet,computer_science,english_honour,home_science,practical'
                         );
 
                         if (subject.practical_key == "practical") {
-                            var fine_arts_status = Number(addedfees.fine_arts);
+                            var physical = Number(addedfees.practical);
+                             practical = 1;
                             totalFees = (totalFees + Number(addedfees.fine_arts));
                             totalPracticalFee = (totalPracticalFee + Number(addedfees.fine_arts));
                         }
