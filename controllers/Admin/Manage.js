@@ -207,6 +207,14 @@ exports.logout = (req, res) => {
     return res.redirect('/admin/login');
 };
 
+// exports.logout = (req, res) => {
+//     res.clearCookie('token', {
+//         httpOnly: true
+//     });
+
+//     return res.redirect(CONSTANTS.role + 'login');
+// };
+
 exports.add = async (req, res) => {
     const errors = {};
     let course_name = '', course_code = '';

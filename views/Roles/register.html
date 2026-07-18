@@ -1,17 +1,17 @@
 <style>
     .modal-content {
-	position: absolute;
-	display: inline-table;
-	flex-direction: column;
-	width: 170%;
-	color: var(--bs-modal-color);
-	pointer-events: auto;
-	background-color: var(--bs-modal-bg);
-	background-clip: padding-box;
-	border: var(--bs-modal-border-width) solid var(--bs-modal-border-color);
-	border-radius: var(--bs-modal-border-radius);
-	outline: 0;
-}
+        position: absolute;
+        display: inline-table;
+        flex-direction: column;
+        width: 170%;
+        color: var(--bs-modal-color);
+        pointer-events: auto;
+        background-color: var(--bs-modal-bg);
+        background-clip: padding-box;
+        border: var(--bs-modal-border-width) solid var(--bs-modal-border-color);
+        border-radius: var(--bs-modal-border-radius);
+        outline: 0;
+    }
 </style>
 <div class="content">
     <div class="card shadow-sm mt-4">
@@ -28,7 +28,7 @@
                             class="form-control"><small class="error"></small></div>
                     <div class="col-md-6"><label>DOB *</label><input type="date" name="dob" id="dob"
                             class="form-control"><small class="error"></small></div>
-                            <div class="col-md-6">
+                    <div class="col-md-6">
                         <label class="form-label">Category *</label>
                         <select name="category" id="category" class="form-select">
                             <option value="">Select Category</option>
@@ -36,7 +36,7 @@
                             <option value="SC">SC</option>
                             <option value="ST">ST</option>
                             <option value="OBC">OBC</option>
-                            <option value="SIKH">SIKH</option>
+                            <option value="SIKH">SIKH Minority</option>
                         </select>
                         <small class="error"></small>
                     </div>
@@ -50,7 +50,7 @@
                             class="form-control" maxlength="10"><small class="error"></small></div>
                     <div class="col-md-6"><label>Email </label><input id="email" name="email"
                             class="form-control"><small class="error"></small></div>
-                            <div class="col-md-6">
+                    <div class="col-md-6">
                         <label>Student ID *</label>
                         <input type="text" name="student_id" id="student_id" class="form-control">
                         <small class="error"></small>
@@ -72,22 +72,22 @@
                         </select>
                         <small class="error"></small>
                     </div>
-                     <div class="col-md-6"><label>City</label><input id="city" name="city" class="form-control">
+                    <div class="col-md-6"><label>City</label><input id="city" name="city" class="form-control">
                         <small class="error"></small>
                     </div>
-                     <div class="col-md-6"><label>Pincode</label><input id="pincode" name="pincode"
+                    <div class="col-md-6"><label>Pincode</label><input id="pincode" name="pincode"
                             class="form-control"><small class="error"></small></div>
 
                     <div class="col-md-12"><label>Address</label><textarea id="address" name="address"
                             class="form-control"></textarea><small class="error"></small></div>
-                   
+
                     <!-- <div class="col-md-6"><label>State</label><input id="state" name="state" class="form-control">
                         <small class="error"></small>
                     </div> -->
                     <div class="col-md-6 mb-3">
 
-                    
-                   
+
+
                         <label class="form-label">Course</label>
                         <select name="course" id="course" class="form-select">
                             <option value="">Select Course</option>
@@ -99,11 +99,12 @@
                             class="form-control">
                         </select><small class="error"></small></div>
 
-                          <div class="col-md-12">
+                    <div class="col-md-12">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="security_allow" name="security_allow" value="Yes">
+                            <input class="form-check-input" type="checkbox" id="security_allow" name="security_allow"
+                                value="Yes">
                             <label class="form-check-label" for="security_allow">
-                               Security
+                                Security
                             </label>
                         </div>
                     </div>
@@ -152,11 +153,11 @@
 
             </div>
             <div class="mt-3">
-    <h6>Selected Subjects</h6>
-    <ul id="selectedSubjectsList" class="list-group"></ul>
-</div>
+                <h6>Selected Subjects</h6>
+                <ul id="selectedSubjectsList" class="list-group"></ul>
+            </div>
 
-<input type="hidden" id="subject_ids" name="subject_ids">
+            <input type="hidden" id="subject_ids" name="subject_ids">
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" onclick="popupClose()">
@@ -181,7 +182,7 @@
 <script>
 
     // console.log('States:', '{{states}}'); 
-    
+
     function popupClose() {
         bootstrap.Modal.getInstance(
             document.getElementById('subjectModal')
@@ -200,34 +201,130 @@
             bootstrap.Modal.getInstance(
                 document.getElementById('subjectModal')
             ).hide();
-            
-            
+
+
         }
 
     });
 
 
-       document.getElementById('semester').addEventListener('change', function () {
-    let courseId = document.getElementById('course').value;
-    let year = this.value;
+    document.getElementById('semester').addEventListener('change', function () {
+        let courseId = document.getElementById('course').value;
+        let year = this.value;
 
-    if (courseId && year) {
-        selectYear(courseId, year);
-    }
-});
+        if (courseId && year) {
+            selectYear(courseId, year);
+        }
+        if (courseId == 1) {
+         checkCourse(courseId, year);
+        }
+    });
 
 
-    function selectYear(cId,year){
- if (cId == 1 && year ==1) {
+    function selectYear(cId, year) {
+        if (cId == 1 && year == 1) {
             document.getElementById('security_allow').checked = true;
-        }else{
-                      document.getElementById('security_allow').checked = false;
-  
+        } else {
+            document.getElementById('security_allow').checked = false;
+
         }
     }
-   
 
-document.getElementById('course').addEventListener('click', async function () {
+
+   async function checkCourse(courseId, year) {
+    try {
+        let response = await fetch(`{{CONSTANTS.role}}subjects-group-course/${courseId}/${year}`);
+        let result = await response.json();
+
+        console.log(response);
+        console.log(result);
+
+        let duration = parseInt(result.duration) || 0;
+
+        // Reset previous subjects
+        document.getElementById('subject_ids').value = '';
+        document.getElementById('subjectList').innerHTML = '';
+
+        // Sirf BA ke liye modal
+        if (parseInt(courseId) !== 1) {
+            return;
+        }
+
+        let categories = Object.keys(result.subjects);
+
+        let html = `
+        <table class="table table-bordered table-striped">
+            <thead class="table-primary text-center">
+                <tr>
+        `;
+
+        categories.forEach(category => {
+            html += `<th>${category}</th>`;
+        });
+
+        html += `
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+        `;
+
+        categories.forEach(category => {
+            html += `<td class="align-top">`;
+
+            const subjects = result.subjects[category] || [];
+
+            subjects.forEach(subject => {
+                html += `
+                <div class="form-check mb-2">
+                    <input
+                        class="form-check-input subjectCheckbox"
+                        type="checkbox"
+                        value="${subject.id}"
+                        id="subject_${subject.id}"
+                        data-category="${category}"
+                        data-semester="${subject.semester ?? ''}">
+                    <label class="form-check-label" for="subject_${subject.id}">
+                        ${subject.subject_name}
+                    </label>
+                </div>
+                `;
+            });
+
+            html += `</td>`;
+        });
+
+        html += `
+                </tr>
+            </tbody>
+        </table>
+        `;
+
+        document.getElementById('subjectList').innerHTML = html;
+
+        new bootstrap.Modal(
+            document.getElementById('subjectModal')
+        ).show();
+
+        document.querySelectorAll('.subjectCheckbox').forEach(cb => {
+            cb.addEventListener('change', updateSelectedSubjects);
+        });
+
+    } catch (error) {
+        console.error('Error fetching course data:', error);
+
+        document.getElementById('subjectList').innerHTML =
+            `<div class="alert alert-danger">
+                Error loading subjects. Please try again.
+            </div>`;
+    }
+}
+
+    // Function to handle checkbox changes
+
+
+
+    document.getElementById('course').addEventListener('click', async function () {
 
     let courseId = this.value;
 
@@ -247,186 +344,122 @@ document.getElementById('course').addEventListener('click', async function () {
 
     document.getElementById('semester').innerHTML = semesterHtml;
 
-    // Reset previous subjects
-    document.getElementById('subject_ids').value = '';
-    document.getElementById('subjectList').innerHTML = '';
-
-    // Sirf BA ke liye modal
-    if (parseInt(courseId) !== 1) {
-        return;
-    }
-
-    let categories = Object.keys(result.subjects);
-
-    let html = `
-        <table class="table table-bordered table-striped">
-            <thead class="table-primary text-center">
-                <tr>
-    `;
-
-    // Dynamic headings
-    categories.forEach(category => {
-        html += `<th>${category}</th>`;
-    });
-
-    html += `
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-    `;
-
-    // Dynamic subject columns
-    categories.forEach(category => {
-
-        html += `<td class="align-top">`;
-
-        const subjects = result.subjects[category] || [];
-
-        subjects.forEach(subject => {
-
-            html += `
-                <div class="form-check mb-2">
-                    <input
-                        class="form-check-input subjectCheckbox"
-                        type="checkbox"
-                        value="${subject.id}"
-                        id="subject_${subject.id}"
-                        data-category="${category}"
-                        data-semester="${subject.semester ?? ''}">
-                    <label class="form-check-label" for="subject_${subject.id}">
-                        ${subject.subject_name}
-                    </label>
-                </div>
-            `;
-        });
-
-        html += `</td>`;
-    });
-
-    html += `
-                </tr>
-            </tbody>
-        </table>
-    `;
-
-    document.getElementById('subjectList').innerHTML = html;
-
-    new bootstrap.Modal(
-        document.getElementById('subjectModal')
-    ).show();
-
-    document.querySelectorAll('.subjectCheckbox').forEach(cb => {
-    cb.addEventListener('change', updateSelectedSubjects);
-});
+    
 
 });
 
 
-let typingTimer;
-let typedText = '';
-
-document.addEventListener('keydown', function(e) {
-
-    let modal = document.getElementById('subjectModal');
-
-    if (!modal.classList.contains('show')) {
-        return;
-    }
-
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') {
-        return;
-    }
-
-    if (e.key.length === 1 && /^[a-zA-Z]$/.test(e.key)) {
-
-        typedText += e.key.toLowerCase();
-
-        clearTimeout(typingTimer);
-
-        typingTimer = setTimeout(() => {
-            typedText = '';
-        }, 1000);
 
 
-        let subjects = document.querySelectorAll('.subjectCheckbox');
-
-        // pehle sabka highlight remove
-        document.querySelectorAll('.form-check').forEach(x => {
-            x.style.background = '';
-        });
 
 
-        let firstMatch = null;
 
 
-        subjects.forEach(checkbox => {
 
-            let label = document.querySelector(
-                `label[for="${checkbox.id}"]`
-            );
+    let typingTimer;
+    let typedText = '';
 
-            if (!label) return;
+    document.addEventListener('keydown', function (e) {
+
+        let modal = document.getElementById('subjectModal');
+
+        if (!modal.classList.contains('show')) {
+            return;
+        }
+
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') {
+            return;
+        }
+
+        if (e.key.length === 1 && /^[a-zA-Z]$/.test(e.key)) {
+
+            typedText += e.key.toLowerCase();
+
+            clearTimeout(typingTimer);
+
+            typingTimer = setTimeout(() => {
+                typedText = '';
+            }, 1000);
 
 
-            let subjectName = label.innerText.trim().toLowerCase();
+            let subjects = document.querySelectorAll('.subjectCheckbox');
+
+            // pehle sabka highlight remove
+            document.querySelectorAll('.form-check').forEach(x => {
+                x.style.background = '';
+            });
 
 
-            if (subjectName.startsWith(typedText)) {
-
-                let item = checkbox.closest('.form-check');
-
-                // sab matching highlight
-                item.style.background = '#ffff99';
+            let firstMatch = null;
 
 
-                // first matching ke liye scroll
-                if (!firstMatch) {
-                    firstMatch = item;
+            subjects.forEach(checkbox => {
+
+                let label = document.querySelector(
+                    `label[for="${checkbox.id}"]`
+                );
+
+                if (!label) return;
+
+
+                let subjectName = label.innerText.trim().toLowerCase();
+
+
+                if (subjectName.startsWith(typedText)) {
+
+                    let item = checkbox.closest('.form-check');
+
+                    // sab matching highlight
+                    item.style.background = '#ffff99';
+
+
+                    // first matching ke liye scroll
+                    if (!firstMatch) {
+                        firstMatch = item;
+                    }
                 }
+
+            });
+
+
+            // first matching subject par scroll
+            if (firstMatch) {
+
+                let modalBody = document.querySelector('#subjectList');
+
+                modalBody.scrollTop = firstMatch.offsetTop - 50;
+
             }
-
-        });
-
-
-        // first matching subject par scroll
-        if (firstMatch) {
-
-            let modalBody = document.querySelector('#subjectList');
-
-            modalBody.scrollTop = firstMatch.offsetTop - 50;
 
         }
 
-    }
+    });
 
-});
+    function updateSelectedSubjects() {
 
-function updateSelectedSubjects() {
+        const checked = document.querySelectorAll('.subjectCheckbox:checked');
 
-    const checked = document.querySelectorAll('.subjectCheckbox:checked');
+        let ids = [];
+        let html = '';
 
-    let ids = [];
-    let html = '';
+        checked.forEach(item => {
 
-    checked.forEach(item => {
+            ids.push(item.value);
 
-        ids.push(item.value);
+            const label = document.querySelector(`label[for="${item.id}"]`).innerText;
 
-        const label = document.querySelector(`label[for="${item.id}"]`).innerText;
-
-        html += `
+            html += `
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 ${label}
             </li>
         `;
-    });
+        });
 
-    document.getElementById('subject_ids').value = ids.join(',');
+        document.getElementById('subject_ids').value = ids.join(',');
 
-    document.getElementById('selectedSubjectsList').innerHTML =
-        html || '<li class="list-group-item text-muted">No subject selected</li>';
-}
+        document.getElementById('selectedSubjectsList').innerHTML =
+            html || '<li class="list-group-item text-muted">No subject selected</li>';
+    }
 </script>
 
 <script>
@@ -617,63 +650,61 @@ function updateSelectedSubjects() {
 
     });
 
-    function pincodeValidation(id,digit) {
+    function pincodeValidation(id, digit) {
 
-    const input = document.getElementById(id);
+        const input = document.getElementById(id);
 
-    input.addEventListener('input', function () {
+        input.addEventListener('input', function () {
 
-        const error = this.parentElement.querySelector('.error');
+            const error = this.parentElement.querySelector('.error');
 
-        // Sirf numbers allow
-        this.value = this.value.replace(/\D/g, '');
+            // Sirf numbers allow
+            this.value = this.value.replace(/\D/g, '');
 
-        // Max 6 digits
-        if (this.value.length > digit) {
-            this.value = this.value.substring(0, digit);
+            // Max 6 digits
+            if (this.value.length > digit) {
+                this.value = this.value.substring(0, digit);
+            }
+
+            var fieldLabel = fieldName(id);
+
+            if (this.value.length > 0 && this.value.length < digit) {
+                this.classList.add('is-invalid');
+                error.innerHTML = fieldLabel + ` must be ${digit} digits`;
+            } else {
+                this.classList.remove('is-invalid');
+                error.innerHTML = '';
+            }
+
+        });
+
+        input.addEventListener('keypress', function (e) {
+            if (!/[0-9]/.test(e.key)) {
+                e.preventDefault();
+                alert('Only numbers are allowed.');
+            }
+        });
+
+        function fieldName(id) {
+            return id
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, c => c.toUpperCase());
         }
 
-        var fieldLabel = fieldName(id);
-
-        if (this.value.length > 0 && this.value.length < digit) {
-            this.classList.add('is-invalid');
-            error.innerHTML = fieldLabel +` must be ${digit} digits`;
-        } else {
-            this.classList.remove('is-invalid');
-            error.innerHTML = '';
-        }
-
-    });
-
-    input.addEventListener('keypress', function (e) {
-        if (!/[0-9]/.test(e.key)) {
-            e.preventDefault();
-            alert('Only numbers are allowed.');
-        }
-    });
-
-    function fieldName(id) {
-    return id
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, c => c.toUpperCase());
-}
-
-}
+    }
 
     const states = {{states}};
-    console.log('States:', states);
-
     document.addEventListener('DOMContentLoaded', () => {
-    const stateSelect = document.getElementById('state');
+        const stateSelect = document.getElementById('state');
 
-    stateSelect.innerHTML = '<option value="">Select State</option>';
+        stateSelect.innerHTML = '<option value="">Select State</option>';
 
-    states.forEach(state => {
-        stateSelect.insertAdjacentHTML(
-            'beforeend',
-            `<option value="${state.id}">${state.name}</option>`
-        );
+        states.forEach(state => {
+            stateSelect.insertAdjacentHTML(
+                'beforeend',
+                `<option value="${state.id}">${state.name}</option>`
+            );
+        });
     });
-});
 
 </script>

@@ -192,6 +192,59 @@ exports.getSubjectsByCourse = async (req, res) => {
     }
 };
 
+// exports.getSubjectsByCourseGroup = async (req, res) => {
+//     try {
+
+//         const { course_id, year } = req.params;
+
+//         const subjects = await UserModel.getRecords(
+//             'subjects',
+//             {
+//                 course_id,
+//                 year,
+//                 status: 1
+//             },
+//             '*'
+//         );
+
+//         const course = await UserModel.getSingleRecord(
+//             'courses',
+//             { id: course_id },
+//             '*'
+//         );
+
+//         // Group subjects by category
+//         const groupedSubjects = subjects.reduce((acc, subject) => {
+
+//             const category = subject.category || 'Uncategorized';
+
+//             if (!acc[category]) {
+//                 acc[category] = [];
+//             }
+
+//             acc[category].push(subject);
+
+//             return acc;
+
+//         }, {});
+
+//         return res.json({
+//             status: true,
+//             subjects: groupedSubjects,
+//             duration: course?.duration || 0
+//         });
+
+//     } catch (err) {
+
+//         console.error(err);
+
+//         return res.json({
+//             status: false,
+//             message: err.message
+//         });
+//     }
+// };
+
 
 exports.getSubjectsByCourseGroup = async (req, res) => {
     try {
@@ -199,7 +252,7 @@ exports.getSubjectsByCourseGroup = async (req, res) => {
 
         const subjects = await UserModel.getRecords(
             'subjects',
-            { course_id },
+            { course_id: course_id, year: 1 },
             '*'
         );
 
@@ -234,6 +287,55 @@ exports.getSubjectsByCourseGroup = async (req, res) => {
         });
     }
 };
+
+
+
+
+
+exports.getSubjectsGroup = async (req, res) => {
+    try {
+        const { courseId, year } = req.params;
+        // console.log(req.params);
+
+        const subjects = await UserModel.getRecords(
+            'subjects',
+            { course_id: courseId, year: year },
+            '*'
+        );
+        // console.log(subjects);
+
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            { id: courseId },
+            '*'
+        );
+
+        // Group subjects by category
+        const groupedSubjects = subjects.reduce((acc, subject) => {
+            const category = subject.category || "Uncategorized";
+
+            if (!acc[category]) {
+                acc[category] = [];
+            }
+
+            acc[category].push(subject);
+
+            return acc;
+        }, {});
+        // console.log(groupedSubjects);
+        return res.json({
+            status: true,
+            subjects: groupedSubjects,
+            duration: course.duration
+        });
+
+    } catch (err) {
+        return res.json({
+            status: false
+        });
+    }
+};
+
 
 
 
@@ -311,13 +413,13 @@ exports.register = async (req, res) => {
 
 
 
-     if (transport === 'Yes') {
-        var parkingfees = 1000;
+        if (transport === 'Yes') {
+            var parkingfees = 1000;
 
-    }else{
-        var parkingfees = 0;
+        } else {
+            var parkingfees = 0;
 
-    }
+        }
 
 
 
@@ -472,10 +574,10 @@ exports.register = async (req, res) => {
                 if (subject) {
                     subjects += subject.subject_name + ', ';
                     if (course == 1 && !practicalAdded) {
-                        if (subject.subject_name == 'Modern Lifestyle and Phy. Edu.' || subject.subject_name == 'Foundation of Physical Education and Sports') {
+                        if (subject.subject_name == 'Foundation of Physical Education and Sports') {
                             const practicalfees = await UserModel.getSingleRecord(
                                 'roll_no',
-                                { course_id: course },
+                                { course_id: course,year:semester },
                                 'practical,practical'
                             );
                             totalFees = (totalFees + Number(practicalfees.practical));
@@ -492,9 +594,17 @@ exports.register = async (req, res) => {
                     if (Number(subject.practical_status) == 1) {
                         const addedfees = await UserModel.getSingleRecord(
                             'roll_no',
-                            { course_id: course },
+                            { course_id: course,year:semester },
                             'fine_arts,music_vocal,music_instrumnet,computer_science,english_honour,home_science'
                         );
+
+                        if (subject.practical_key == "practical") {
+                            var fine_arts_status = Number(addedfees.fine_arts);
+                            totalFees = (totalFees + Number(addedfees.fine_arts));
+                            totalPracticalFee = (totalPracticalFee + Number(addedfees.fine_arts));
+                        }
+
+
                         if (subject.practical_key == "fine_arts") {
                             var fine_arts_status = Number(addedfees.fine_arts);
                             totalFees = (totalFees + Number(addedfees.fine_arts));
@@ -573,7 +683,7 @@ exports.register = async (req, res) => {
             total_practical_fees: totalPracticalFee,
             physical: physical,
             security: security,
-            parking_fees:parkingfees
+            parking_fees: parkingfees
 
         };
         const insertDatasession = {

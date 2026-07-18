@@ -4,6 +4,7 @@ const Login = require('../controllers/Roles/Login');
 const Manage = require('../controllers/Roles/Manage');
 const Permission = require('../controllers/Roles/Permission');
 const Course = require('../controllers/Roles/Course');
+const Reports = require('../controllers/Roles/Reports');
 const jwtAuth = require('../helpers/roleAuth');
 
 
@@ -24,6 +25,8 @@ router.get('/index', jwtAuth.verifyToken, Manage.dashboard);
 router.get('/all-students', jwtAuth.verifyToken, Manage.users);
 router.get('/subjects/:course_id', Login.getSubjectsByCourse);
 router.get('/subjects-group/:course_id', Login.getSubjectsByCourseGroup);
+router.get('/subjects-group-course/:courseId/:year', Login.getSubjectsGroup);
+
 
 router.get('/recieps-detail', jwtAuth.verifyToken, Manage.recieptHistory);
 router.get('/reciept/:id', jwtAuth.verifyToken, Manage.reciept);
@@ -55,6 +58,7 @@ router.post('/getSubjectNames', Manage.getSubjectNames);
 
 router.get('/today-reciepts', jwtAuth.verifyToken, Manage.recieptHistoryToday);
 router.get('/date-wise-reciept-history', jwtAuth.verifyToken,Manage.groupbyrecipthistory);
+router.get('/date-wise-both-reciept-history', jwtAuth.verifyToken,Manage.reciptBothhistory);
 router.get('/view-reciept-history/:date', jwtAuth.verifyToken,Manage.recieptHistorydatewisw);
 
 router.get('/date-wise-balance-reciept-history', jwtAuth.verifyToken,Manage.balacegroupbyrecipthistory);
@@ -64,5 +68,13 @@ router.route('/update-reciept-heads')
     .get(Course.recieptheadupdate)
     .post(Course.recieptheadupdate);
 router.post('/student-fees', jwtAuth.verifyToken, Manage.studentFees);
+
+//  ===========================      Reports.    ===================================
+
+router.get('/class-wise-history', jwtAuth.verifyToken,Reports.ClassWiseSubjectReport);
+
+router.get('/per-class-subject-history/:course_id/:year', jwtAuth.verifyToken,Reports.perclasssubject);
+
+
 
 module.exports = router;

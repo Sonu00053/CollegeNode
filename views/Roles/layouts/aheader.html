@@ -112,6 +112,10 @@
             <a href="{{CONSTANTS.role}}all-students">
                 All Students
             </a>
+
+            <a href="{{CONSTANTS.role}}class-wise-history">
+                Admission Summary Classwise
+            </a>
         </div>
          <a data-bs-toggle="collapse" href="#reciept">
             <i class="bi bi-receipt-cutoff"></i> Reciepts
@@ -128,6 +132,9 @@
             </a>
             <a href="{{CONSTANTS.role}}date-wise-balance-reciept-history">
                 Balance Reciept History
+            </a>
+             <a href="{{CONSTANTS.role}}date-wise-both-reciept-history">
+                Both Reciept History
             </a>
         </div>
         <a data-bs-toggle="collapse" href="#courseMenu">
@@ -164,8 +171,8 @@
     </div>
 
     <script>
-        // const permissions = {{ permissionsJSON }};
         const permissions = {{ permissionsJSON }};
+        // const permissions = "{{ permissionsJSON }}";
         // const permissions = JSON.parse('{{permissionsJSON}}');
         document.querySelectorAll('.sidebar a').forEach(link => {
             let href = link.getAttribute('href');

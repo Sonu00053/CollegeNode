@@ -38,6 +38,8 @@ exports.users = async (req, res) => {
             <th>Student Id</th>
             <th>Roll No</th>
             <th>Name</th>
+            <th>Father Name</th>
+            <th>Mother Name</th>
             <th>Email</th>
             <th>Course</th>
             <th>Subjects</th>
@@ -90,7 +92,10 @@ exports.users = async (req, res) => {
             <td>${u.student_id}</td>
             <td>${u.roll_no}</td>
             <td>${u.first_name} ${u.last_name}</td>
+            <td>${u.father_name}</td>
+            <td>${u.mother_name}</td>
             <td>${u.email}</td>
+
             <td>${course?.course_name  + ' - '+ u.course_year  || ''}</td>
 
             <td>
@@ -425,7 +430,7 @@ exports.recieptHistory = async (req, res) => {
                 <td>${u.payment_mode}</td>
                 <td>${SuperHelper.formatDate(u.created_at)}</td>
                 <td>
-                    <a href="${CONSTANTS.role}reciept/${u.id}"
+                    <a href="${CONSTANTS.role}reciept/${u.receipt_no}"
                        class="btn btn-sm btn-primary">
                        View Receipt
                     </a>
@@ -491,7 +496,7 @@ exports.studentFees = async (req, res) => {
 exports.reciept = async (req, res) => {
     const receipt = await UserModel.getSingleRecord(
         'receipt_details',
-        { id: req.params.id }, '*'
+        { receipt_no: req.params.id }, '*'
     );
     const user = await UserModel.getSingleRecord(
         'students',
@@ -568,12 +573,22 @@ exports.reciept = async (req, res) => {
         `;
     }
 
+    
+
     feeRows += `
         <div class="d-flex m-0 justify-content-between"><p class="m-0">A.F. Charges</p><p class="text-end m-0">${receiptHead.af_charges}</p></div>
         <div class="d-flex m-0 justify-content-between"><p class="m-0">Annual Charges</p><p class="text-end m-0">${receiptHead.anual}</p></div>
         <div class="d-flex m-0 justify-content-between"><p class="m-0">Other PU Charges</p><p class="text-end m-0">${receiptHead.pu_charges}</p></div>
         <div class="d-flex m-0 justify-content-between"><p class="m-0">CDF & DILP</p><p class="text-end m-0">${receiptHead.cdf_dilp}</p></div>
     `;
+     if (Number(user.parking_fees) > 0) {
+        feeRows += `
+          <div class="d-flex m-0 justify-content-between">
+                <p class="m-0">Parking Fees</td>
+                <p class="text-end m-0">${user.parking_fees}</td>
+           </div>
+        `;
+    }
     const amountInWords = SuperHelper.numberToWords(receipt.amount);
     let paymentRow = '';
 
@@ -1007,7 +1022,7 @@ exports.generatebalancerecieptId = async () => {
 exports.balancereciept = async (req, res) => {
     const receipt = await UserModel.getSingleRecord(
         'balance_receipt_details',
-        { id: req.params.id }, '*'
+        { receipt_no: req.params.id }, '*'
     );
     const user = await UserModel.getSingleRecord(
         'students',
@@ -1227,7 +1242,7 @@ exports.recieptHistorydatewisw = async (req, res) => {
                 <td>${u.payment_mode}</td>
                 <td>${SuperHelper.formatDate(u.created_at)}</td>
                 <td>
-                    <a href="${CONSTANTS.role}reciept/${u.id}"
+                    <a href="${CONSTANTS.role}reciept/${u.receipt_no}"
                         class="btn btn-sm btn-primary">
                         View Receipt
                     </a>
@@ -1393,7 +1408,7 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
                 <td>${u.payment_mode}</td>
                 <td>${SuperHelper.formatDate(u.created_at)}</td>
                 <td>
-                    <a href="${CONSTANTS.role}balance-reciept/${u.id}"
+                    <a href="${CONSTANTS.role}balance-reciept/${u.receipt_no}"
                         class="btn btn-sm btn-primary">
                         View Receipt
                     </a>
@@ -1424,4 +1439,118 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
         tableRows,
     });
 
+};
+
+exports.reciptBothhistory = async (req, res) => {
+
+    const result = await UserModel.getGroupByDate(
+        'receipt_details',
+        'created_at',
+        'amount'
+    );
+    console.log(result);
+
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Total Receipts</th>
+            <th>Total Amount</th>
+            <th>Cash</th>
+            <th>Online</th>
+           
+        </tr>
+    `;
+    let tableRows = '';
+    for (const [index, row] of result.entries()) {
+        const date = new Date(row.group_date);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const newdate = `${year}-${month}-${day}`;
+        const cashsum = await UserModel.getSingleRecorddate(
+            'receipt_details',
+            {
+                created_at: newdate,
+                payment_mode: 'Cash'
+            },
+            'IFNULL(SUM(amount),0) AS total'
+        );
+        const online = await UserModel.getSingleRecorddate(
+            'receipt_details',
+            {
+                created_at: newdate,
+                payment_mode: {
+                    operator: '!=',
+                    value: 'Cash'
+                },
+            },
+            'IFNULL(SUM(amount),0) AS total'
+        );
+
+
+        const cashsum_balance = await UserModel.getSingleRecorddate(
+            'balance_receipt_details',
+            {
+                created_at: newdate,
+                payment_mode: 'Cash'
+            },
+            'IFNULL(SUM(amount),0) AS total'
+        );
+
+
+        const online_balance = await UserModel.getSingleRecorddate(
+            'balance_receipt_details',
+            {
+                created_at: newdate,
+                payment_mode: {
+                    operator: '!=',
+                    value: 'Cash'
+                },
+            },
+            'IFNULL(SUM(amount),0) AS total'
+        );
+
+
+
+        const total_balance = await UserModel.getSingleRecorddate(
+            'balance_receipt_details',
+            {
+                created_at: newdate,
+               
+            },
+            'IFNULL(SUM(amount),0) AS total'
+        );
+
+
+        tableRows += `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${newdate}</td>
+            <td>${row.total_records}</td>
+            <td>${CONSTANTS.currency}${Number(row.total_amount)+Number(total_balance.total)}</td>
+            <td>${CONSTANTS.currency}${Number(cashsum.total)+Number(cashsum_balance.total)}</td>
+            <td>${CONSTANTS.currency}${Number(online.total)+Number(online_balance.total)}</td>
+        </tr>
+    `;
+    }
+
+    if (!result.length) {
+        tableRows = `
+            <tr>
+                <td colspan="5" class="text-center">No Data Found</td>
+            </tr>
+        `;
+    }
+
+    return View.Rview(res, 'reports', {
+        title: `
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Both Receipt History (Date Wise)</span>
+               
+            </div>
+        `,
+        thead,
+        tableRows
+    });
 };
