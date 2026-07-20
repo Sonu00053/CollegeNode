@@ -9,6 +9,7 @@ exports.ClassWiseSubjectReport = async (req, res) => {
         <tr>
             <th>#</th>
             <th>Class</th>
+            <th>Total Students</th>
             <th>Action</th>
         </tr>
     `;
@@ -26,10 +27,17 @@ exports.ClassWiseSubjectReport = async (req, res) => {
             'course_name'
         );
 
+        const totalStudents = await UserModel.getSingleRecord(
+            'students',
+            { course: u.course_id, course_year: u.year },
+            'COUNT(id) as total'
+        );
+
         tableRows += `
             <tr>
                 <td>${index + 1}</td>
                     <td>${Class.course_name} - ${u.year}</td>  
+                    <td>${totalStudents.total}</td>  
                      <td>
                     <a href="${CONSTANTS.role}per-class-subject-history/${u.course_id}/${u.year}"
                        class="btn btn-sm btn-primary">
@@ -51,7 +59,7 @@ exports.ClassWiseSubjectReport = async (req, res) => {
         `;
     }
 
-    
+
 
     return View.Rview(res, 'reports', {
         title: `
@@ -68,30 +76,27 @@ exports.ClassWiseSubjectReport = async (req, res) => {
 
 exports.perclasssubject = async (req, res) => {
 
-    const { course_id,year } = req.params;
+    const { course_id, year } = req.params;
 
-    const result = await UserModel.getRecords('students', {course:course_id,course_year:year}, '*');
+    const result = await UserModel.getRecords('students', { course: course_id, course_year: year }, '*');
     const thead = `
         <tr>
             <th>#</th>
-            <th>Student Id</th>
             <th>Roll No</th>
-            <th>Name</th>
-            <th>Father Name</th>
-            <th>Mother Name</th>
-            <th>Course</th>
-            <th>Subjects</th>
-            <th>Joining Date & Time</th>
+            <th>ADMN.Date</th>
+            <th>Student Name</th>
+            <th>Mobile No</th>
+            <th>Subject Name</th>
         </tr>
     `;
 
-     const Class = await UserModel.getSingleRecorddate(
-            'courses',
-            {
-                id: course_id
-            },
-            'course_name'
-        );
+    const Class = await UserModel.getSingleRecorddate(
+        'courses',
+        {
+            id: course_id
+        },
+        'course_name'
+    );
 
     const rows = Array.isArray(result) ? result : (result?.rows || []);
 
@@ -116,11 +121,11 @@ exports.perclasssubject = async (req, res) => {
                 const subject = await UserModel.getSingleRecord(
                     'subjects',
                     { id },
-                    'subject_name'
+                    'subject_name,category'
                 );
 
                 if (subject) {
-                    subjectList.push(subject.subject_name);
+                    subjectList.push(`${subject.subject_name} (${subject.category})`);
                 }
 
             }
@@ -133,21 +138,13 @@ exports.perclasssubject = async (req, res) => {
         <tr>
 
             <td>${index + 1}</td>
-            <td>${u.student_id}</td>
             <td>${u.roll_no}</td>
+            <td>${new Date(u.created_at).toISOString().split('T')[0]}</td>
             <td>${u.first_name} ${u.last_name}</td>
-             <td>${u.father_name}</td>
-            <td>${u.mother_name}</td>
-            <td>${course?.course_name  + ' - '+ u.course_year  || ''}</td>
-
-            <td>
-                <button
-                    class="btn btn-primary btn-sm view-subjects"
-                    data-subjects='${JSON.stringify(subjectList)}'>
-                    View
-                </button>
-            </td>
-            <td>${SuperHelper.formatDate(u.created_at)}</td>
+            <td>${u.mobile} <br> ${u.father_mobile}</td>
+<td>
+    ${subjectList.map((subject, i) => `${i + 1}. ${subject}`).join('<br>')}
+</td>
 
         </tr>
         `;

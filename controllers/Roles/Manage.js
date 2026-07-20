@@ -96,7 +96,7 @@ exports.users = async (req, res) => {
             <td>${u.mother_name}</td>
             <td>${u.email}</td>
 
-            <td>${course?.course_name  + ' - '+ u.course_year  || ''}</td>
+            <td>${course?.course_name + ' - ' + u.course_year || ''}</td>
 
             <td>
                 <button
@@ -471,7 +471,12 @@ exports.studentFees = async (req, res) => {
     const student = await UserModel.getSingleRecord(
         "students",
         { student_id: req.body.student_id },
-        "total_fees,pending_fees"
+        "total_fees,pending_fees,first_name,last_name,father_name,course,course_year"
+    );
+    const course =  await UserModel.getSingleRecord(
+        "courses",
+        { id: student.course },
+        "course_name"
     );
 
     if (!student) {
@@ -483,6 +488,9 @@ exports.studentFees = async (req, res) => {
     return res.json({
         status: true,
         total_fees: student.total_fees,
+        name: student.first_name + ' ' + student.last_name,
+        father: student.father_name ,
+        course: course.course_name+' - '+ student.course_year,
         paid_fees: student.pending_fees,
         pending_fees: Number(student.total_fees) - Number(student.pending_fees)
     });
@@ -573,7 +581,7 @@ exports.reciept = async (req, res) => {
         `;
     }
 
-    
+
 
     feeRows += `
         <div class="d-flex m-0 justify-content-between"><p class="m-0">A.F. Charges</p><p class="text-end m-0">${receiptHead.af_charges}</p></div>
@@ -581,7 +589,7 @@ exports.reciept = async (req, res) => {
         <div class="d-flex m-0 justify-content-between"><p class="m-0">Other PU Charges</p><p class="text-end m-0">${receiptHead.pu_charges}</p></div>
         <div class="d-flex m-0 justify-content-between"><p class="m-0">CDF & DILP</p><p class="text-end m-0">${receiptHead.cdf_dilp}</p></div>
     `;
-     if (Number(user.parking_fees) > 0) {
+    if (Number(user.parking_fees) > 0) {
         feeRows += `
           <div class="d-flex m-0 justify-content-between">
                 <p class="m-0">Parking Fees</td>
@@ -1202,12 +1210,12 @@ exports.recieptHistorydatewisw = async (req, res) => {
 
     // Sirf aaj ki receipts
     const rows = await UserModel.getRecordsNew(
-    'receipt_details',
-    {
-        'DATE(created_at)': date
-    },
-    '*'
-);
+        'receipt_details',
+        {
+            'DATE(created_at)': date
+        },
+        '*'
+    );
     // console.log(rows);
 
     // Summary
@@ -1222,6 +1230,8 @@ exports.recieptHistorydatewisw = async (req, res) => {
             <th>#</th>
             <th>Reciept No</th>
             <th>Student ID</th>
+            <th>Student Name</th>
+            <th>Roll No</th>
             <th>Amount</th>
             <th>Payment Mode</th>
             <th>Date & Time</th>
@@ -1232,12 +1242,22 @@ exports.recieptHistorydatewisw = async (req, res) => {
     let tableRows = '';
 
     for (const [index, u] of rows.entries()) {
+        const studentDetail = await UserModel.getSingleRecorddate(
+            'students',
+            {
+                student_id:u.student_id,
+                
+            },
+            '*'
+        );
 
         tableRows += `
             <tr>
                 <td>${index + 1}</td>
                 <td>${u.receipt_no}</td>
                 <td>${u.student_id}</td>
+                <td>${studentDetail.first_name} ${studentDetail.last_name}</td>
+                <td>${studentDetail.roll_no}</td>
                 <td>${CONSTANTS.currency}${u.amount}</td>
                 <td>${u.payment_mode}</td>
                 <td>${SuperHelper.formatDate(u.created_at)}</td>
@@ -1368,12 +1388,12 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
 
     // Sirf aaj ki receipts
     const rows = await UserModel.getRecordsNew(
-    'balance_receipt_details',
-    {
-        'DATE(created_at)': date
-    },
-    '*'
-);
+        'balance_receipt_details',
+        {
+            'DATE(created_at)': date
+        },
+        '*'
+    );
     // console.log(rows);
 
     // Summary
@@ -1388,6 +1408,8 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
             <th>#</th>
             <th>Reciept No</th>
             <th>Student ID</th>
+            <th>Student Name</th>
+            <th>Roll No</th>
             <th>Amount</th>
             <th>Payment Mode</th>
             <th>Date & Time</th>
@@ -1398,12 +1420,22 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
     let tableRows = '';
 
     for (const [index, u] of rows.entries()) {
+         const studentDetail = await UserModel.getSingleRecorddate(
+            'students',
+            {
+                student_id:u.student_id,
+                
+            },
+            '*'
+        );
 
         tableRows += `
             <tr>
                 <td>${index + 1}</td>
                 <td>${u.receipt_no}</td>
                 <td>${u.student_id}</td>
+                <td>${studentDetail.first_name} ${studentDetail.last_name}</td>
+                <td>${studentDetail.roll_no}</td>
                 <td>${CONSTANTS.currency}${u.amount}</td>
                 <td>${u.payment_mode}</td>
                 <td>${SuperHelper.formatDate(u.created_at)}</td>
@@ -1458,7 +1490,7 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
 //             <th>Total Amount</th>
 //             <th>Cash</th>
 //             <th>Online</th>
-           
+
 //         </tr>
 //     `;
 //     let tableRows = '';
@@ -1517,7 +1549,7 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
 //             'balance_receipt_details',
 //             {
 //                 created_at: newdate,
-               
+
 //             },
 //             'IFNULL(SUM(amount),0) AS total'
 //         );
@@ -1547,7 +1579,7 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
 //         title: `
 //             <div class="d-flex justify-content-between align-items-center">
 //                 <span>Both Receipt History (Date Wise)</span>
-               
+
 //             </div>
 //         `,
 //         thead,
