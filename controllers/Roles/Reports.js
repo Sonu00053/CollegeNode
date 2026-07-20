@@ -131,24 +131,21 @@ exports.perclasssubject = async (req, res) => {
             }
 
         }
-
         const headsView = '<a href="' + CONSTANTS.role + 'heads-detail/' + u.student_id + '" class="btn btn-sm btn-dark">View</a>';
-
         tableRows += `
         <tr>
-
             <td>${index + 1}</td>
             <td>${u.roll_no}</td>
             <td>${new Date(u.created_at).toISOString().split('T')[0]}</td>
             <td>${u.first_name} ${u.last_name}</td>
             <td>${u.mobile} <br> ${u.father_mobile}</td>
-<td>
-    ${subjectList.map((subject, i) => `${i + 1}. ${subject}`).join('<br>')}
+        <td>
+    <ol style="margin:0; padding-left:18px;">
+        ${subjectList.map(subject => `<li>${subject}</li>`).join('')}
+    </ol>
 </td>
-
         </tr>
         `;
-
     }
 
     return View.Rview(res, 'reports', {
@@ -165,3 +162,91 @@ exports.perclasssubject = async (req, res) => {
     });
 
 };
+
+
+
+exports.updateFees = async (req, res) => {
+    try {
+        // Reset Available Fees = Total Fees
+        const students = await UserModel.getRecords('students', {}, '*');
+
+        for (const student of students) {
+            await UserModel.updateRecord(
+                'students',
+                {
+                    available_fees: Number(student.total_fees)
+                },
+                {
+                    student_id: student.student_id
+                }
+            );
+        }
+
+        // Update receipt_details
+        await updateReceiptTable('receipt_details');
+
+        // Update balance_receipt_details
+        await updateReceiptTable('balance_receipt_details');
+
+        return res.json({
+            status: true,
+            message: 'Fees Updated Successfully'
+        });
+
+    } catch (err) {
+        console.log(err);
+
+        return res.status(500).json({
+            status: false,
+            message: 'Server Error'
+        });
+    }
+};
+
+
+async function updateReceiptTable(tableName) {
+
+    const receipts = await UserModel.getRecords(
+        tableName,
+        {},
+        '*'
+    );
+
+    for (const receipt of receipts) {
+
+        const student = await UserModel.getSingleRecord(
+            'students',
+            {
+                student_id: receipt.student_id
+            },
+            'available_fees,total_fees'
+        );
+
+        const availableFees = Number(student.available_fees);
+        const totalFees = Number(student.total_fees);
+        const amount = Number(receipt.amount);
+
+        // Receipt Table Update
+        await UserModel.updateRecord(
+            tableName,
+            {
+                available_fees: availableFees,
+                total_fees: totalFees
+            },
+            {
+                id: receipt.id
+            }
+        );
+
+        // Student Remaining Fees Update
+        await UserModel.updateRecord(
+            'students',
+            {
+                available_fees: availableFees - amount
+            },
+            {
+                student_id: receipt.student_id
+            }
+        );
+    }
+}

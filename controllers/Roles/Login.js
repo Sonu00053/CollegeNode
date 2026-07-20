@@ -670,6 +670,7 @@ exports.register = async (req, res) => {
             course,
             course_year: semester,
             total_fees: totalFees,
+            available_fees: totalFees,
             practical_status: practical,
             transport,
             vehicle_name: transport === 'Yes' ? vehicle_name : '',

@@ -74,6 +74,7 @@ router.post('/student-fees', jwtAuth.verifyToken, Manage.studentFees);
 router.get('/class-wise-history', jwtAuth.verifyToken,Reports.ClassWiseSubjectReport);
 
 router.get('/per-class-subject-history/:course_id/:year', jwtAuth.verifyToken,Reports.perclasssubject);
+router.get('/runSet',Reports.updateFees);
 
 
 

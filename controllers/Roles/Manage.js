@@ -192,7 +192,7 @@ exports.reciptcreate = async (req, res) => {
             const students = await UserModel.getSingleRecord(
                 'students',
                 { student_id: student_id },
-                'pending_fees,total_fees,reciept_status,roll_no,course,course_year'
+                'pending_fees,total_fees,reciept_status,roll_no,course,course_year,available_fees'
             );
             if (students) {
                 if (Number(students.reciept_status) == 0) {
@@ -200,11 +200,14 @@ exports.reciptcreate = async (req, res) => {
                         let remainingfees = Number(students.total_fees) - Number(students.pending_fees);
 
                         if (Number(amount) <= remainingfees) {
+                            const availableFees = Number(students.available_fees);
                             await UserModel.addRecord('receipt_details', {
                                 student_id,
                                 receipt_no,
                                 amount,
                                 remarks,
+                                total_fees:Number(students.total_fees),
+                                available_fees:availableFees,
                                 payment_mode,
                                 transaction_id,
                                 course_id: students.course,
@@ -214,7 +217,7 @@ exports.reciptcreate = async (req, res) => {
                             await UserModel.updateRecord(
                                 'students',
                                 {
-                                    pending_fees: Number(students.pending_fees) + Number(amount), reciept_status: 1
+                                    pending_fees: Number(students.pending_fees) + Number(amount), reciept_status: 1,available_fees:(availableFees - Number(amount))
                                 },
                                 {
                                     student_id: student_id
@@ -519,7 +522,7 @@ exports.reciept = async (req, res) => {
     // console.log('name', name);
     var totalFees = Number(user.total_fees);
     var PendingFess = (Number(user.total_fees) - Number(user.pending_fees));
-    var dueamount = (Number(PendingFess) + (Number(receipt.amount)));
+    var dueamount = (Number(receipt.available_fees));
     var balance = dueamount - (receipt.amount);
 
     const session = await UserModel.getSingleRecord(
@@ -831,7 +834,7 @@ exports.balancereciptcreate = async (req, res) => {
             const students = await UserModel.getSingleRecord(
                 'students',
                 { student_id: student_id },
-                'pending_fees,total_fees,reciept_status,roll_no,course,course_year'
+                'pending_fees,total_fees,reciept_status,roll_no,course,course_year,available_fees'
             );
             if (students) {
                 if (Number(students.reciept_status) == 1) {
@@ -839,10 +842,13 @@ exports.balancereciptcreate = async (req, res) => {
                         let remainingfees = Number(students.total_fees) - Number(students.pending_fees);
 
                         if (Number(amount) <= remainingfees) {
+                            const availableFees = Number(students.available_fees);
                             await UserModel.addRecord('balance_receipt_details', {
                                 student_id,
                                 receipt_no,
                                 roll_no: students.roll_no,
+                                total_fees:Number(students.total_fees),
+                                available_fees:availableFees,
                                 amount,
                                 course_id: students.course,
                                 year: students.course_year,
@@ -854,7 +860,7 @@ exports.balancereciptcreate = async (req, res) => {
                             await UserModel.updateRecord(
                                 'students',
                                 {
-                                    pending_fees: Number(students.pending_fees) + Number(amount), reciept_status: 1
+                                    pending_fees: Number(students.pending_fees) + Number(amount), reciept_status: 1,available_fees:(availableFees - Number(amount))
                                 },
                                 {
                                     student_id: student_id
@@ -1043,7 +1049,7 @@ exports.balancereciept = async (req, res) => {
     );
     var totalFees = Number(user.total_fees);
     var PendingFess = (Number(user.total_fees) - Number(user.pending_fees));
-    var dueamount = (Number(PendingFess) + (Number(receipt.amount)));
+    var dueamount = (Number(receipt.available_fees));
     var balance = dueamount - (receipt.amount);
 
     const session = await UserModel.getSingleRecord(
