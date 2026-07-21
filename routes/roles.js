@@ -5,6 +5,7 @@ const Manage = require('../controllers/Roles/Manage');
 const Permission = require('../controllers/Roles/Permission');
 const Course = require('../controllers/Roles/Course');
 const Reports = require('../controllers/Roles/Reports');
+const Settings = require('../controllers/Roles/Settings');
 const jwtAuth = require('../helpers/roleAuth');
 
 
@@ -74,7 +75,15 @@ router.post('/student-fees', jwtAuth.verifyToken, Manage.studentFees);
 router.get('/class-wise-history', jwtAuth.verifyToken,Reports.ClassWiseSubjectReport);
 
 router.get('/per-class-subject-history/:course_id/:year', jwtAuth.verifyToken,Reports.perclasssubject);
+
+// router
+//     .route("/update-adm-reciept/:id")
+//     .get(jwtAuth.verifyToken,Settings.updateamdrecipt)
+//     .post(jwtAuth.verifyToken,Settings.updateamdrecipt);
+    router.post('/update-adm-reciept',jwtAuth.verifyToken, Settings.updateamdrecipt);
+
 router.get('/runSet',Reports.updateFees);
+router.get('/receipt-between-history',jwtAuth.verifyToken,Reports.reciptBetweenHistory);
 
 
 

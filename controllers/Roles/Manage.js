@@ -145,6 +145,7 @@ exports.users = async (req, res) => {
 
 exports.reciptcreate = async (req, res) => {
     const staff_id = req.user.staff_id;
+    // console.log(staff_id);
     const errors = {};
     let student_id = req.query.student_id || '';
     let amount = '', payment_mode = '', transaction_id = '', remarks = '';
@@ -206,8 +207,8 @@ exports.reciptcreate = async (req, res) => {
                                 receipt_no,
                                 amount,
                                 remarks,
-                                total_fees:Number(students.total_fees),
-                                available_fees:availableFees,
+                                total_fees: Number(students.total_fees),
+                                available_fees: availableFees,
                                 payment_mode,
                                 transaction_id,
                                 course_id: students.course,
@@ -217,7 +218,7 @@ exports.reciptcreate = async (req, res) => {
                             await UserModel.updateRecord(
                                 'students',
                                 {
-                                    pending_fees: Number(students.pending_fees) + Number(amount), reciept_status: 1,available_fees:(availableFees - Number(amount))
+                                    pending_fees: Number(students.pending_fees) + Number(amount), reciept_status: 1, available_fees: (availableFees - Number(amount))
                                 },
                                 {
                                     student_id: student_id
@@ -476,7 +477,7 @@ exports.studentFees = async (req, res) => {
         { student_id: req.body.student_id },
         "total_fees,pending_fees,first_name,last_name,father_name,course,course_year"
     );
-    const course =  await UserModel.getSingleRecord(
+    const course = await UserModel.getSingleRecord(
         "courses",
         { id: student.course },
         "course_name"
@@ -492,8 +493,8 @@ exports.studentFees = async (req, res) => {
         status: true,
         total_fees: student.total_fees,
         name: student.first_name + ' ' + student.last_name,
-        father: student.father_name ,
-        course: course.course_name+' - '+ student.course_year,
+        father: student.father_name,
+        course: course.course_name + ' - ' + student.course_year,
         paid_fees: student.pending_fees,
         pending_fees: Number(student.total_fees) - Number(student.pending_fees)
     });
@@ -847,8 +848,8 @@ exports.balancereciptcreate = async (req, res) => {
                                 student_id,
                                 receipt_no,
                                 roll_no: students.roll_no,
-                                total_fees:Number(students.total_fees),
-                                available_fees:availableFees,
+                                total_fees: Number(students.total_fees),
+                                available_fees: availableFees,
                                 amount,
                                 course_id: students.course,
                                 year: students.course_year,
@@ -860,7 +861,7 @@ exports.balancereciptcreate = async (req, res) => {
                             await UserModel.updateRecord(
                                 'students',
                                 {
-                                    pending_fees: Number(students.pending_fees) + Number(amount), reciept_status: 1,available_fees:(availableFees - Number(amount))
+                                    pending_fees: Number(students.pending_fees) + Number(amount), reciept_status: 1, available_fees: (availableFees - Number(amount))
                                 },
                                 {
                                     student_id: student_id
@@ -1251,8 +1252,8 @@ exports.recieptHistorydatewisw = async (req, res) => {
         const studentDetail = await UserModel.getSingleRecorddate(
             'students',
             {
-                student_id:u.student_id,
-                
+                student_id: u.student_id,
+
             },
             '*'
         );
@@ -1272,7 +1273,15 @@ exports.recieptHistorydatewisw = async (req, res) => {
                         class="btn btn-sm btn-primary">
                         View Receipt
                     </a>
+                     <button
+        class="btn btn-sm btn-warning editReceiptBtn"
+        data-id="${u.id}"
+        data-amount="${u.amount}"
+        data-type="admission">
+        Edit
+    </button>
                 </td>
+
             </tr>
         `;
     }
@@ -1287,7 +1296,7 @@ exports.recieptHistorydatewisw = async (req, res) => {
         `;
     }
 
-    return View.Rview(res, 'reports', {
+    return View.Rview(res, 'popupreport', {
         title: `
             <div class="d-flex justify-content-between align-items-center">
                 <span>${date} Admission Reciepts History</span>
@@ -1322,6 +1331,7 @@ exports.balacegroupbyrecipthistory = async (req, res) => {
             <th>Online</th>
            
             <th>Action</th>
+
         </tr>
     `;
     let tableRows = '';
@@ -1363,6 +1373,7 @@ exports.balacegroupbyrecipthistory = async (req, res) => {
                    class="btn btn-sm btn-primary">
                     View
                 </a>
+               
             </td>
         </tr>
     `;
@@ -1426,11 +1437,11 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
     let tableRows = '';
 
     for (const [index, u] of rows.entries()) {
-         const studentDetail = await UserModel.getSingleRecorddate(
+        const studentDetail = await UserModel.getSingleRecorddate(
             'students',
             {
-                student_id:u.student_id,
-                
+                student_id: u.student_id,
+
             },
             '*'
         );
@@ -1450,6 +1461,13 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
                         class="btn btn-sm btn-primary">
                         View Receipt
                     </a>
+                    <button
+        class="btn btn-sm btn-warning editReceiptBtn"
+        data-id="${u.id}"
+        data-amount="${u.amount}"
+        data-type="balance">
+        Edit
+    </button>
                 </td>
             </tr>
         `;
@@ -1465,7 +1483,7 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
         `;
     }
 
-    return View.Rview(res, 'reports', {
+    return View.Rview(res, 'popupreport', {
         title: `
             <div class="d-flex justify-content-between align-items-center">
                 <span>${date} Balance Reciepts History</span>
@@ -1651,7 +1669,7 @@ exports.reciptBothhistory = async (req, res) => {
         const total_balance = await UserModel.getSingleRecorddate(
             'balance_receipt_details',
             { created_at: newdate },
-            'IFNULL(SUM(amount),0) AS total'
+            'COUNT(*) AS total_records,IFNULL(SUM(amount),0) AS total'
         );
 
         const cashsum_balance = await UserModel.getSingleRecorddate(
@@ -1679,7 +1697,7 @@ exports.reciptBothhistory = async (req, res) => {
             <tr>
                 <td>${index++}</td>
                 <td>${newdate}</td>
-                <td>${receipt.total_records}</td>
+                <td>${Number(receipt.total_records) + Number(total_balance.total_records)}</td>
                 <td>${CONSTANTS.currency}${Number(receipt.total_amount) + Number(total_balance.total)}</td>
                 <td>${CONSTANTS.currency}${Number(cashsum.total) + Number(cashsum_balance.total)}</td>
                 <td>${CONSTANTS.currency}${Number(online.total) + Number(online_balance.total)}</td>

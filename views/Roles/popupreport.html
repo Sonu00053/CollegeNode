@@ -1,0 +1,182 @@
+
+
+<div class="content">
+
+    <div class="card mt-4 shadow-sm">
+
+        <div class="card-header bg-dark text-white">
+            {{title}}
+        </div>
+
+        <div class="card-body">
+
+            <table class="table table-bordered" id="example">
+
+                <thead>
+                    {{thead}}
+                </thead>
+
+                <tbody>
+                    {{tableRows}}
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="modal fade" id="editReceiptModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Update Receipt Amount</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="receipt_id">
+                <input type="hidden" id="type">
+
+                <div class="mb-3">
+                    <label>Amount</label>
+                    <input type="number"
+                           class="form-control"
+                           id="amount">
+                </div>
+
+                <div class="mb-3">
+                    <label>Remarks</label>
+                    <textarea
+                        class="form-control"
+                        id="remarks"></textarea>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Close
+                </button>
+
+                <button class="btn btn-success"
+                        id="saveReceipt">
+                    Update
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+
+<script>
+
+
+$(document).on("click", ".editReceiptBtn", function () {
+
+    let id = $(this).data("id");
+    let amount = $(this).data("amount");
+    let type = $(this).data("type");
+
+    $("#receipt_id").val(id);
+    $("#type").val(type);
+    $("#amount").val(amount);
+    $("#remarks").val("");
+
+    $("#editReceiptModal").modal("show");
+
+});
+
+// $(document).on("click", "#saveReceipt", function () {
+//         const BASE_ROLE = "{{CONSTANTS.role}}";
+
+
+//     $.ajax({
+
+//         url:  BASE_ROLE + "update-adm-reciept",
+
+//         type: "POST",
+
+//         data: {
+
+//             id: $("#receipt_id").val(),
+//             type: $("#type").val(),
+//             amount: $("#amount").val(),
+//             remarks: $("#remarks").val()
+
+//         },
+
+//         success: function (res) {
+
+//             if (res.status) {
+
+//                 toastr.success(res.message);
+
+//                 $("#editReceiptModal").modal("hide");
+
+//                 location.reload();
+
+//             } else {
+
+//                 toastr.error(res.message);
+
+//             }
+
+//         }
+
+//     });
+
+// });
+
+
+
+$(document).on("click", "#saveReceipt", function () {
+
+    const BASE_ROLE = "{{CONSTANTS.role}}";
+
+    $.ajax({
+        url: BASE_ROLE + "update-adm-reciept",
+        type: "POST",
+        dataType: "json", // जरूरी
+        data: {
+            id: $("#receipt_id").val(),
+            type: $("#type").val(),
+            amount: $("#amount").val(),
+            remarks: $("#remarks").val()
+        },
+        success: function (res) {
+
+            if (res.status) {
+
+                // Bootstrap 5 Modal Hide
+                const modal = bootstrap.Modal.getInstance(document.getElementById("editReceiptModal"));
+                if (modal) {
+                    modal.hide();
+                }
+                toastr.success(
+                     res.message 
+                );
+                setTimeout(function () {
+                    location.reload();
+                }, 1500);
+
+            } else {
+                toastr.error(res.message);
+            }
+        }
+    });
+
+});
+</script>

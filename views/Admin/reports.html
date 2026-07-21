@@ -33,8 +33,7 @@
                     Student Subjects
                 </h5>
 
-                <button class="btn-close"
-                    data-bs-dismiss="modal">
+                <button class="btn-close" data-bs-dismiss="modal">
                 </button>
 
             </div>
@@ -52,33 +51,39 @@
     </div>
 
 </div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 
 <script>
 
-document.addEventListener("click", function(e){
 
-    if(!e.target.classList.contains("view-subjects")) return;
+    document.addEventListener("click", function (e) {
 
-    let subjects = [];
+        if (!e.target.classList.contains("view-subjects")) return;
 
-    try{
+        let subjects = [];
 
-        subjects = JSON.parse(
-            e.target.getAttribute("data-subjects")
-        );
+        try {
 
-    }catch(err){
+            subjects = JSON.parse(
+                e.target.getAttribute("data-subjects")
+            );
 
-        console.log(err);
+        } catch (err) {
 
-    }
+            console.log(err);
 
-    let html = "";
+        }
 
-    if(subjects.length==0){
+        let html = "";
 
-        html=`
+        if (subjects.length == 0) {
+
+            html = `
         <div class="col-12">
 
             <div class="alert alert-warning">
@@ -88,11 +93,11 @@ document.addEventListener("click", function(e){
         </div>
         `;
 
-    }else{
+        } else {
 
-        subjects.forEach(function(item,index){
+            subjects.forEach(function (item, index) {
 
-            html += `
+                html += `
             <div class="col-md-4 mb-3">
 
                 <div class="card border-primary shadow">
@@ -100,7 +105,7 @@ document.addEventListener("click", function(e){
                     <div class="card-body text-center">
 
                         <h6>
-                            ${index+1}. ${item}
+                            ${index + 1}. ${item}
                         </h6>
 
                     </div>
@@ -110,20 +115,50 @@ document.addEventListener("click", function(e){
             </div>
             `;
 
+            });
+
+        }
+
+        document.getElementById("subjectsCards").innerHTML = html;
+
+        const modal = new bootstrap.Modal(
+            document.getElementById("subjectsModal")
+        );
+
+        modal.show();
+
+    });
+
+
+    $('#example tbody').on('click', '.receiptAction', function () {
+
+        let id = $(this).data('id');
+        let action = $(this).data('action');
+
+        $.ajax({
+            url: "/admin/admission-receipt-request-action",
+            type: "POST",
+            data: {
+                id: id,
+                action: action
+            },
+            success: function (res) {
+                if (res.status) {
+                    $("#row_" + id).remove();
+                    toastr.success(
+                        res.message
+                    );
+                    setTimeout(function () {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    toastr.success(
+                        res.message
+                    );
+                }
+            }
         });
+    });
 
-    }
-
-    document.getElementById("subjectsCards").innerHTML = html;
-
-    const modal = new bootstrap.Modal(
-        document.getElementById("subjectsModal")
-    );
-
-    modal.show();
-
-});
 
 </script>
-
-

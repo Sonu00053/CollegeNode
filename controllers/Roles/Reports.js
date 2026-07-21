@@ -250,3 +250,145 @@ async function updateReceiptTable(tableName) {
         );
     }
 }
+
+
+
+
+
+exports.reciptBetweenHistory = async (req, res) => {
+
+    const from_date = req.query.from_date || '';
+    const to_date = req.query.to_date || '';
+
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Total Receipts</th>
+            <th>Total Amount</th>
+            <th>Cash</th>
+            <th>Online</th>
+        </tr>
+    `;
+
+    let tableRows = '';
+
+    let totalCash = 0;
+    let totalOnline = 0;
+    let grandTotal = 0;
+
+    if (from_date && to_date) {
+
+        let index = 1;
+
+        for (
+            let currentDate = new Date(from_date);
+            currentDate <= new Date(to_date);
+            currentDate.setDate(currentDate.getDate() + 1)
+        ) {
+
+            const newdate = currentDate.toISOString().split('T')[0];
+
+            // Receipt Table
+            const receipt = await UserModel.getSingleRecorddate(
+                'receipt_details',
+                { created_at: newdate },
+                'COUNT(*) total_records, IFNULL(SUM(amount),0) total_amount'
+            );
+
+            const cash = await UserModel.getSingleRecorddate(
+                'receipt_details',
+                {
+                    created_at: newdate,
+                    payment_mode: 'Cash'
+                },
+                'IFNULL(SUM(amount),0) total'
+            );
+
+            const online = await UserModel.getSingleRecorddate(
+                'receipt_details',
+                {
+                    created_at: newdate,
+                    payment_mode: {
+                        operator: '!=',
+                        value: 'Cash'
+                    }
+                },
+                'IFNULL(SUM(amount),0) total'
+            );
+
+            // Balance Receipt Table
+            const balance = await UserModel.getSingleRecorddate(
+                'balance_receipt_details',
+                { created_at: newdate },
+                'COUNT(*) total_records, IFNULL(SUM(amount),0) total_amount'
+            );
+
+            const balanceCash = await UserModel.getSingleRecorddate(
+                'balance_receipt_details',
+                {
+                    created_at: newdate,
+                    payment_mode: 'Cash'
+                },
+                'IFNULL(SUM(amount),0) total'
+            );
+
+            const balanceOnline = await UserModel.getSingleRecorddate(
+                'balance_receipt_details',
+                {
+                    created_at: newdate,
+                    payment_mode: {
+                        operator: '!=',
+                        value: 'Cash'
+                    }
+                },
+                'IFNULL(SUM(amount),0) total'
+            );
+
+            const cashTotal =
+                Number(cash.total) +
+                Number(balanceCash.total);
+
+            const onlineTotal =
+                Number(online.total) +
+                Number(balanceOnline.total);
+
+            const amountTotal =
+                Number(receipt.total_amount) +
+                Number(balance.total_amount);
+
+            totalCash += cashTotal;
+            totalOnline += onlineTotal;
+            grandTotal += amountTotal;
+
+            tableRows += `
+                <tr>
+                    <td>${index++}</td>
+                    <td>${newdate}</td>
+                    <td>${Number(receipt.total_records)+Number(balance.total_records)}</td>
+                    <td>${CONSTANTS.currency}${amountTotal}</td>
+                    <td>${CONSTANTS.currency}${cashTotal}</td>
+                    <td>${CONSTANTS.currency}${onlineTotal}</td>
+                </tr>
+            `;
+        }
+    }
+
+    return View.Rview(res,'datereport',{
+
+        title:'Receipt History Between Dates',
+
+        from_date,
+        to_date,
+        url:CONSTANTS.role + "receipt-between-history/",
+
+        totalCash,
+        totalOnline,
+        grandTotal,
+
+        thead,
+        tableRows
+
+    });
+
+};

@@ -342,3 +342,206 @@ exports.StaffHistory = async (req, res) => {
 
 };
 
+
+exports.users = async (req, res) => {
+    const result = await UserModel.getRecords('students', {}, '*');
+    thead = `
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Course</th>
+                <th>Joining Date</th>
+            </tr>
+        `;
+    const rows = Array.isArray(result) ? result : (result?.rows || []);
+    let tableRows = '';
+
+    rows.forEach((u, index) => {
+        tableRows += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${u.first_name} ${u.last_name}</td>
+                    <td>${u.email}</td>
+                    <td>${u.mobile}</td>
+                    <td>${u.course}</td>
+                    <td>${SuperHelper.formatDate(u.created_at)}</td>
+
+                </tr>
+            `;
+    });
+    if (!rows.length) {
+        tableRows = `
+            <tr>
+                <td colspan="3">No Data Found</td>
+            </tr>
+        `;
+    }
+    return View.Aview(res, 'reports', {
+        title: 'Students Report',
+        thead: thead,
+        tableRows,
+    });
+
+};
+
+exports.admissionrecieptrequest = async (req, res) => {
+    const result = await UserModel.getRecords('receipt_details_update', { status: 0 }, '*');
+    const thead = `
+            <tr>
+                <th>#</th>
+                <th>Reciept No</th>
+                <th>Student Id</th>
+                <th>Roll No</th>
+                <th>Old Amount</th>
+                <th>New Amount</th>
+                <th>Created At</th>
+                <th>Action</th>
+            </tr>
+        `;
+
+    const rows = Array.isArray(result) ? result : (result?.rows || []);
+
+    let tableRows = '';
+
+    for (const [index, u] of rows.entries()) {
+        tableRows += `
+            <tr>
+    
+                <td>${index + 1}</td>
+                <td>${u.receipt_no}</td>
+                <td>${u.student_id}</td>
+                <td>${u.roll_no}</td>
+                <td>${u.amount}</td>
+                <td>${u.new_amount}</td>
+                <td>${SuperHelper.formatDate(u.created_at)}</td>
+                <td>
+                <button
+                    type="button"
+                    class="btn btn-success btn-sm receiptAction"
+                    data-id="${u.id}"
+                    data-action="approve">
+                    <i class="bi bi-check-circle"></i> Approve
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-danger btn-sm receiptAction"
+                    data-id="${u.id}"
+                    data-action="reject">
+                    <i class="bi bi-x-circle"></i> Reject
+                </button>
+</td>
+            </tr>
+            `;
+
+    }
+
+   
+    return View.Aview(res, 'reports', {
+        title: 'Admission Reciept Request History',
+        thead: thead,
+        tableRows,
+    });
+
+};
+
+exports.admissionReceiptRequestAction = async (req, res) => {
+
+    try {
+
+        const { id, action } = req.body;
+        const request = await UserModel.getSingleRecord(
+            'receipt_details_update',
+            { id },
+            '*'
+        );
+
+        const Table = request.reciept_table;
+
+        if (!request) {
+            return res.json({
+                status: false,
+                message: 'Request not found.'
+            });
+        }
+
+        if (action === 'approve') {
+
+            // Receipt amount update
+            await UserModel.updateRecord(
+                Table,
+                {
+                    amount: request.new_amount
+                },
+                {
+                    id: request.table_id
+                }
+            );
+
+            if (Number(request.student_pending) != 0 && Number(request.student_available) != 0) {
+                await UserModel.updateRecord(
+                    'students',
+                    {
+                        pending_fees: request.student_pending,
+                        available_fees: request.student_available,
+                    },
+                    {
+                        student_id: request.student_id
+                    }
+                );
+            }
+            await UserModel.updateRecord(
+                'receipt_details_update',
+                {
+                    status: 1
+                },
+                {
+                    id
+                }
+            );
+
+            return res.json({
+                status: true,
+                message: 'Request approved successfully.'
+            });
+
+        } else if (action === 'reject') {
+
+            await UserModel.updateRecord(
+                'receipt_details_update',
+                {
+                    status: 2
+                },
+                {
+                    id
+                }
+            );
+
+            return res.json({
+                status: true,
+                message: 'Request rejected successfully.'
+            });
+
+        } else {
+
+            return res.json({
+                status: false,
+                message: 'Invalid action.'
+            });
+
+        }
+
+    } catch (err) {
+
+        console.log(err);
+
+        return res.json({
+            status: false,
+            message: 'Something went wrong.'
+        });
+
+    }
+
+};
+

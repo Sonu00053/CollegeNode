@@ -22,6 +22,11 @@ router.post('/report', jwtAuth.verifyToken, Manage.users);
 router.post('/student-status',jwtAuth.verifyToken, Manage.updateStudentStatus);
 
 router.get('/all-staff', jwtAuth.verifyToken, Manage.StaffHistory);
+router.get('/admission-reciept-request', jwtAuth.verifyToken, Manage.admissionrecieptrequest);
+
+router.post('/admission-receipt-request-action', jwtAuth.verifyToken,Manage.admissionReceiptRequestAction);
+
+
 
 router.route('/add')
     .get(jwtAuth.verifyToken,Manage.add)
