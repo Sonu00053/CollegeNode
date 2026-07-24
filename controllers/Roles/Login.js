@@ -2,6 +2,7 @@ const UserModel = require('../../models/UserModel');
 const View = require('../../helpers/View');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const { end } = require('../../config/db');
 
 // const bcrypt = require('bcryptjs');
 
@@ -685,7 +686,9 @@ exports.register = async (req, res) => {
             total_practical_fees: totalPracticalFee,
             physical: physical,
             security: security,
-            parking_fees: parkingfees
+            parking_fees: parkingfees,
+            start: year,
+            end: (year + 1),
 
         };
         const insertDatasession = {

@@ -46,6 +46,7 @@ exports.users = async (req, res) => {
             <th>Total Fees</th>
             <th>Pending Fees</th>
             <th>Joining Date & Time</th>
+            <th>Action</th>
         </tr>
     `;
 
@@ -83,7 +84,7 @@ exports.users = async (req, res) => {
 
         }
 
-        const headsView = '<a href="' + CONSTANTS.role + 'heads-detail/' + u.student_id + '" class="btn btn-sm btn-dark">View</a>';
+        const profile = '<a href="' + CONSTANTS.role + 'profile/' + u.student_id + '" class="btn btn-sm btn-warning">View Profile</a>';
 
         tableRows += `
         <tr>
@@ -109,6 +110,7 @@ exports.users = async (req, res) => {
             <td>${CONSTANTS.currency}${u.total_fees}</td>
             <td>${CONSTANTS.currency}${u.total_fees - u.pending_fees}</td>
             <td>${SuperHelper.formatDate(u.created_at)}</td>
+            <td>${profile}</td>
 
         </tr>
         `;
@@ -193,7 +195,7 @@ exports.reciptcreate = async (req, res) => {
             const students = await UserModel.getSingleRecord(
                 'students',
                 { student_id: student_id },
-                'pending_fees,total_fees,reciept_status,roll_no,course,course_year,available_fees'
+                '*'
             );
             if (students) {
                 if (Number(students.reciept_status) == 0) {
@@ -202,6 +204,8 @@ exports.reciptcreate = async (req, res) => {
 
                         if (Number(amount) <= remainingfees) {
                             const availableFees = Number(students.available_fees);
+                            var start = students.start;
+                             var end = students.end;
                             await UserModel.addRecord('receipt_details', {
                                 student_id,
                                 receipt_no,
@@ -213,7 +217,9 @@ exports.reciptcreate = async (req, res) => {
                                 transaction_id,
                                 course_id: students.course,
                                 year: students.course_year,
-                                staff_id
+                                staff_id,
+                                start,
+                                end
                             });
                             await UserModel.updateRecord(
                                 'students',
@@ -526,10 +532,7 @@ exports.reciept = async (req, res) => {
     var dueamount = (Number(receipt.available_fees));
     var balance = dueamount - (receipt.amount);
 
-    const session = await UserModel.getSingleRecord(
-        'session_update',
-        { id: 1 }, '*'
-    );
+   
     const receiptHead = await UserModel.getSingleRecord(
         'roll_no',
         {
@@ -539,8 +542,8 @@ exports.reciept = async (req, res) => {
         '*'
     );
 
-    var start = session.start;
-    var end = String(session.end).slice(-2);
+    var start = receipt.start;
+    var end = String(receipt.end).slice(-2);
 
     let subjects = '';
 
@@ -835,7 +838,7 @@ exports.balancereciptcreate = async (req, res) => {
             const students = await UserModel.getSingleRecord(
                 'students',
                 { student_id: student_id },
-                'pending_fees,total_fees,reciept_status,roll_no,course,course_year,available_fees'
+                '*'
             );
             if (students) {
                 if (Number(students.reciept_status) == 1) {
@@ -843,6 +846,8 @@ exports.balancereciptcreate = async (req, res) => {
                         let remainingfees = Number(students.total_fees) - Number(students.pending_fees);
 
                         if (Number(amount) <= remainingfees) {
+                             var start = students.start;
+                             var end = students.end;
                             const availableFees = Number(students.available_fees);
                             await UserModel.addRecord('balance_receipt_details', {
                                 student_id,
@@ -856,7 +861,9 @@ exports.balancereciptcreate = async (req, res) => {
                                 remarks,
                                 payment_mode,
                                 transaction_id,
-                                staff_id
+                                staff_id,
+                                start,
+                                end
                             });
                             await UserModel.updateRecord(
                                 'students',
@@ -1245,19 +1252,15 @@ exports.recieptHistorydatewisw = async (req, res) => {
             <th>Action</th>
         </tr>
     `;
-
     let tableRows = '';
-
     for (const [index, u] of rows.entries()) {
         const studentDetail = await UserModel.getSingleRecorddate(
             'students',
             {
                 student_id: u.student_id,
-
             },
             '*'
         );
-
         tableRows += `
             <tr>
                 <td>${index + 1}</td>
@@ -1273,13 +1276,7 @@ exports.recieptHistorydatewisw = async (req, res) => {
                         class="btn btn-sm btn-primary">
                         View Receipt
                     </a>
-                     <button
-        class="btn btn-sm btn-warning editReceiptBtn"
-        data-id="${u.id}"
-        data-amount="${u.amount}"
-        data-type="admission">
-        Edit
-    </button>
+               
                 </td>
 
             </tr>
@@ -1295,6 +1292,14 @@ exports.recieptHistorydatewisw = async (req, res) => {
             </tr>
         `;
     }
+
+    //       <button
+    //     class="btn btn-sm btn-warning editReceiptBtn"
+    //     data-id="${u.id}"
+    //     data-amount="${u.amount}"
+    //     data-type="admission">
+    //     Edit
+    // </button>
 
     return View.Rview(res, 'popupreport', {
         title: `
@@ -1461,13 +1466,7 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
                         class="btn btn-sm btn-primary">
                         View Receipt
                     </a>
-                    <button
-        class="btn btn-sm btn-warning editReceiptBtn"
-        data-id="${u.id}"
-        data-amount="${u.amount}"
-        data-type="balance">
-        Edit
-    </button>
+               
                 </td>
             </tr>
         `;
@@ -1482,6 +1481,13 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
             </tr>
         `;
     }
+    //      <button
+    //     class="btn btn-sm btn-warning editReceiptBtn"
+    //     data-id="${u.id}"
+    //     data-amount="${u.amount}"
+    //     data-type="balance">
+    //     Edit
+    // </button>
 
     return View.Rview(res, 'popupreport', {
         title: `
@@ -1497,119 +1503,6 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
 
 };
 
-// exports.reciptBothhistory = async (req, res) => {
-
-//     const result = await UserModel.getGroupByDate(
-//         'receipt_details',
-//         'created_at',
-//         'amount'
-//     );
-//     console.log(result);
-
-//     const thead = `
-//         <tr>
-//             <th>#</th>
-//             <th>Date</th>
-//             <th>Total Receipts</th>
-//             <th>Total Amount</th>
-//             <th>Cash</th>
-//             <th>Online</th>
-
-//         </tr>
-//     `;
-//     let tableRows = '';
-//     for (const [index, row] of result.entries()) {
-//         const date = new Date(row.group_date);
-//         const year = date.getFullYear();
-//         const month = String(date.getMonth() + 1).padStart(2, '0');
-//         const day = String(date.getDate()).padStart(2, '0');
-//         const newdate = `${year}-${month}-${day}`;
-//         const cashsum = await UserModel.getSingleRecorddate(
-//             'receipt_details',
-//             {
-//                 created_at: newdate,
-//                 payment_mode: 'Cash'
-//             },
-//             'IFNULL(SUM(amount),0) AS total'
-//         );
-//         const online = await UserModel.getSingleRecorddate(
-//             'receipt_details',
-//             {
-//                 created_at: newdate,
-//                 payment_mode: {
-//                     operator: '!=',
-//                     value: 'Cash'
-//                 },
-//             },
-//             'IFNULL(SUM(amount),0) AS total'
-//         );
-
-
-//         const cashsum_balance = await UserModel.getSingleRecorddate(
-//             'balance_receipt_details',
-//             {
-//                 created_at: newdate,
-//                 payment_mode: 'Cash'
-//             },
-//             'IFNULL(SUM(amount),0) AS total'
-//         );
-
-
-//         const online_balance = await UserModel.getSingleRecorddate(
-//             'balance_receipt_details',
-//             {
-//                 created_at: newdate,
-//                 payment_mode: {
-//                     operator: '!=',
-//                     value: 'Cash'
-//                 },
-//             },
-//             'IFNULL(SUM(amount),0) AS total'
-//         );
-
-
-
-//         const total_balance = await UserModel.getSingleRecorddate(
-//             'balance_receipt_details',
-//             {
-//                 created_at: newdate,
-
-//             },
-//             'IFNULL(SUM(amount),0) AS total'
-//         );
-
-
-//         tableRows += `
-//         <tr>
-//             <td>${index + 1}</td>
-//             <td>${newdate}</td>
-//             <td>${row.total_records}</td>
-//             <td>${CONSTANTS.currency}${Number(row.total_amount)+Number(total_balance.total)}</td>
-//             <td>${CONSTANTS.currency}${Number(cashsum.total)+Number(cashsum_balance.total)}</td>
-//             <td>${CONSTANTS.currency}${Number(online.total)+Number(online_balance.total)}</td>
-//         </tr>
-//     `;
-//     }
-
-//     if (!result.length) {
-//         tableRows = `
-//             <tr>
-//                 <td colspan="5" class="text-center">No Data Found</td>
-//             </tr>
-//         `;
-//     }
-
-//     return View.Rview(res, 'reports', {
-//         title: `
-//             <div class="d-flex justify-content-between align-items-center">
-//                 <span>Both Receipt History (Date Wise)</span>
-
-//             </div>
-//         `,
-//         thead,
-//         tableRows
-//     });
-// };
 
 exports.reciptBothhistory = async (req, res) => {
 
@@ -1714,4 +1607,58 @@ exports.reciptBothhistory = async (req, res) => {
         thead,
         tableRows
     });
+};
+
+exports.profile = async (req, res) => {
+    try {
+        const student_id = req.params.student_id;
+        const user = await UserModel.getSingleRecord(
+            'students',
+            {
+                student_id: student_id
+            },
+            '*'
+        );
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            {
+                id: user.course
+            },
+            '*'
+        );
+        const admissionDate = new Date(user.created_at).toISOString().split('T')[0];
+        // const admissionDate = new Date(user.admission_date).toLocaleDateString('en-GB')
+        const PendiFees = (Number(user.total_fees) - Number(user.pending_fees));
+        const yearMap = {
+            1: '1st Year',
+            2: '2nd Year',
+            3: '3rd Year',
+        };
+
+
+
+        const courseYear = yearMap[user.course_year] || `${user.course_year}th Year`;
+         const dob = new Date(user.dob).toISOString().split('T')[0];
+                //   const dob = new Date(user.dob).toLocaleDateString('en-GB');
+
+        var start = user.start;
+        var end = String(user.end).slice(-2);
+        return View.Rview(res, 'profile', {
+            header: 'User Dashboard',
+            user,
+            course,
+            start,
+            end, dob,
+            courseYear,
+            admissionDate,
+            PendiFees
+        });
+    } catch (err) {
+        console.log(err);
+
+        return res.status(500).json({
+            status: false,
+            message: 'Server Error'
+        });
+    }
 };

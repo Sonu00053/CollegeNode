@@ -156,7 +156,6 @@ const View = require('../../helpers/View');
 
 
 exports.updateamdrecipt = async (req, res) => {
-
     try {
         const staff_id = req.user.staff_id;
         const recieptid = req.body.id;
@@ -201,13 +200,11 @@ exports.updateamdrecipt = async (req, res) => {
                 message: "Receipt not found."
             });
         }
-
         const student = await UserModel.getSingleRecord(
             "students",
             { student_id: receipt.student_id },
             "*"
         );
-
         if (!student) {
             return res.json({
                 status: false,
@@ -290,21 +287,15 @@ exports.updateamdrecipt = async (req, res) => {
             created_at: new Date()
 
         });
-
         return res.json({
             status: true,
             message: "Receipt Update Request Submitted Successfully."
         });
-
     } catch (err) {
-
         console.log(err);
-
         return res.json({
             status: false,
             message: "Something went wrong."
         });
-
     }
-
 };

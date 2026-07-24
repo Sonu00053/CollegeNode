@@ -1,0 +1,323 @@
+<div class="content">
+
+    <style>
+        .profile-card {
+            border: 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .08);
+            margin-bottom: 20px;
+        }
+
+        .profile-header {
+            background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+            color: #fff;
+            border-radius: 10px;
+            padding: 25px;
+        }
+
+        .profile-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 5px solid #fff;
+            object-fit: cover;
+            background: #fff;
+        }
+
+        .profile-name {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .profile-info {
+            margin-top: 10px;
+        }
+
+        .profile-info span {
+            display: inline-block;
+            margin-right: 20px;
+            font-size: 15px;
+        }
+
+        .card-header {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .detail-box {
+            margin-bottom: 20px;
+        }
+
+        .detail-box label {
+            color: #6c757d;
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+
+        .detail-box p {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 0;
+            color: #212529;
+        }
+
+        .fee-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            transition: .3s;
+        }
+
+        .fee-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, .15);
+        }
+
+        .fee-card h3 {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+
+    <div class="card profile-card">
+
+        <div class="card-header bg-dark text-white">
+            <i class="fa fa-user-graduate"></i>
+            Student Profile
+        </div>
+
+        <div class="card-body">
+
+            <!-- Profile Header -->
+
+            <div class="profile-header mb-4">
+
+                <div class="row align-items-center">
+
+                    <div class="col-md-2 text-center">
+
+                        <img src="https://randomuser.me/api/portraits/women/44.jpg" class="profile-img"
+                            alt="Student Profile">
+
+                    </div>
+
+                    <div class="col-md-7">
+
+                        <div class="profile-name">
+                            {{user.first_name}} {{user.last_name}}
+                        </div>
+
+                        <div class="profile-info">
+
+                            <span>
+                                <strong>Roll No :</strong> {{user.roll_no}}
+                            </span>
+
+                            <span>
+                                <strong>Student Id :</strong> {{user.student_id}}
+                            </span>
+
+                            <span>
+                                <strong>Course :</strong> {{course.course_name}}
+                            </span>
+
+                            <span>
+                                <strong>Session :</strong> {{start}}-{{end}}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+
+                </div>
+
+            </div>
+
+            <!-- Personal Information -->
+
+            <div class="card profile-card">
+
+                <div class="card-header bg-primary text-white">
+                    Personal Information
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <div class="col-lg-4 col-md-6 detail-box">
+                            <label>Student Name</label>
+                            <p>{{user.first_name}} {{user.last_name}}</p>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6 detail-box">
+                            <label>Father Name</label>
+                            <p>{{user.father_name}}</p>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6 detail-box">
+                            <label>Mother Name</label>
+                            <p>{{user.mother_name}}</p>
+                        </div>
+
+                       
+
+                        <div class="col-lg-4 col-md-6 detail-box">
+                            <label>Date of Birth</label>
+                            <p>{{dob}}</p>
+                        </div>
+                        <div class="col-lg-4 col-md-6 detail-box">
+                            <label>Mobile</label>
+                            <p>{{user.mobile}}</p>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6 detail-box">
+                            <label>Email</label>
+                            <p>{{user.email}}</p>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6 detail-box">
+                            <label>Aadhar No</label>
+                            <p>{{user.aadhar_no}}</p>
+                        </div>
+                        <div class="col-lg-4 col-md-6 detail-box">
+                            <label>State</label>
+                            <p>{{user.state}}</p>
+                        </div>
+                        <div class="col-lg-4 col-md-6 detail-box">
+                            <label>City</label>
+                            <p>{{user.city}}</p>
+                        </div>
+
+                        <div class="col-12 detail-box">
+                            <label>Address</label>
+                            <p>
+                               {{user.address}}
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Academic Information -->
+
+            <div class="card profile-card">
+
+                <div class="card-header bg-success text-white">
+                    Academic Information
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <div class="col-lg-3 col-md-6 detail-box">
+                            <label>Course</label>
+                            <p>{{course.course_name}}</p>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 detail-box">
+                            <label>Year</label>
+                            <p>{{courseYear}}</p>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 detail-box">
+                            <label>Session</label>
+                            <p>{{start}}-{{end}}</p>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 detail-box">
+                            <label>Roll No</label>
+                            <p>{{user.roll_no}}</p>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 detail-box">
+                            <label>Student Id </label>
+                            <p>{{user.student_id}}</p>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 detail-box">
+                            <label>Admission Date</label>
+                            <p>{{admissionDate}}</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Fee Details -->
+
+            <div class="card profile-card">
+
+                <div class="card-header bg-warning">
+                    Fee Details
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <div class="col-md-4 mb-3">
+
+                            <div class="fee-card">
+
+                                <h6>Total Fees</h6>
+
+                                <h3 class="text-primary">
+                                    {{CONSTANTS.currency}}{{user.total_fees}}
+                                </h3>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+
+                            <div class="fee-card">
+
+                                <h6>Paid Fees</h6>
+
+                                <h3 class="text-success">
+                                    {{CONSTANTS.currency}}{{user.pending_fees}}
+                                </h3>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+
+                            <div class="fee-card">
+
+                                <h6>Pending Fees</h6>
+
+                                <h3 class="text-danger">
+                                    {{CONSTANTS.currency}}{{PendiFees}}
+                                </h3>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Guardian Details -->
+
+
+
+        </div>
+
+    </div>
+
+</div>

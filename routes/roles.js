@@ -70,6 +70,9 @@ router.route('/update-reciept-heads')
     .post(Course.recieptheadupdate);
 router.post('/student-fees', jwtAuth.verifyToken, Manage.studentFees);
 
+router.get('/profile/:student_id', jwtAuth.verifyToken,Manage.profile);
+
+
 //  ===========================      Reports.    ===================================
 
 router.get('/class-wise-history', jwtAuth.verifyToken,Reports.ClassWiseSubjectReport);

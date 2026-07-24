@@ -131,12 +131,15 @@ exports.perclasssubject = async (req, res) => {
             }
 
         }
+        // <td>${new Date(u.admission_date).toISOString().split('T')[0]}</td>
+
+
         const headsView = '<a href="' + CONSTANTS.role + 'heads-detail/' + u.student_id + '" class="btn btn-sm btn-dark">View</a>';
         tableRows += `
         <tr>
             <td>${index + 1}</td>
             <td>${u.roll_no}</td>
-            <td>${new Date(u.created_at).toISOString().split('T')[0]}</td>
+            <td>${new Date(u.created_at).toLocaleDateString('en-CA')}</td>
             <td>${u.first_name} ${u.last_name}</td>
             <td>${u.mobile} <br> ${u.father_mobile}</td>
         <td>
@@ -365,7 +368,7 @@ exports.reciptBetweenHistory = async (req, res) => {
                 <tr>
                     <td>${index++}</td>
                     <td>${newdate}</td>
-                    <td>${Number(receipt.total_records)+Number(balance.total_records)}</td>
+                    <td>${Number(receipt.total_records) + Number(balance.total_records)}</td>
                     <td>${CONSTANTS.currency}${amountTotal}</td>
                     <td>${CONSTANTS.currency}${cashTotal}</td>
                     <td>${CONSTANTS.currency}${onlineTotal}</td>
@@ -374,13 +377,13 @@ exports.reciptBetweenHistory = async (req, res) => {
         }
     }
 
-    return View.Rview(res,'datereport',{
+    return View.Rview(res, 'datereport', {
 
-        title:'Receipt History Between Dates',
+        title: 'Receipt History Between Dates',
 
         from_date,
         to_date,
-        url:CONSTANTS.role + "receipt-between-history/",
+        url: CONSTANTS.role + "receipt-between-history/",
 
         totalCash,
         totalOnline,
