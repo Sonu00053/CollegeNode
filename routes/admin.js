@@ -3,6 +3,7 @@ const router = express.Router();
 const Login = require('../controllers/Admin/Login');
 const Manage = require('../controllers/Admin/Manage');
 const Permission = require('../controllers/Admin/Permission');
+const Reports = require('../controllers/Admin/Reports');
 const jwtAuth = require('../helpers/Auth');
 
 
@@ -25,6 +26,14 @@ router.get('/all-staff', jwtAuth.verifyToken, Manage.StaffHistory);
 router.get('/admission-reciept-request', jwtAuth.verifyToken, Manage.admissionrecieptrequest);
 
 router.post('/admission-receipt-request-action', jwtAuth.verifyToken,Manage.admissionReceiptRequestAction);
+
+
+router.get('/receipt-between-history',jwtAuth.verifyToken,Reports.reciptBetweenHistory);
+
+router.get('/class-wise-history', jwtAuth.verifyToken,Reports.ClassWiseSubjectReport);
+
+router.get('/per-class-subject-history/:course_id/:year', jwtAuth.verifyToken,Reports.perclasssubject);
+
 
 
 

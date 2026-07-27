@@ -349,7 +349,7 @@ exports.register = async (req, res) => {
         const {
             first_name,
             last_name,
-            // roll_no,
+            admission_date,
             dob,
             father_name,
             father_mobile,
@@ -381,7 +381,7 @@ exports.register = async (req, res) => {
             !first_name ||
 
             !dob ||
-            // !roll_no ||
+            !admission_date ||
             !father_name ||
             !father_mobile ||
             !mother_name ||
@@ -595,13 +595,13 @@ exports.register = async (req, res) => {
                     if (Number(subject.practical_status) == 1) {
                         const addedfees = await UserModel.getSingleRecord(
                             'roll_no',
-                            { course_id: course,year:semester },
+                            { course_id: course, year: semester },
                             'fine_arts,music_vocal,music_instrumnet,computer_science,english_honour,home_science,practical'
                         );
 
                         if (subject.practical_key == "practical") {
                             var physical = Number(addedfees.practical);
-                             practical = 1;
+                            practical = 1;
                             totalFees = (totalFees + Number(addedfees.fine_arts));
                             totalPracticalFee = (totalPracticalFee + Number(addedfees.fine_arts));
                         }
@@ -689,6 +689,7 @@ exports.register = async (req, res) => {
             parking_fees: parkingfees,
             start: year,
             end: (year + 1),
+            admission_date
 
         };
         const insertDatasession = {
@@ -720,11 +721,24 @@ exports.register = async (req, res) => {
         //     message: 'Student Registered Successfully',
         //     student_id
         // });
-        return res.status(200).json({
-            status: true,
-            message: 'Student Registered Successfully',
-            redirect: CONSTANTS.role + 'create-reciept?student_id=' + student_id
+        req.session.admission_date = admission_date;
+
+        req.session.save((err) => {
+            if (err) {
+                return res.status(500).json({
+                    status: false,
+                    message: "Session save failed"
+                });
+            }
+
+
+            return res.json({
+                status: true,
+                message: "Student Registered Successfully",
+                redirect: CONSTANTS.role + "create-reciept?student_id=" + student_id
+            });
         });
+
     } catch (error) {
         console.log(error);
         return res.status(500).json({
@@ -732,6 +746,13 @@ exports.register = async (req, res) => {
             message: 'Internal Server Error'
         });
     }
+};
+
+exports.getAdmissionDate = (req, res) => {
+    res.json({
+        status: true,
+        admission_date: req.session.admission_date || ''
+    });
 };
 
 exports.rollNoGenerate = async (course_id, year) => {

@@ -86,48 +86,36 @@
 
 <body>
 
-    <!-- Header -->
     <nav class="navbar navbar-dark bg-dark px-3 position-fixed w-100 z-1">
-
-        <!-- Toggle Button -->
         <button class="btn btn-outline-light me-3" id="menuBtn">
             <i class="bi bi-list fs-4"></i>
         </button>
-
         <span class="navbar-brand fw-bold">
             Admin Panel
         </span>
-
     </nav>
     <div class="sidebar" id="sidebar">
-
         <a href="/admin/index">
             <i class="bi bi-speedometer2"></i> Dashboard
         </a>
-
         <a data-bs-toggle="collapse" href="#usersMenu">
             <i class="bi bi-people"></i> Users
         </a>
-
         <div class="collapse submenu" id="usersMenu">
             <a href="/admin/register">Staff Register</a>
             <a href="/admin/all-staff">All Staff</a>
             <a href="/admin/report/">All Students</a>
+             <a href="/admin/class-wise-history">
+                Admission Summary Classwise
+            </a>
         </div>
-         <a data-bs-toggle="collapse" href="#courseMenu">
-            <i class="bi bi-book"></i> Course
+         <a data-bs-toggle="collapse" href="#reciept">
+            <i class="bi bi-receipt-cutoff"></i> Reciepts
         </a>
-
-        <div class="collapse submenu" id="courseMenu">
-            <a href="/admin/add">Add New Course</a>
-        </div>
-        <a data-bs-toggle="collapse" href="#settingsMenu">
-            <i class="bi bi-gear"></i> Settings
-        </a>
-
-        <div class="collapse submenu" id="settingsMenu">
-            <a href="#">Profile</a>
-            <a href="#">Change Password</a>
+        <div class="collapse submenu" id="reciept">
+            <a href="/admin/receipt-between-history">
+                Reciept History Between Dates 
+            </a>
         </div>
         <a href="/admin/logout">
             <i class="bi bi-box-arrow-right"></i> Logout

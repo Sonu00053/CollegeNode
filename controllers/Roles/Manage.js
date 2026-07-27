@@ -217,6 +217,7 @@ exports.reciptcreate = async (req, res) => {
                                 transaction_id,
                                 course_id: students.course,
                                 year: students.course_year,
+                                admission_date:students.admission_date,
                                 staff_id,
                                 start,
                                 end
@@ -622,6 +623,9 @@ exports.reciept = async (req, res) => {
         </div>
     `;
     }
+
+    const receipt_date = new Date(receipt.admission_date)
+  .toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
     return View.Rview(res, 'admission', {
         receipt,
         user,
@@ -635,7 +639,7 @@ exports.reciept = async (req, res) => {
         dueamount,
         // PendingFess,
         amountInWords,
-        receipt_date: SuperHelper.formatDate(receipt.created_at),
+        receipt_date: receipt_date,
         appId: String(SuperHelper.formatDate(receipt.created_at)),
         name: user.first_name + ' ' + user.last_name
 
@@ -862,6 +866,7 @@ exports.balancereciptcreate = async (req, res) => {
                                 payment_mode,
                                 transaction_id,
                                 staff_id,
+                                admission_date:students.admission_date,
                                 start,
                                 end
                             });
@@ -1345,7 +1350,11 @@ exports.balacegroupbyrecipthistory = async (req, res) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
-        const newdate = `${year}-${month}-${day}`;
+        // const newdate = `${year}-${month}-${day}`;
+        const newdate = SuperHelper.OnlyDate(row.group_date);
+        
+        
+        
         const cashsum = await UserModel.getSingleRecorddate(
             'balance_receipt_details',
             {
@@ -1527,10 +1536,9 @@ exports.reciptBothhistory = async (req, res) => {
         currentDate >= startDate;
         currentDate.setDate(currentDate.getDate() - 1)
     ) {
-        const year = currentDate.getFullYear();
-        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-        const day = String(currentDate.getDate()).padStart(2, '0');
-        const newdate = `${year}-${month}-${day}`;
+       
+        const newdate = SuperHelper.OnlyDate(currentDate);
+        
         const receipt = await UserModel.getSingleRecorddate(
             'receipt_details',
             { created_at: newdate },
@@ -1626,7 +1634,12 @@ exports.profile = async (req, res) => {
             },
             '*'
         );
-        const admissionDate = new Date(user.created_at).toISOString().split('T')[0];
+        const date = new Date(user.admission_date);
+        // const year = date.getFullYear();
+        // const month = String(date.getMonth() + 1).padStart(2, '0');
+        // const day = String(date.getDate()).padStart(2, '0');
+        const newdate = SuperHelper.OnlyDate(user.admission_date);
+        const admissionDate = newdate;
         // const admissionDate = new Date(user.admission_date).toLocaleDateString('en-GB')
         const PendiFees = (Number(user.total_fees) - Number(user.pending_fees));
         const yearMap = {

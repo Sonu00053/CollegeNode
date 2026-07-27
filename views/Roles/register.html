@@ -50,7 +50,10 @@
                             class="form-control" maxlength="10"><small class="error"></small></div>
                     <div class="col-md-6"><label>Email </label><input id="email" name="email"
                             class="form-control"><small class="error"></small></div>
+                            <div class="col-md-6"><label>Addmission Date *</label><input type="date" name="admission_date"
+                            id="admission_date" class="form-control"><small class="error"></small></div>
                     <div class="col-md-6">
+                        
                         <label>Student ID *</label>
                         <input type="text" name="student_id" id="student_id" class="form-control">
                         <small class="error"></small>
@@ -474,6 +477,16 @@
         `;
     });
 
+    window.addEventListener("DOMContentLoaded", async () => {
+    const res = await fetch("{{CONSTANTS.role}}admission-date", {
+        credentials: "include"
+    });
+    const data = await res.json();
+    if (data.status && data.admission_date) {
+        document.getElementById("admission_date").value = data.admission_date;
+    }
+});
+
 
 
 
@@ -529,6 +542,7 @@
         [
             'first_name',
             'dob',
+            'admission_date',
             'father_name',
             'father_mobile',
             'mother_name',

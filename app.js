@@ -18,10 +18,19 @@ const app = express();
 // ============================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// app.use(session({
+//     secret: "college-secret",
+//     resave: false,
+//     saveUninitialized: true
+// }));
+
 app.use(session({
     secret: "college-secret",
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    cookie: {
+        maxAge: 24 * 60 * 60 * 1000 // 1 day
+    }
 }));
 
 // ============================

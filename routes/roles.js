@@ -28,6 +28,9 @@ router.get('/subjects/:course_id', Login.getSubjectsByCourse);
 router.get('/subjects-group/:course_id', Login.getSubjectsByCourseGroup);
 router.get('/subjects-group-course/:courseId/:year', Login.getSubjectsGroup);
 
+router.get('/admission-date', Login.getAdmissionDate);
+
+
 
 router.get('/recieps-detail', jwtAuth.verifyToken, Manage.recieptHistory);
 router.get('/reciept/:id', jwtAuth.verifyToken, Manage.reciept);

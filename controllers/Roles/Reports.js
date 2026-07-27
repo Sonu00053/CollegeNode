@@ -135,11 +135,17 @@ exports.perclasssubject = async (req, res) => {
 
 
         const headsView = '<a href="' + CONSTANTS.role + 'heads-detail/' + u.student_id + '" class="btn btn-sm btn-dark">View</a>';
+        const date = new Date(u.admission_date);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const newdate = `${year}-${month}-${day}`;
         tableRows += `
+        
         <tr>
             <td>${index + 1}</td>
             <td>${u.roll_no}</td>
-            <td>${new Date(u.created_at).toLocaleDateString('en-CA')}</td>
+            <td>${newdate}</td>
             <td>${u.first_name} ${u.last_name}</td>
             <td>${u.mobile} <br> ${u.father_mobile}</td>
         <td>

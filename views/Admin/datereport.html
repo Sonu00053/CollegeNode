@@ -1,0 +1,149 @@
+<div class="content">
+
+    <div class="card shadow-sm mt-4">
+
+        <!-- <div class="card-header bg-dark text-white">
+            {{title}}
+        </div> -->
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">{{title}}</h4>
+            <a href="{{url}}" class="btn btn-warning btn-sm">
+                Reset
+            </a>
+        </div>
+
+        <div class="card-body">
+
+            <!-- Search Form -->
+            <form method="GET">
+
+                <div class="row">
+
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            From Date
+                        </label>
+
+                        <input
+                            type="date"
+                            class="form-control"
+                            name="from_date"
+                            value="{{from_date}}">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            To Date
+                        </label>
+
+                        <input
+                            type="date"
+                            class="form-control"
+                            name="to_date"
+                            value="{{to_date}}">
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <label class="form-label">&nbsp;</label>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary w-100">
+
+                            <i class="fa fa-search"></i>
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+            <hr>
+
+            <!-- Summary -->
+
+            <div class="row">
+
+                <div class="col-md-4">
+
+                    <div class="alert alert-success">
+
+                        <h5 class="mb-1">
+                            Cash Total
+                        </h5>
+
+                        <h4>
+                            {{CONSTANTS.currency}}{{totalCash}}
+                        </h4>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <div class="alert alert-info">
+
+                        <h5 class="mb-1">
+                            Online Total
+                        </h5>
+
+                        <h4>
+                            {{CONSTANTS.currency}}{{totalOnline}}
+                        </h4>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <div class="alert alert-danger">
+
+                        <h5 class="mb-1">
+                            Grand Total
+                        </h5>
+
+                        <h4>
+                            {{CONSTANTS.currency}}{{grandTotal}}
+                        </h4>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Report Table -->
+
+            <div class="table-responsive mt-3">
+
+                <table
+                    class="table table-bordered table-striped"
+                    id="example">
+
+                    <thead class="table-dark">
+
+                        {{thead}}
+
+                    </thead>
+
+                    <tbody>
+
+                        {{tableRows}}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
