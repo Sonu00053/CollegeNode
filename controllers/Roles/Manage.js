@@ -14,6 +14,7 @@ exports.dashboard = async (req, res) => {
             {},
             'count(id) as total'
         );
+        
         return View.Rview(res, 'dashboard', {
             user: user,
             students: students.total,
@@ -1141,7 +1142,7 @@ exports.groupbyrecipthistory = async (req, res) => {
 
     const result = await UserModel.getGroupByDate(
         'receipt_details',
-        'created_at',
+        'admission_date',
         'amount'
     );
     console.log(result);
@@ -1168,7 +1169,7 @@ exports.groupbyrecipthistory = async (req, res) => {
         const cashsum = await UserModel.getSingleRecorddate(
             'receipt_details',
             {
-                created_at: newdate,
+                admission_date: newdate,
                 payment_mode: 'Cash'
             },
             'IFNULL(SUM(amount),0) AS total'
@@ -1176,7 +1177,7 @@ exports.groupbyrecipthistory = async (req, res) => {
         const online = await UserModel.getSingleRecorddate(
             'receipt_details',
             {
-                created_at: newdate,
+                admission_date: newdate,
                 payment_mode: {
                     operator: '!=',
                     value: 'Cash'
@@ -1541,14 +1542,14 @@ exports.reciptBothhistory = async (req, res) => {
         
         const receipt = await UserModel.getSingleRecorddate(
             'receipt_details',
-            { created_at: newdate },
+            { admission_date: newdate },
             'COUNT(*) AS total_records, IFNULL(SUM(amount),0) AS total_amount'
         );
 
         const cashsum = await UserModel.getSingleRecorddate(
             'receipt_details',
             {
-                created_at: newdate,
+                admission_date: newdate,
                 payment_mode: 'Cash'
             },
             'IFNULL(SUM(amount),0) AS total'
@@ -1557,7 +1558,7 @@ exports.reciptBothhistory = async (req, res) => {
         const online = await UserModel.getSingleRecorddate(
             'receipt_details',
             {
-                created_at: newdate,
+                admission_date: newdate,
                 payment_mode: {
                     operator: '!=',
                     value: 'Cash'

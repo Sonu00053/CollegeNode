@@ -21,6 +21,8 @@ router.get('/index', jwtAuth.verifyToken, Manage.dashboard);
 router.get('/report', jwtAuth.verifyToken, Manage.users);
 router.post('/report', jwtAuth.verifyToken, Manage.users);
 router.post('/student-status',jwtAuth.verifyToken, Manage.updateStudentStatus);
+router.get('/profile/:student_id', jwtAuth.verifyToken,Manage.profile);
+
 
 router.get('/all-staff', jwtAuth.verifyToken, Manage.StaffHistory);
 router.get('/admission-reciept-request', jwtAuth.verifyToken, Manage.admissionrecieptrequest);

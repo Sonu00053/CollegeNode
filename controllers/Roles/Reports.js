@@ -301,14 +301,14 @@ exports.reciptBetweenHistory = async (req, res) => {
             // Receipt Table
             const receipt = await UserModel.getSingleRecorddate(
                 'receipt_details',
-                { created_at: newdate },
+                { admission_date: newdate },
                 'COUNT(*) total_records, IFNULL(SUM(amount),0) total_amount'
             );
 
             const cash = await UserModel.getSingleRecorddate(
                 'receipt_details',
                 {
-                    created_at: newdate,
+                    admission_date: newdate,
                     payment_mode: 'Cash'
                 },
                 'IFNULL(SUM(amount),0) total'
@@ -317,7 +317,7 @@ exports.reciptBetweenHistory = async (req, res) => {
             const online = await UserModel.getSingleRecorddate(
                 'receipt_details',
                 {
-                    created_at: newdate,
+                    admission_date: newdate,
                     payment_mode: {
                         operator: '!=',
                         value: 'Cash'

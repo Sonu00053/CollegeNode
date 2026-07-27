@@ -24,11 +24,6 @@ class SuperHelper {
         return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     }
 
-    // ======================
-    // DYNAMIC EXCEL EXPORT
-    // ======================
-    
-
     static notFoundPage() {
         return `
             <!DOCTYPE html>
@@ -149,7 +144,7 @@ class SuperHelper {
                     `;
     }
 
-    static send404(res) {
+    static c(res) {
         return res.status(404).send(this.notFoundPage());
     }
 
