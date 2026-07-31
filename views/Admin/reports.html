@@ -160,5 +160,32 @@
         });
     });
 
+    $('#example tbody').on('click', '.SubjecttAction', function () {
+        let id = $(this).data('id');
+
+        $.ajax({
+            url: "/admin/approve-subjects",
+            type: "POST",
+            data: {
+                id: id,
+            },
+            success: function (res) {
+                if (res.status) {
+                    $("#row_" + id).remove();
+                    toastr.success(
+                        res.message
+                    );
+                    setTimeout(function () {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    toastr.success(
+                        res.message
+                    );
+                }
+            }
+        });
+    });
+
 
 </script>

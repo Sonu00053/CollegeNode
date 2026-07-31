@@ -82,14 +82,19 @@ router.get('/class-wise-history', jwtAuth.verifyToken,Reports.ClassWiseSubjectRe
 
 router.get('/per-class-subject-history/:course_id/:year', jwtAuth.verifyToken,Reports.perclasssubject);
 
-// router
-//     .route("/update-adm-reciept/:id")
-//     .get(jwtAuth.verifyToken,Settings.updateamdrecipt)
-//     .post(jwtAuth.verifyToken,Settings.updateamdrecipt);
+router
+    .route("/update-profile/:student_id")
+    .get(jwtAuth.verifyToken,Settings.updatestidentProfile)
+    .post(jwtAuth.verifyToken,Settings.updatestidentProfile);
     router.post('/update-adm-reciept',jwtAuth.verifyToken, Settings.updateamdrecipt);
 
 router.get('/runSet',Reports.updateFees);
 router.get('/receipt-between-history',jwtAuth.verifyToken,Reports.reciptBetweenHistory);
+
+router
+    .route("/update-subjects/:student_id")
+    .get(jwtAuth.verifyToken,Settings.updateClassandsubjects)
+    .post(jwtAuth.verifyToken,Settings.updateClassandsubjects);
 
 
 

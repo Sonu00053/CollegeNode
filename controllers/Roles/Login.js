@@ -193,60 +193,6 @@ exports.getSubjectsByCourse = async (req, res) => {
     }
 };
 
-// exports.getSubjectsByCourseGroup = async (req, res) => {
-//     try {
-
-//         const { course_id, year } = req.params;
-
-//         const subjects = await UserModel.getRecords(
-//             'subjects',
-//             {
-//                 course_id,
-//                 year,
-//                 status: 1
-//             },
-//             '*'
-//         );
-
-//         const course = await UserModel.getSingleRecord(
-//             'courses',
-//             { id: course_id },
-//             '*'
-//         );
-
-//         // Group subjects by category
-//         const groupedSubjects = subjects.reduce((acc, subject) => {
-
-//             const category = subject.category || 'Uncategorized';
-
-//             if (!acc[category]) {
-//                 acc[category] = [];
-//             }
-
-//             acc[category].push(subject);
-
-//             return acc;
-
-//         }, {});
-
-//         return res.json({
-//             status: true,
-//             subjects: groupedSubjects,
-//             duration: course?.duration || 0
-//         });
-
-//     } catch (err) {
-
-//         console.error(err);
-
-//         return res.json({
-//             status: false,
-//             message: err.message
-//         });
-//     }
-// };
-
-
 exports.getSubjectsByCourseGroup = async (req, res) => {
     try {
         const { course_id } = req.params;

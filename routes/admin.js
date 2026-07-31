@@ -28,11 +28,13 @@ router.get('/all-staff', jwtAuth.verifyToken, Manage.StaffHistory);
 router.get('/admission-reciept-request', jwtAuth.verifyToken, Manage.admissionrecieptrequest);
 
 router.post('/admission-receipt-request-action', jwtAuth.verifyToken,Manage.admissionReceiptRequestAction);
+router.post('/approve-subjects', jwtAuth.verifyToken,Reports.approvesubjects);
 
 
 router.get('/receipt-between-history',jwtAuth.verifyToken,Reports.reciptBetweenHistory);
 
 router.get('/class-wise-history', jwtAuth.verifyToken,Reports.ClassWiseSubjectReport);
+router.get('/subject-change-request-history', jwtAuth.verifyToken,Reports.subjectchangerequest);
 
 router.get('/per-class-subject-history/:course_id/:year', jwtAuth.verifyToken,Reports.perclasssubject);
 
@@ -46,5 +48,10 @@ router.route('/add')
     router.route('/subAdmin')
     .get(jwtAuth.verifyToken,Permission.addSubadmin)
     .post(jwtAuth.verifyToken,Permission.addSubadmin);
+
+    router
+    .route("/update-profile/:student_id")
+    .get(jwtAuth.verifyToken,Manage.updatestidentProfile)
+    .post(jwtAuth.verifyToken,Manage.updatestidentProfile);
 
 module.exports = router;
