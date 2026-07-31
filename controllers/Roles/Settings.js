@@ -530,138 +530,158 @@ exports.updateClassandsubjects = async (req, res) => {
             var physical = 0;
             let totalPracticalFee = 0;
             let totalFees = 0;
+            const checkcoursestudent = await UserModel.getSingleRecord(
+                'courses',
+                { id: Number(studentDetail.course) },
+                '*'
+            );
+            const checkrequest = await UserModel.getSingleRecord(
+                'subject_update_detail',
+                { student_id: studentDetail.student_id, status: 0 },
+                '*'
+            );
+            if (!checkrequest) {
+                if (Number(studentDetail.course) == 1) {
+                    const coursechek = await UserModel.getSingleRecord(
+                        'roll_no',
+                        { course_id: Number(studentDetail.course), year: Number(studentDetail.course_year) },
+                        '*'
+                    );
+                    let parkingfees = Number(studentDetail.parking_fees);
+                    let security = Number(studentDetail.security);
+                    totalFees = (Number(coursechek.admission) + Number(coursechek.tution) + Number(coursechek.af_charges) + Number(coursechek.anual) + Number(coursechek.pu_charges) + Number(coursechek.cdf_dilp) + Number(coursechek.uni_examination) + Number(parkingfees) + security);
+
+                    let existingSubjects = [];
+                    try {
+                        existingSubjects = studentDetail.subject_ids
+                            ? JSON.parse(studentDetail.subject_ids)
+                            : [];
+                    } catch (e) {
+                        existingSubjects = [];
+                    }
+                    const oldIds = existingSubjects.map(String).sort();
+                    const newIds = subjectsArray.map(String).sort();
+                    if (newIds.length === 0) {
+                        return res.status(400).json({
+                            status: false,
+                            message: 'Please Select Subjects'
+                        });
+                    }
+                    const isSame =
+                        oldIds.length === newIds.length &&
+                        oldIds.every((id, index) => id === newIds[index]);
+
+                    if (isSame) {
+                        return res.status(400).json({
+                            status: false,
+                            message: 'Existing subjects and new subjects are the same. Please change at least one subject.'
+                        });
+                    }
+                    if (subjectsArray) {
+                        const ids = subjectsArray;
+
+                        for (const id of ids) {
+                            const subject = await UserModel.getSingleRecord(
+                                'subjects',
+                                { id },
+                                'subject_name,practical_status,practical_key'
+                            );
+                            if (subject) {
+                                subjects += subject.subject_name + ', ';
+                                if (Number(subject.practical_status) == 1) {
+                                    const addedfees = await UserModel.getSingleRecord(
+                                        'roll_no',
+                                        { course_id: Number(studentDetail.course), year: Number(studentDetail.course_year) },
+                                        'fine_arts,music_vocal,music_instrumnet,computer_science,english_honour,home_science,practical'
+                                    );
+
+                                    if (subject.practical_key == "practical") {
+                                        var physical = Number(addedfees.practical);
+                                        practical = 1;
+                                        totalFees = (totalFees + Number(addedfees.fine_arts));
+                                        totalPracticalFee = (totalPracticalFee + Number(addedfees.fine_arts));
+                                    }
 
 
-            if (Number(studentDetail.course) == 1) {
-                const coursechek = await UserModel.getSingleRecord(
-                    'roll_no',
-                    { course_id: Number(studentDetail.course), year: Number(studentDetail.course_year) },
-                    '*'
-                );
-                let parkingfees = Number(studentDetail.parking_fees);
-                let security = Number(studentDetail.security);
-                totalFees = (Number(coursechek.admission) + Number(coursechek.tution) + Number(coursechek.af_charges) + Number(coursechek.anual) + Number(coursechek.pu_charges) + Number(coursechek.cdf_dilp) + Number(coursechek.uni_examination) + Number(parkingfees) + security);
+                                    if (subject.practical_key == "fine_arts") {
+                                        var fine_arts_status = Number(addedfees.fine_arts);
+                                        totalFees = (totalFees + Number(addedfees.fine_arts));
+                                        totalPracticalFee = (totalPracticalFee + Number(addedfees.fine_arts));
+                                    }
 
-                let existingSubjects = [];
-                try {
-                    existingSubjects = studentDetail.subject_ids
-                        ? JSON.parse(studentDetail.subject_ids)
-                        : [];
-                } catch (e) {
-                    existingSubjects = [];
-                }
-                const oldIds = existingSubjects.map(String).sort();
-                const newIds = subjectsArray.map(String).sort();
-                if (newIds.length === 0) {
-                    return res.status(400).json({
-                        status: false,
-                        message: 'Please Select Subjects'
-                    });
-                }
-                const isSame =
-                    oldIds.length === newIds.length &&
-                    oldIds.every((id, index) => id === newIds[index]);
+                                    if (subject.practical_key == "music_vocal") {
+                                        var music_vocal_status = Number(addedfees.music_vocal);
+                                        totalFees = (totalFees + Number(addedfees.music_vocal));
+                                        totalPracticalFee = (totalPracticalFee + Number(addedfees.music_vocal));
 
-                if (isSame) {
-                    return res.status(400).json({
-                        status: false,
-                        message: 'Existing subjects and new subjects are the same. Please change at least one subject.'
-                    });
-                }
-                if (subjectsArray) {
-                    const ids = subjectsArray;
+                                    }
+                                    if (subject.practical_key == "music_instrumnet") {
+                                        var music_instrumnet_status = Number(addedfees.music_instrumnet);
+                                        totalFees = (totalFees + Number(addedfees.music_instrumnet));
+                                        totalPracticalFee = (totalPracticalFee + Number(addedfees.music_instrumnet));
 
-                    for (const id of ids) {
-                        const subject = await UserModel.getSingleRecord(
-                            'subjects',
-                            { id },
-                            'subject_name,practical_status,practical_key'
-                        );
-                        if (subject) {
-                            subjects += subject.subject_name + ', ';
-                            if (Number(subject.practical_status) == 1) {
-                                const addedfees = await UserModel.getSingleRecord(
-                                    'roll_no',
-                                    { course_id: Number(studentDetail.course), year: Number(studentDetail.course_year) },
-                                    'fine_arts,music_vocal,music_instrumnet,computer_science,english_honour,home_science,practical'
-                                );
+                                    }
+                                    if (subject.practical_key == "computer_science") {
+                                        var computer_science_status = Number(addedfees.computer_science);
+                                        totalFees = (totalFees + Number(addedfees.computer_science));
+                                        totalPracticalFee = (totalPracticalFee + Number(addedfees.computer_science));
 
-                                if (subject.practical_key == "practical") {
-                                    var physical = Number(addedfees.practical);
-                                    practical = 1;
-                                    totalFees = (totalFees + Number(addedfees.fine_arts));
-                                    totalPracticalFee = (totalPracticalFee + Number(addedfees.fine_arts));
-                                }
+                                    }
+                                    if (subject.practical_key == "english_honour") {
+                                        var english_honour_status = Number(addedfees.english_honour);
+                                        totalFees = (totalFees + Number(addedfees.english_honour));
+                                        totalPracticalFee = (totalPracticalFee + Number(addedfees.english_honour));
 
+                                    }
+                                    if (subject.practical_key == "home_science") {
+                                        var home_science_status = Number(addedfees.home_science);
+                                        totalFees = (totalFees + Number(addedfees.home_science));
+                                        totalPracticalFee = (totalPracticalFee + Number(addedfees.home_science));
 
-                                if (subject.practical_key == "fine_arts") {
-                                    var fine_arts_status = Number(addedfees.fine_arts);
-                                    totalFees = (totalFees + Number(addedfees.fine_arts));
-                                    totalPracticalFee = (totalPracticalFee + Number(addedfees.fine_arts));
-                                }
-
-                                if (subject.practical_key == "music_vocal") {
-                                    var music_vocal_status = Number(addedfees.music_vocal);
-                                    totalFees = (totalFees + Number(addedfees.music_vocal));
-                                    totalPracticalFee = (totalPracticalFee + Number(addedfees.music_vocal));
-
-                                }
-                                if (subject.practical_key == "music_instrumnet") {
-                                    var music_instrumnet_status = Number(addedfees.music_instrumnet);
-                                    totalFees = (totalFees + Number(addedfees.music_instrumnet));
-                                    totalPracticalFee = (totalPracticalFee + Number(addedfees.music_instrumnet));
-
-                                }
-                                if (subject.practical_key == "computer_science") {
-                                    var computer_science_status = Number(addedfees.computer_science);
-                                    totalFees = (totalFees + Number(addedfees.computer_science));
-                                    totalPracticalFee = (totalPracticalFee + Number(addedfees.computer_science));
-
-                                }
-                                if (subject.practical_key == "english_honour") {
-                                    var english_honour_status = Number(addedfees.english_honour);
-                                    totalFees = (totalFees + Number(addedfees.english_honour));
-                                    totalPracticalFee = (totalPracticalFee + Number(addedfees.english_honour));
-
-                                }
-                                if (subject.practical_key == "home_science") {
-                                    var home_science_status = Number(addedfees.home_science);
-                                    totalFees = (totalFees + Number(addedfees.home_science));
-                                    totalPracticalFee = (totalPracticalFee + Number(addedfees.home_science));
-
+                                    }
                                 }
                             }
                         }
                     }
+                    const request_id = await exports.generateRequestId();
+                    await UserModel.addRecord('subject_update_detail', {
+                        student_id,
+                        request_id,
+                        course: studentDetail.course,
+                        course_year: studentDetail.course_year,
+                        total_fees: studentDetail.total_fees,
+                        subject_ids: studentDetail.subject_ids,
+                        new_subject_ids: JSON.stringify(subjectsArray),
+                        fine_arts: fine_arts_status,
+                        music_vocal: music_vocal_status,
+                        music_instrumnet: music_instrumnet_status,
+                        computer_science: computer_science_status,
+                        english_honour: english_honour_status,
+                        home_science: home_science_status,
+                        total_practical_fees: totalPracticalFee,
+                        physical: physical,
+                        practical_status: practical,
+                        staff_id,
+                        new_total_fees: totalFees
+
+                    });
+                    return res.json({
+                        status: true,
+                        message: "Student Subject Update Request Submit Successfully!"
+                    });
+                } else {
+                    return res.json({
+                        status: false,
+                        message: "Subjects Update Only " + checkcoursestudent.course_name
+                    });
                 }
+            } else {
+                return res.json({
+                    status: false,
+                    message: "This student's request is already pending. Please wait for approval."
+                });
             }
-            const request_id = await exports.generateRequestId();
 
-            await UserModel.addRecord('subject_update_detail', {
-                student_id,
-                request_id,
-                course: studentDetail.course,
-                course_year: studentDetail.course_year,
-                total_fees: studentDetail.total_fees,
-                subject_ids: studentDetail.subject_ids,
-                new_subject_ids: JSON.stringify(subjectsArray),
-                fine_arts: fine_arts_status,
-                music_vocal: music_vocal_status,
-                music_instrumnet: music_instrumnet_status,
-                computer_science: computer_science_status,
-                english_honour: english_honour_status,
-                home_science: home_science_status,
-                total_practical_fees: totalPracticalFee,
-                physical: physical,
-                practical_status: practical,
-                staff_id,
-                new_total_fees: totalFees
-
-            });
-            return res.json({
-                status: true,
-                message: "Student Subject Update Request Submit Successfully!"
-            });
         }
         html = '';
 

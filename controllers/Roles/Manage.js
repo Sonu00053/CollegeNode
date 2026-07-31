@@ -84,23 +84,15 @@ exports.users = async (req, res) => {
             }
 
         }
+        let editSubjects = '';
 
         const profile = `<a href="${CONSTANTS.role}profile/${u.student_id}" class="btn btn-warning btn-sm">View</a>`;
 
         const Editprofile = `<a href="${CONSTANTS.role}update-profile/${u.student_id}" class="btn btn-info btn-sm">Edit</a>`;
-
-        const editSubjects = `
-    <button
-        class="btn btn-success btn-sm edit-subjects"
-        data-student="${u.student_id}"
-        data-course="${u.course}"
-        data-year="${u.course_year}">
-        Subjects
-    </button>
-`;
+        if (Number(u.course) == 1) {
+             editSubjects = `<a href="${CONSTANTS.role}update-subjects/${u.student_id}" class="btn btn-success btn-sm">Edit Subjects</a>`;
+        }
         const admdate = SuperHelper.OnlyDate(u.admission_date);
-
-
         tableRows += `
         <tr>
 

@@ -459,7 +459,6 @@ exports.approvesubjects = async (req, res) => {
     try {
 
         const { id } = req.body;
-        console.log(id);
 
         const student = await UserModel.getSingleRecord(
             'subject_update_detail',
@@ -480,6 +479,12 @@ exports.approvesubjects = async (req, res) => {
             { student_id: student.student_id },
             '*'
         );
+        const CheckDuplicate = await UserModel.getSingleRecord(
+            'subject_old_history',
+            { request_id: student.request_id },
+            '*'
+        );
+        if(!CheckDuplicate){
 
         const OldaDetail = {
             student_id: studentDetail.roll_no,
@@ -539,6 +544,12 @@ exports.approvesubjects = async (req, res) => {
             status: true,
             message: 'Subject Updated successfully.'
         });
+    }else{
+        return res.json({
+            status: false,
+            message: 'This Request Alreay Approved.'
+        });
+    }
 
     } catch (err) {
 

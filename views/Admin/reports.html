@@ -161,31 +161,54 @@
     });
 
     $('#example tbody').on('click', '.SubjecttAction', function () {
-        let id = $(this).data('id');
+    let id = $(this).data('id');
+    let $btn = $(this);
 
-        $.ajax({
-            url: "/admin/approve-subjects",
-            type: "POST",
-            data: {
-                id: id,
-            },
-            success: function (res) {
-                if (res.status) {
-                    $("#row_" + id).remove();
-                    toastr.success(
-                        res.message
-                    );
-                    setTimeout(function () {
-                        location.reload();
-                    }, 1500);
-                } else {
-                    toastr.success(
-                        res.message
-                    );
-                }
+    // Button disable + loading
+    $btn.prop('disabled', true);
+    $btn.html('<span class="spinner-border spinner-border-sm me-1"></span> Approving...');
+
+    $.ajax({
+        url: "/admin/approve-subjects",
+        type: "POST",
+        data: {
+            id: id,
+        },
+        success: function (res) {
+
+            if (res.status) {
+
+                toastr.success(res.message);
+
+                // Button ko Approved bana do
+                $btn
+                    .removeClass('btn-success SubjecttAction')
+                    .addClass('btn-secondary')
+                    .html('<i class="bi bi-check-circle-fill"></i> Approved');
+
+                setTimeout(function () {
+                    location.reload();
+                }, 1000);
+
+            } else {
+
+                toastr.error(res.message);
+
+                // Error aaye to button wapas enable
+                $btn.prop('disabled', false);
+                $btn.html('<i class="bi bi-check-circle"></i> Approve');
             }
-        });
+        },
+        error: function () {
+
+            toastr.error("Something went wrong.");
+
+            // AJAX error par bhi button enable
+            $btn.prop('disabled', false);
+            $btn.html('<i class="bi bi-check-circle"></i> Approve');
+        }
     });
+});
 
 
 </script>
