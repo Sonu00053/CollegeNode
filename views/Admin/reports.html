@@ -56,6 +56,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
 <script>
@@ -161,54 +162,70 @@
     });
 
     $('#example tbody').on('click', '.SubjecttAction', function () {
-    let id = $(this).data('id');
-    let $btn = $(this);
 
-    // Button disable + loading
-    $btn.prop('disabled', true);
-    $btn.html('<span class="spinner-border spinner-border-sm me-1"></span> Approving...');
+        let id = $(this).data('id');
+        let $btn = $(this);
 
-    $.ajax({
-        url: "/admin/approve-subjects",
-        type: "POST",
-        data: {
-            id: id,
-        },
-        success: function (res) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you want to approve this subject?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Approve',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
 
-            if (res.status) {
-
-                toastr.success(res.message);
-
-                // Button ko Approved bana do
-                $btn
-                    .removeClass('btn-success SubjecttAction')
-                    .addClass('btn-secondary')
-                    .html('<i class="bi bi-check-circle-fill"></i> Approved');
-
-                setTimeout(function () {
-                    location.reload();
-                }, 1000);
-
-            } else {
-
-                toastr.error(res.message);
-
-                // Error aaye to button wapas enable
-                $btn.prop('disabled', false);
-                $btn.html('<i class="bi bi-check-circle"></i> Approve');
+            if (!result.isConfirmed) {
+                return;
             }
-        },
-        error: function () {
 
-            toastr.error("Something went wrong.");
+            // Button disable + loading
+            $btn.prop('disabled', true);
+            $btn.html('<span class="spinner-border spinner-border-sm me-1"></span> Approving...');
 
-            // AJAX error par bhi button enable
-            $btn.prop('disabled', false);
-            $btn.html('<i class="bi bi-check-circle"></i> Approve');
-        }
+            $.ajax({
+                url: "/admin/approve-subjects",
+                type: "POST",
+                data: {
+                    id: id,
+                },
+                success: function (res) {
+
+                    if (res.status) {
+
+                        toastr.success(res.message);
+
+                        $btn
+                            .removeClass('btn-success SubjecttAction')
+                            .addClass('btn-secondary')
+                            .html('<i class="bi bi-check-circle-fill"></i> Approved');
+
+                        setTimeout(function () {
+                            location.reload();
+                        }, 1000);
+
+                    } else {
+
+                        toastr.error(res.message);
+
+                        $btn.prop('disabled', false);
+                        $btn.html('<i class="bi bi-check-circle"></i> Approve');
+                    }
+                },
+                error: function () {
+
+                    toastr.error("Something went wrong.");
+
+                    $btn.prop('disabled', false);
+                    $btn.html('<i class="bi bi-check-circle"></i> Approve');
+                }
+            });
+
+        });
+
     });
-});
 
 
 </script>

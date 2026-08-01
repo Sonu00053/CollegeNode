@@ -326,6 +326,7 @@ exports.subjectchangerequest = async (req, res) => {
             <th>New Subject</th>
             <th>Old Total Fees</th>
             <th>New Total Fees</th>
+            <th>Status</th>
             <th>Action</th>
         </tr>
     `;
@@ -398,6 +399,7 @@ exports.subjectchangerequest = async (req, res) => {
         const day = String(date.getDate()).padStart(2, '0');
         const newdate = `${year}-${month}-${day}`;
         let button = '';
+        let status = '';
         if (Number(u.status) == 0) {
             button = `<button
                 type="button"
@@ -405,12 +407,20 @@ exports.subjectchangerequest = async (req, res) => {
                 data-id="${u.id}"
                 <i class="bi bi-check-circle"></i> Approve
             </button>`;
+            status = `
+        <span class="badge bg-warning text-dark">
+            <i class="bi bi-clock-fill"></i> Pending
+        </span>`;
 
         } else {
             button = `
                 <span class="badge bg-success">
                     <i class="bi bi-check-circle-fill"></i> Approved
                 </span>`;
+                status = `
+        <span class="badge bg-success">
+            <i class="bi bi-check-circle-fill"></i> Success
+        </span>`;
         }
         tableRows += `
         
@@ -430,11 +440,8 @@ exports.subjectchangerequest = async (req, res) => {
         </td>
         <td>${CONSTANTS.currency}${u.total_fees}</td>
         <td>${CONSTANTS.currency}${u.new_total_fees}</td>
-        
-        <td>
-               ${button} 
-            
-        </td>
+        <td>${status}</td>
+        <td>${button}</td>
 
         </tr>
         `;
