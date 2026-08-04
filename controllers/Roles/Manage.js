@@ -86,11 +86,11 @@ exports.users = async (req, res) => {
         }
         let editSubjects = '';
 
-        const profile = `<a href="${CONSTANTS.role}profile/${u.student_id}" class="btn btn-warning btn-sm">View</a>`;
+        const profile = `<a href="${CONSTANTS.role}profile/${u.student_id}" class="btn btn-warning btn-sm">View Profile</a>`;
 
         const Editprofile = `<a href="${CONSTANTS.role}update-profile/${u.student_id}" class="btn btn-info btn-sm">Edit</a>`;
         if (Number(u.course) == 1) {
-             editSubjects = `<a href="${CONSTANTS.role}update-subjects/${u.student_id}" class="btn btn-success btn-sm">Edit Subjects</a>`;
+            editSubjects = `<a href="${CONSTANTS.role}update-subjects/${u.student_id}" class="btn btn-success btn-sm">Edit Subjects</a>`;
         }
         const admdate = SuperHelper.OnlyDate(u.admission_date);
         tableRows += `
@@ -1655,6 +1655,8 @@ exports.profile = async (req, res) => {
 
         var start = user.start;
         var end = String(user.end).slice(-2);
+        const balanceHistory = await exports.adminReceiptHistory(user.student_id, 'balance_receipt_details', 'balance-reciept');
+        const admissionHistory = await exports.adminReceiptHistory(user.student_id, 'receipt_details', 'reciept');
         return View.Rview(res, 'profile', {
             header: 'User Dashboard',
             user,
@@ -1663,6 +1665,8 @@ exports.profile = async (req, res) => {
             end, dob,
             courseYear,
             admissionDate,
+            balanceHistory,
+            admissionHistory,
             PendiFees
         });
     } catch (err) {
@@ -1673,4 +1677,41 @@ exports.profile = async (req, res) => {
             message: 'Server Error'
         });
     }
+};
+
+exports.adminReceiptHistory = async (student_id, table, link) => {
+
+    const rows = await UserModel.getRecords(
+        table,
+        { student_id },
+        "*"
+    );
+
+    let tableRows = "";
+
+    for (const [index, u] of rows.entries()) {
+
+        const studentDetail = await UserModel.getSingleRecord(
+            "students",
+            { student_id: u.student_id },
+            "*"
+        );
+
+        tableRows += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${u.receipt_no}</td>
+                <td>${CONSTANTS.currency}${u.amount}</td>
+                <td>${u.payment_mode || ""}</td>
+                <td>${SuperHelper.formatDate(u.created_at)}</td>
+                <td>
+                    <a href="${CONSTANTS.role}${link}/${u.receipt_no}"
+                        class="btn btn-sm btn-primary">
+                        View Receipt
+                    </a>
+                </td>
+            </tr>
+        `;
+    }
+    return tableRows;
 };

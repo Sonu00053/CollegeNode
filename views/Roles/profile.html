@@ -91,8 +91,8 @@
             <div class="profile-header mb-4">
                 <div class="row align-items-center">
                     <div class="col-md-2 text-center">
-                        <img src="https://ui-avatars.com/api/?name={{user.first_name}}+{{user.last_name}}&background=random&color=fff" class="profile-img"
-                            alt="Student Profile">
+                        <img src="https://ui-avatars.com/api/?name={{user.first_name}}+{{user.last_name}}&background=random&color=fff"
+                            class="profile-img" alt="Student Profile">
                     </div>
                     <div class="col-md-7">
 
@@ -184,7 +184,7 @@
                         <div class="col-12 detail-box">
                             <label>Address</label>
                             <p>
-                               {{user.address}}
+                                {{user.address}}
                             </p>
                         </div>
 
@@ -300,10 +300,56 @@
                 </div>
 
             </div>
+            <div class="card profile-card mt-4">
+                <div class="card-header bg-info text-white">
+                    <i class="fa fa-wallet"></i>
+                    Balance Receipt History
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Receipt No</th>
+                                <th>Amount</th>
+                                <th>Payment Mode</th>
+                                <th>Date & And Time</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
 
-            <!-- Guardian Details -->
+                            {{balanceHistory}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card profile-card mt-4">
+                <div class="card-header bg-secondary text-white">
+                    <i class="fa fa-wallet"></i>
+                    Admission Receipt History
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Receipt No</th>
+                                <th>Amount</th>
+                                <th>Payment Mode</th>
+                                <th>Date & And Time</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
 
+                            {{admissionHistory}}
+                        </tbody>
+                    </table>
 
+                </div>
+
+            </div>
 
         </div>
 

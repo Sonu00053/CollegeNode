@@ -639,8 +639,6 @@ async function updateReceiptTable(tableName) {
         const availableFees = Number(student.available_fees);
         const totalFees = Number(student.total_fees);
         const amount = Number(receipt.amount);
-
-        // Receipt Table Update
         await UserModel.updateRecord(
             tableName,
             {
@@ -651,8 +649,6 @@ async function updateReceiptTable(tableName) {
                 id: receipt.id
             }
         );
-
-        // Student Remaining Fees Update
         await UserModel.updateRecord(
             'students',
             {
