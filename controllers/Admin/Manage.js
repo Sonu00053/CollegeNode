@@ -164,7 +164,7 @@ exports.profile = async (req, res) => {
             {
                 student_id: student_id
             },
-            '*'
+            '*'         
         );
         const course = await UserModel.getSingleRecord(
             'courses',
