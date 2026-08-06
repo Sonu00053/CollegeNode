@@ -48,7 +48,7 @@ router.route('/balance-create-reciept')
     .get(jwtAuth.verifyToken, Manage.balancereciptcreate)
     .post(jwtAuth.verifyToken, Manage.balancereciptcreate);
 
-    router.get('/balance-reciept/:id', jwtAuth.verifyToken,Manage.balancereciept);
+router.get('/balance-reciept/:id', jwtAuth.verifyToken, Manage.balancereciept);
 
 
 router.route('/fees-update')
@@ -61,40 +61,50 @@ router.get('/adm', jwtAuth.verifyToken, Login.admission);
 router.post('/getSubjectNames', Manage.getSubjectNames);
 
 router.get('/today-reciepts', jwtAuth.verifyToken, Manage.recieptHistoryToday);
-router.get('/date-wise-reciept-history', jwtAuth.verifyToken,Manage.groupbyrecipthistory);
-router.get('/date-wise-both-reciept-history', jwtAuth.verifyToken,Manage.reciptBothhistory);
-router.get('/view-reciept-history/:date', jwtAuth.verifyToken,Manage.recieptHistorydatewisw);
+router.get('/date-wise-reciept-history', jwtAuth.verifyToken, Manage.groupbyrecipthistory);
+router.get('/date-wise-both-reciept-history', jwtAuth.verifyToken, Manage.reciptBothhistory);
+router.get('/view-reciept-history/:date', jwtAuth.verifyToken, Manage.recieptHistorydatewisw);
 
-router.get('/date-wise-balance-reciept-history', jwtAuth.verifyToken,Manage.balacegroupbyrecipthistory);
-router.get('/balance-view-reciept-history/:date', jwtAuth.verifyToken,Manage.balancerecieptHistorydatewisw);
+router.get('/date-wise-balance-reciept-history', jwtAuth.verifyToken, Manage.balacegroupbyrecipthistory);
+router.get('/balance-view-reciept-history/:date', jwtAuth.verifyToken, Manage.balancerecieptHistorydatewisw);
 
 router.route('/update-reciept-heads')
     .get(Course.recieptheadupdate)
     .post(Course.recieptheadupdate);
 router.post('/student-fees', jwtAuth.verifyToken, Manage.studentFees);
 
-router.get('/profile/:student_id', jwtAuth.verifyToken,Manage.profile);
+router.get('/profile/:student_id', jwtAuth.verifyToken, Manage.profile);
 
 
 //  ===========================      Reports.    ===================================
 
-router.get('/class-wise-history', jwtAuth.verifyToken,Reports.ClassWiseSubjectReport);
+router.get('/class-wise-history', jwtAuth.verifyToken, Reports.ClassWiseSubjectReport);
 
-router.get('/per-class-subject-history/:course_id/:year', jwtAuth.verifyToken,Reports.perclasssubject);
+router.get('/per-class-subject-history/:course_id/:year', jwtAuth.verifyToken, Reports.perclasssubject);
+
+
+
+router.get("/subject-address-report", jwtAuth.verifyToken, Reports.subjectAddressReport);
+
+router.post("/get-addresses", Reports.getAddresses);
+
+router.post("/get-subjects-report", Reports.getSubjectsByClass);
+
+router.post("/subject-address-search", Reports.subjectAddressSearch);
 
 router
     .route("/update-profile/:student_id")
-    .get(jwtAuth.verifyToken,Settings.updatestidentProfile)
-    .post(jwtAuth.verifyToken,Settings.updatestidentProfile);
-    router.post('/update-adm-reciept',jwtAuth.verifyToken, Settings.updateamdrecipt);
+    .get(jwtAuth.verifyToken, Settings.updatestidentProfile)
+    .post(jwtAuth.verifyToken, Settings.updatestidentProfile);
+router.post('/update-adm-reciept', jwtAuth.verifyToken, Settings.updateamdrecipt);
 
-router.get('/runSet',Reports.updateFees);
-router.get('/receipt-between-history',jwtAuth.verifyToken,Reports.reciptBetweenHistory);
+router.get('/runSet', Reports.updateFees);
+router.get('/receipt-between-history', jwtAuth.verifyToken, Reports.reciptBetweenHistory);
 
 router
     .route("/update-subjects/:student_id")
-    .get(jwtAuth.verifyToken,Settings.updateClassandsubjects)
-    .post(jwtAuth.verifyToken,Settings.updateClassandsubjects);
+    .get(jwtAuth.verifyToken, Settings.updateClassandsubjects)
+    .post(jwtAuth.verifyToken, Settings.updateClassandsubjects);
 
 
 

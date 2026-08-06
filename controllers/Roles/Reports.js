@@ -401,3 +401,160 @@ exports.reciptBetweenHistory = async (req, res) => {
     });
 
 };
+
+exports.subjectAddressReport = async (req, res) => {
+
+    return View.Rview(res, "subject_address_report", {
+        title: "Address / Subject Wise Report"
+    });
+
+}
+
+exports.getAddresses = async (req, res) => {
+
+    const address = await UserModel.getGroupByField(
+        "students",
+        "address"
+    );
+    console.log(address);
+
+    return res.json({
+        status: true,
+        data: address
+    });
+
+}
+
+exports.getSubjectsByClass = async (req, res) => {
+
+    const { year } = req.body;
+
+    const subjects = await UserModel.getRecords(
+        "subjects",
+        {
+            course_id: 1,
+            year: year
+        },
+        "id,subject_name,category"
+    );
+
+    return res.json({
+        status: true,
+        data: subjects
+    });
+
+}
+
+exports.subjectAddressSearch = async (req, res) => {
+
+    const { type, address, year, subject } = req.body;
+    const course = 1;
+
+    let students = [];
+
+    if (type == "address") {
+
+        students = await UserModel.getRecords(
+            "students",
+            {
+                address: address
+            },
+            "*"
+        );
+
+    } else {
+
+        const allStudents = await UserModel.getRecords(
+            "students",
+            {
+                course: course,
+                course_year: year
+            },
+            "*"
+        );
+
+        let selectedSubjects = req.body.subject || [];
+
+        if (!Array.isArray(selectedSubjects)) {
+            selectedSubjects = [selectedSubjects];
+        }
+
+        selectedSubjects = selectedSubjects.map(Number);
+
+        students = [];
+
+        for (const s of allStudents) {
+
+            if (!s.subject_ids) continue;
+
+            let ids = [];
+
+            try {
+                ids = JSON.parse(s.subject_ids).map(Number);
+            } catch (e) {
+                ids = [];
+            }
+
+            // ANY selected subject matches
+            if (ids.some(id => selectedSubjects.includes(id))) {
+                students.push(s);
+            }
+        }
+
+    }
+
+    let tableRows = "";
+
+    for (const [i, u] of students.entries()) {
+
+        let subjectList = [];
+
+        if (u.subject_ids) {
+
+            const ids = JSON.parse(u.subject_ids);
+
+            for (const id of ids) {
+
+                const sub = await UserModel.getSingleRecord(
+                    "subjects",
+                    { id },
+                    "subject_name,category"
+                );
+
+                if (sub) {
+                    subjectList.push(`${sub.subject_name} (${sub.category})`);
+                }
+
+            }
+
+        }
+        const course = await UserModel.getSingleRecord(
+                    'courses',
+                    { id: u.course },
+                    '*'
+                );
+
+        tableRows += `
+        <tr>
+            <td>${i + 1}</td>
+            <td>${u.roll_no}</td>
+            <td>${u.student_id}</td>
+            <td>${u.first_name} ${u.last_name}</td>
+            <td>${u.mobile}</td>
+            <td>${course?.course_name + ' - ' + u.course_year || ''}</td>
+            <td>${u.address}</td>
+            <td>
+                <ol>
+                    ${subjectList.map(x => `<li>${x}</li>`).join("")}
+                </ol>
+            </td>
+        </tr>
+        `;
+    }
+
+    return res.json({
+        status: true,
+        tableRows
+    });
+
+}

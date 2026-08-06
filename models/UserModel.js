@@ -327,3 +327,40 @@ exports.getRecordsNew = async (table, where = {}, select = '*', orderBy = '') =>
     const [rows] = await db.query(sql, values);
     return rows;
 };
+
+
+exports.getGroupByField = async (
+    table,
+    field,
+    where = {},
+    order = 'ASC'
+) => {
+
+    let sql = `
+        SELECT
+            ${field},
+            COUNT(*) AS total_records
+        FROM ${table}
+    `;
+
+    const values = [];
+
+    if (Object.keys(where).length) {
+
+        const conditions = Object.keys(where).map(key => {
+            values.push(where[key]);
+            return `${key} = ?`;
+        });
+
+        sql += ` WHERE ${conditions.join(' AND ')}`;
+    }
+
+    sql += `
+        GROUP BY ${field}
+        ORDER BY ${field} ${order}
+    `;
+
+    const [rows] = await db.query(sql, values);
+
+    return rows;
+};

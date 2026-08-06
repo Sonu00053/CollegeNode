@@ -1,0 +1,334 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<div class="content">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Address / Subject Wise Report</h4>
+            <button type="button" class="btn btn-warning btn-sm" onclick="location.reload();">
+                <i class="fa fa-refresh"></i> Refresh
+            </button>
+        </div>
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-3">
+
+                    <label>Search Type</label>
+
+                    <select class="form-control" id="type">
+                        <option value="">Select</option>
+                        <option value="address">Address Wise</option>
+                        <option value="subject">Subject Wise</option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-3 addressBox" style="display:none">
+
+                    <label>Address</label>
+
+                    <select id="address" class="form-control"></select>
+
+                </div>
+
+                <div class="subjectBox row w-100" style="display:none">
+
+                    <div class="col-md-3">
+
+                        <label>Class</label>
+                        <input type="text" id="class" class="form-control"
+                            placeholder="BA" readonly style="cursor:pointer;">
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label>Year</label>
+
+                        <select id="year" class="form-control">
+
+                            <option value="0">Select Year</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label>Subjects</label>
+
+                        <input type="text" id="selectedSubjectsText" class="form-control"
+                            placeholder="Click to Select Subjects" readonly style="cursor:pointer;">
+
+                        <input type="hidden" id="subjectIds">
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <label>&nbsp;</label>
+
+                    <button class="btn btn-primary w-100" id="search">
+
+                        Search
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <hr>
+
+            <table class="table table-bordered" id="example">
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+                        <th>Roll</th>
+                        <th>Student ID</th>
+                        <th>Name</th>
+                        <th>Mobile</th>
+                        <th>Class</th>
+                        <th>Address</th>
+                        <th>Subjects</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="tbody"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+</div>
+<div class="modal fade" id="subjectModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5>Select Subjects</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div id="subjectCheckboxList"></div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button class="btn btn-success" id="saveSubjects">
+                    Done
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $("#type").change(function () {
+        
+
+        if ($(this).val() == "address") {
+
+            $(".addressBox").show();
+            $(".subjectBox").hide();
+
+            $.post("{{CONSTANTS.role}}get-addresses", function (r) {
+
+                let html = "";
+
+                r.data.forEach(x => {
+                    html += `<option value="${x.address}">${x.address}</option>`;
+                });
+
+                $("#address").html(html);
+
+            });
+
+        } else {
+            if ($(this).val() != "") {
+            $(".addressBox").hide();
+            $(".subjectBox").show();
+
+            }
+        }
+
+    });
+
+    $("#year").change(function () {
+
+        if ($(this).val() == "0") return;
+
+        $.post("{{CONSTANTS.role}}get-subjects-report", {
+
+            year: $("#year").val()
+
+        }, function (r) {
+
+            let html = "";
+
+            r.data.forEach(function (x) {
+
+                html += `
+                <div class="form-check mb-2">
+
+                    <input
+                        class="form-check-input subjectCheck"
+                        type="checkbox"
+                        value="${x.id}"
+                        id="sub_${x.id}"
+                        data-name="${x.subject_name} (${x.category})">
+
+                    <label class="form-check-label" for="sub_${x.id}">
+                        ${x.subject_name} (${x.category})
+                    </label>
+
+                </div>
+            `;
+
+            });
+
+            $("#subjectCheckboxList").html(html);
+
+            $("#subjectModal").modal("show");
+
+        });
+
+    });
+
+    $("#search").click(function () {
+        let type = $("#type").val();
+
+    // Search Type Required
+    if (type == "") {
+        alert("Please select Search Type.");
+        $("#type").focus();
+        return false;
+    }
+
+    // Address Wise Validation
+    if (type == "address") {
+
+        if ($("#address").val() == "" || $("#address").val() == null) {
+            alert("Please select Address.");
+            $("#address").focus();
+            return false;
+        }
+
+    }
+
+    // Subject Wise Validation
+    if (type == "subject") {
+
+        if ($("#year").val() == "0") {
+            alert("Please select Year.");
+            $("#year").focus();
+            return false;
+        }
+
+        if ($("#subjectIds").val() == "") {
+            alert("Please select at least one Subject.");
+            return false;
+        }
+
+    }
+        $.post("{{CONSTANTS.role}}subject-address-search", {
+
+            type: $("#type").val(),
+            address: $("#address").val(),
+            year: $("#year").val(),
+            subject: $("#subjectIds").val().split(",")
+
+        }, function (r) {
+
+            if ($.fn.DataTable.isDataTable('#example')) {
+                $('#example').DataTable().destroy();
+            }
+
+            $("#tbody").html(r.tableRows);
+
+            $('#example').DataTable({
+
+                paging: true,
+                scrollX: true,
+                pageLength: 100,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                dom:
+                    "<'row mb-3 align-items-center'\
+                    <'col-md-6 d-flex gap-2 align-items-center'Bl>\
+                    <'col-md-6 text-end'f>>" +
+                    "<'row'<'col-12'tr>>" +
+                    "<'row mt-3'\
+                    <'col-md-6'i>\
+                    <'col-md-6 d-flex justify-content-end'p>>",
+
+                buttons: [
+                    {
+                        extend: 'copy',
+                        className: 'btn btn-secondary btn-sm'
+                    },
+                    {
+                        extend: 'csv',
+                        className: 'btn btn-success btn-sm'
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-success btn-sm'
+                    },
+                    {
+                        extend: 'pdf',
+                        className: 'btn btn-danger btn-sm'
+                    },
+                    {
+                        extend: 'print',
+                        className: 'btn btn-info btn-sm'
+                    }
+                ]
+
+            });
+
+        });
+
+    });
+
+    $("#saveSubjects").click(function () {
+
+        let ids = [];
+        let names = [];
+
+        $(".subjectCheck:checked").each(function () {
+
+            ids.push($(this).val());
+            names.push($(this).data("name"));
+
+        });
+
+        $("#subjectIds").val(ids.join(","));
+
+        $("#selectedSubjectsText").val(names.join(", "));
+
+        $("#subjectModal").modal("hide");
+
+    });
+</script>

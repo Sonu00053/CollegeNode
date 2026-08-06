@@ -38,6 +38,14 @@ router.get('/subject-change-request-history', jwtAuth.verifyToken,Reports.subjec
 
 router.get('/per-class-subject-history/:course_id/:year', jwtAuth.verifyToken,Reports.perclasssubject);
 
+router.get("/subject-address-report", jwtAuth.verifyToken, Reports.subjectAddressReport);
+
+router.post("/get-addresses", jwtAuth.verifyToken,Reports.getAddresses);
+
+router.post("/get-subjects-report", jwtAuth.verifyToken,Reports.getSubjectsByClass);
+
+router.post("/subject-address-search",jwtAuth.verifyToken, Reports.subjectAddressSearch);
+
 
 
 
