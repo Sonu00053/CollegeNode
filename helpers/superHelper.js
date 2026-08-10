@@ -24,6 +24,13 @@ class SuperHelper {
         return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     }
 
+     static dob(date) {
+        if (!date) return '';
+        const d = new Date(date);
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}`;
+    }
+
     static notFoundPage() {
         return `
             <!DOCTYPE html>

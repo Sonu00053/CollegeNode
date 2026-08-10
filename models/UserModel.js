@@ -255,6 +255,7 @@ exports.getSingleRecorddate = async (
     select = '*',
     orderBy = '',
     dateFields = ['created_at']
+
 ) => {
 
     let finalSelect = Array.isArray(select) ? select.join(',') : select;

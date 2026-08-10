@@ -508,6 +508,11 @@ exports.updateClassandsubjects = async (req, res) => {
             { id: studentDetail.course },
             '*'
         );
+        const checkrequest = await UserModel.getSingleRecord(
+            'subject_update_detail',
+            { student_id: studentDetail.student_id, status: 0 },
+            '*'
+        );
         const pendingFees = (Number(studentDetail.total_fees) - Number(studentDetail.pending_fees));
         if (req.method === 'POST') {
             const {
@@ -535,11 +540,7 @@ exports.updateClassandsubjects = async (req, res) => {
                 { id: Number(studentDetail.course) },
                 '*'
             );
-            const checkrequest = await UserModel.getSingleRecord(
-                'subject_update_detail',
-                { student_id: studentDetail.student_id, status: 0 },
-                '*'
-            );
+
             if (!checkrequest) {
                 if (Number(studentDetail.course) == 1) {
                     const coursechek = await UserModel.getSingleRecord(
@@ -727,6 +728,107 @@ exports.updateClassandsubjects = async (req, res) => {
         </table>
     `;
         }
+        let html2 = '';
+        let buttons = '';
+        if (!checkrequest) {
+
+            buttons = `
+            <button type="button" id="openSubjectPopup" class="btn btn-warning btn-sm "
+                            onclick="openSubjectPopup()">
+                            <i class="fas fa-edit"></i> Select Subjects
+                        </button>
+        `;
+        } else {
+
+    let subjectList = [];
+
+    if (checkrequest.new_subject_ids) {
+
+        const idsNew = JSON.parse(checkrequest.new_subject_ids);
+
+        html2 += `
+            <div class="mb-3">
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <div class="card border-warning">
+                            <div class="card-body">
+                                <h6 class="text-muted mb-1">
+                                    Old Total Fees
+                                </h6>
+                                <h4 class="mb-0 text-warning">
+                                    ${CONSTANTS.currency}${Number(checkrequest.total_fees || 0).toFixed(2)}
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card border-success">
+                            <div class="card-body">
+                                <h6 class="text-muted mb-1">
+                                    New Total Fees
+                                </h6>
+                                <h4 class="mb-0 text-success">
+                                    ${CONSTANTS.currency}${Number(checkrequest.new_total_fees || 0).toFixed(2)}
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <table class="table table-bordered table-hover">
+                <thead class="table-success">
+                    <tr>
+                        <th width="60">#</th>
+                        <th>Subject Name</th>
+                        <th>Category</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+        `;
+
+        let i = 1;
+
+        for (const id of idsNew) {
+
+            const subjectNew = await UserModel.getSingleRecord(
+                'subjects',
+                { id },
+                '*'
+            );
+
+            if (!subjectNew) continue;
+
+            html2 += `
+                <tr>
+                    <td>${i++}</td>
+                    <td>${subjectNew.subject_name}</td>
+                    <td>${subjectNew.category || '-'}</td>
+                </tr>
+            `;
+        }
+
+        html2 += `
+                </tbody>
+            </table>
+        `;
+
+        buttons = `
+            <button
+                onclick="TableOpen()"
+                type="button"
+                class="btn btn-danger btn-sm">
+
+                <i class="fas fa-clock"></i>
+                Request Pending
+            </button>
+        `;
+    }
+}
 
         return View.Rview(res, 'changesubjects', {
             header: 'User Profile',
@@ -735,7 +837,10 @@ exports.updateClassandsubjects = async (req, res) => {
             course,
             subjectuser: studentDetail.subject_ids,
             studentDetail,
+            checkrequest,
             html,
+            html2,
+            buttons,
             pendingFees,
             coursename: coursename.course_name + '-' + studentDetail.course_year,
 

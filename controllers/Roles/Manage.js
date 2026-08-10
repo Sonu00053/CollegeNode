@@ -39,6 +39,7 @@ exports.users = async (req, res) => {
             <th>Student Id</th>
             <th>Roll No</th>
             <th>Name</th>
+            <th>Date Of Birth</th>
             <th>Father Name</th>
             <th>Mother Name</th>
             <th>Email</th>
@@ -93,6 +94,7 @@ exports.users = async (req, res) => {
             editSubjects = `<a href="${CONSTANTS.role}update-subjects/${u.student_id}" class="btn btn-success btn-sm">Edit Subjects</a>`;
         }
         const admdate = SuperHelper.OnlyDate(u.admission_date);
+        const dob = SuperHelper.dob(u.dob);
         tableRows += `
         <tr>
 
@@ -100,6 +102,7 @@ exports.users = async (req, res) => {
             <td>${u.student_id}</td>
             <td>${u.roll_no}</td>
             <td>${u.first_name} ${u.last_name}</td>
+            <td>${dob}</td>
             <td>${u.father_name}</td>
             <td>${u.mother_name}</td>
             <td>${u.email}</td>
@@ -569,11 +572,11 @@ exports.reciept = async (req, res) => {
             const subject = await UserModel.getSingleRecord(
                 'subjects',
                 { id },
-                'subject_name'
+                'subject_name,category'
             );
 
             if (subject) {
-                subjects += `<span class="badge bg-light text-dark border me-1">${subject.subject_name}</span>`;
+                subjects += `<span class="badge bg-light text-dark border me-1">${subject.subject_name}(${subject.category})</span>`;
             }
         }
     }
@@ -1104,11 +1107,11 @@ exports.balancereciept = async (req, res) => {
             const subject = await UserModel.getSingleRecord(
                 'subjects',
                 { id },
-                'subject_name'
+                'subject_name,category'
             );
 
             if (subject) {
-                subjects += `<span class="badge bg-light text-dark border me-1">${subject.subject_name}</span>`;
+                subjects += `<span class="badge bg-light text-dark border me-1">${subject.subject_name}(${subject.category})</span>`;
             }
         }
     }
@@ -1241,7 +1244,7 @@ exports.recieptHistorydatewisw = async (req, res) => {
     const rows = await UserModel.getRecordsNew(
         'receipt_details',
         {
-            'DATE(created_at)': date
+            'DATE(admission_date)': date
         },
         '*'
     );
@@ -1276,6 +1279,8 @@ exports.recieptHistorydatewisw = async (req, res) => {
             },
             '*'
         );
+        const newdate = SuperHelper.OnlyDate(u.admission_date);
+
         tableRows += `
             <tr>
                 <td>${index + 1}</td>
@@ -1285,7 +1290,7 @@ exports.recieptHistorydatewisw = async (req, res) => {
                 <td>${studentDetail.roll_no}</td>
                 <td>${CONSTANTS.currency}${u.amount}</td>
                 <td>${u.payment_mode}</td>
-                <td>${SuperHelper.formatDate(u.created_at)}</td>
+                <td>${newdate}</td>
                 <td>
                     <a href="${CONSTANTS.role}reciept/${u.receipt_no}"
                         class="btn btn-sm btn-primary">

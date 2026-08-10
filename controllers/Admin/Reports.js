@@ -316,7 +316,7 @@ exports.perclasssubject = async (req, res) => {
 exports.subjectchangerequest = async (req, res) => {
 
 
-    const result = await UserModel.getRecords('subject_update_detail', {}, '*');
+    const result = await UserModel.getRecords('subject_update_detail', {}, '*','id desc');
     const thead = `
         <tr>
             <th>#</th>
