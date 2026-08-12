@@ -316,7 +316,7 @@ exports.perclasssubject = async (req, res) => {
 exports.subjectchangerequest = async (req, res) => {
 
 
-    const result = await UserModel.getRecords('subject_update_detail', {}, '*','id desc');
+    const result = await UserModel.getRecords('subject_update_detail', {}, '*', 'id desc');
     const thead = `
         <tr>
             <th>#</th>
@@ -417,7 +417,7 @@ exports.subjectchangerequest = async (req, res) => {
                 <span class="badge bg-success">
                     <i class="bi bi-check-circle-fill"></i> Approved
                 </span>`;
-                status = `
+            status = `
         <span class="badge bg-success">
             <i class="bi bi-check-circle-fill"></i> Success
         </span>`;
@@ -491,72 +491,72 @@ exports.approvesubjects = async (req, res) => {
             { request_id: student.request_id },
             '*'
         );
-        if(!CheckDuplicate){
+        if (!CheckDuplicate) {
 
-        const OldaDetail = {
-            student_id: studentDetail.roll_no,
-            request_id: student.request_id,
-            roll_no: studentDetail.roll_no,
-            course: studentDetail.course,
-            course_year: studentDetail.course_year,
-            subject_ids: studentDetail.subject_ids,
-            total_fees: studentDetail.total_fees,
-            available_fees: studentDetail.available_fees,
-            physical: studentDetail.physical,
-            computer_science: studentDetail.computer_science,
-            home_science: studentDetail.home_science,
-            fine_arts: studentDetail.fine_arts,
-            music_instrumnet: studentDetail.music_instrumnet,
-            music_vocal: studentDetail.music_vocal,
-            english_honour: studentDetail.english_honour,
-            admission_date: studentDetail.admission_date,
-            security: studentDetail.security,
-            parking_fees: studentDetail.parking_fees,
-        };
-        const result = await UserModel.addRecord(
-            'subject_old_history',
-            OldaDetail
-        );
-        const AwailableFee = (Number(student.new_total_fees) - studentDetail.available_fees);
-        const UpdateData = {
-            subject_ids: student.new_subject_ids,
-            total_fees: student.new_total_fees,
-            available_fees: AwailableFee,
-            physical: student.physical,
-            computer_science: student.computer_science,
-            home_science: student.home_science,
-            fine_arts: student.fine_arts,
-            music_instrumnet: student.music_instrumnet,
-            music_vocal: student.music_vocal,
-            english_honour: student.english_honour,
-            total_practical_fees: student.total_practical_fees,
-            physical: student.physical,
-            practical_status: student.practical_status,
-        };
+            const OldaDetail = {
+                student_id: studentDetail.roll_no,
+                request_id: student.request_id,
+                roll_no: studentDetail.roll_no,
+                course: studentDetail.course,
+                course_year: studentDetail.course_year,
+                subject_ids: studentDetail.subject_ids,
+                total_fees: studentDetail.total_fees,
+                available_fees: studentDetail.available_fees,
+                physical: studentDetail.physical,
+                computer_science: studentDetail.computer_science,
+                home_science: studentDetail.home_science,
+                fine_arts: studentDetail.fine_arts,
+                music_instrumnet: studentDetail.music_instrumnet,
+                music_vocal: studentDetail.music_vocal,
+                english_honour: studentDetail.english_honour,
+                admission_date: studentDetail.admission_date,
+                security: studentDetail.security,
+                parking_fees: studentDetail.parking_fees,
+            };
+            const result = await UserModel.addRecord(
+                'subject_old_history',
+                OldaDetail
+            );
+            const AwailableFee = (Number(student.new_total_fees) - studentDetail.available_fees);
+            const UpdateData = {
+                subject_ids: student.new_subject_ids,
+                total_fees: student.new_total_fees,
+                available_fees: AwailableFee,
+                physical: student.physical,
+                computer_science: student.computer_science,
+                home_science: student.home_science,
+                fine_arts: student.fine_arts,
+                music_instrumnet: student.music_instrumnet,
+                music_vocal: student.music_vocal,
+                english_honour: student.english_honour,
+                total_practical_fees: student.total_practical_fees,
+                physical: student.physical,
+                practical_status: student.practical_status,
+            };
 
-        await UserModel.updateRecord(
-            "students",
-            UpdateData,
-            { student_id: student.student_id }
+            await UserModel.updateRecord(
+                "students",
+                UpdateData,
+                { student_id: student.student_id }
 
-        );
-        await UserModel.updateRecord(
-            "subject_update_detail",
-            { status: 1 },
-            { id: student.id }
+            );
+            await UserModel.updateRecord(
+                "subject_update_detail",
+                { status: 1 },
+                { id: student.id }
 
-        );
-        await exports.updateFees();
-        return res.json({
-            status: true,
-            message: 'Subject Updated successfully.'
-        });
-    }else{
-        return res.json({
-            status: false,
-            message: 'This Request Alreay Approved.'
-        });
-    }
+            );
+            await exports.updateFees();
+            return res.json({
+                status: true,
+                message: 'Subject Updated successfully.'
+            });
+        } else {
+            return res.json({
+                status: false,
+                message: 'This Request Alreay Approved.'
+            });
+        }
 
     } catch (err) {
 
@@ -789,10 +789,10 @@ exports.subjectAddressSearch = async (req, res) => {
 
         }
         const course = await UserModel.getSingleRecord(
-                    'courses',
-                    { id: u.course },
-                    '*'
-                );
+            'courses',
+            { id: u.course },
+            '*'
+        );
 
         tableRows += `
         <tr>

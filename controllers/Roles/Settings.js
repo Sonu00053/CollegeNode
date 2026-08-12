@@ -230,7 +230,7 @@ exports.updatestidentProfile = async (req, res) => {
         console.log(req.body);
 
         first_name = first_name.trim();
-        last_name = last_name.trim();
+        // last_name = last_name.trim();
         mobile = mobile.trim();
         father_mobile = father_mobile.trim();
         mother_name = mother_name.trim();
@@ -246,9 +246,9 @@ exports.updatestidentProfile = async (req, res) => {
             errors.first_name = "First Name is required.";
         }
 
-        if (!last_name) {
-            errors.last_name = "Last Name is required.";
-        }
+        // if (!last_name) {
+        //     errors.last_name = "Last Name is required.";
+        // }
 
         if (!mobile) {
             errors.mobile = "Mobile Number is required.";
@@ -266,6 +266,11 @@ exports.updatestidentProfile = async (req, res) => {
 
         if (email && !/^\S+@\S+\.\S+$/.test(email)) {
             errors.email = "Invalid Email Address.";
+        }
+
+        // Empty email => NULL
+        if (!email) {
+            email = null;
         }
 
         if (!dob) {
@@ -358,7 +363,7 @@ exports.updatestidentProfile = async (req, res) => {
 
     <br>
 
-    ${Form.label("Last Name *")}
+    ${Form.label("Last Name")}
     ${Form.text("last_name", last_name, {
         class: `form-control ${errors.last_name ? "is-invalid" : ""}`,
         placeholder: "Enter Last Name"
@@ -740,13 +745,13 @@ exports.updateClassandsubjects = async (req, res) => {
         `;
         } else {
 
-    let subjectList = [];
+            let subjectList = [];
 
-    if (checkrequest.new_subject_ids) {
+            if (checkrequest.new_subject_ids) {
 
-        const idsNew = JSON.parse(checkrequest.new_subject_ids);
+                const idsNew = JSON.parse(checkrequest.new_subject_ids);
 
-        html2 += `
+                html2 += `
             <div class="mb-3">
                 <div class="row g-3">
 
@@ -791,33 +796,33 @@ exports.updateClassandsubjects = async (req, res) => {
                 <tbody>
         `;
 
-        let i = 1;
+                let i = 1;
 
-        for (const id of idsNew) {
+                for (const id of idsNew) {
 
-            const subjectNew = await UserModel.getSingleRecord(
-                'subjects',
-                { id },
-                '*'
-            );
+                    const subjectNew = await UserModel.getSingleRecord(
+                        'subjects',
+                        { id },
+                        '*'
+                    );
 
-            if (!subjectNew) continue;
+                    if (!subjectNew) continue;
 
-            html2 += `
+                    html2 += `
                 <tr>
                     <td>${i++}</td>
                     <td>${subjectNew.subject_name}</td>
                     <td>${subjectNew.category || '-'}</td>
                 </tr>
             `;
-        }
+                }
 
-        html2 += `
+                html2 += `
                 </tbody>
             </table>
         `;
 
-        buttons = `
+                buttons = `
             <button
                 onclick="TableOpen()"
                 type="button"
@@ -827,8 +832,8 @@ exports.updateClassandsubjects = async (req, res) => {
                 Request Pending
             </button>
         `;
-    }
-}
+            }
+        }
 
         return View.Rview(res, 'changesubjects', {
             header: 'User Profile',

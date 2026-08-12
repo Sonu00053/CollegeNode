@@ -92,6 +92,12 @@ router.post("/get-subjects-report", Reports.getSubjectsByClass);
 
 router.post("/subject-address-search", Reports.subjectAddressSearch);
 
+router.get("/subject-report",jwtAuth.verifyToken,Reports.subjectReport);
+router.post("/subject-search", Reports.subjectSearch);
+
+
+
+
 router
     .route("/update-profile/:student_id")
     .get(jwtAuth.verifyToken, Settings.updatestidentProfile)

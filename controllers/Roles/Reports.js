@@ -81,12 +81,21 @@ exports.perclasssubject = async (req, res) => {
     const result = await UserModel.getRecords('students', { course: course_id, course_year: year }, '*');
     const thead = `
         <tr>
-            <th>#</th>
+           <th>#</th>
+            <th>Student Id</th>
             <th>Roll No</th>
-            <th>ADMN.Date</th>
-            <th>Student Name</th>
+            <th>Name</th>
             <th>Mobile No</th>
-            <th>Subject Name</th>
+            <th>Category</th>
+            <th>Date Of Birth</th>
+            <th>Father Name</th>
+            <th>Mother Name</th>
+            <th>Address</th>
+            <th>Course</th>
+            <th>Subjects</th>
+            <th>Total Fees</th>
+            <th>Pending Fees</th>
+            <th>Admission Date</th>
         </tr>
     `;
 
@@ -140,19 +149,35 @@ exports.perclasssubject = async (req, res) => {
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
         const newdate = `${year}-${month}-${day}`;
+        const admdate = SuperHelper.OnlyDate(u.admission_date);
+        const dob = SuperHelper.dob(u.dob);
         tableRows += `
-        
         <tr>
             <td>${index + 1}</td>
+            <td>${u.student_id}</td>
             <td>${u.roll_no}</td>
-            <td>${newdate}</td>
             <td>${u.first_name} ${u.last_name}</td>
-            <td>${u.mobile} <br> ${u.father_mobile}</td>
-        <td>
-    <ol style="margin:0; padding-left:18px;">
-        ${subjectList.map(subject => `<li>${subject}</li>`).join('')}
-    </ol>
-</td>
+            <td>${u.mobile}<br>${u.father_mobile}</td>
+            <td>${u.category}</td>
+            <td>${dob}</td>
+            <td>${u.father_name}</td>
+            <td>${u.mother_name}</td>
+            <td>${u.address}</td>
+            <td>${course?.course_name + ' - ' + u.course_year || ''}</td>
+
+            <td>
+                <button
+                    class="btn btn-primary btn-sm view-subjects"
+                    data-subjects='${JSON.stringify(subjectList)}'>
+                    View
+                </button>
+            </td>
+            
+
+            <td>${CONSTANTS.currency}${u.total_fees}</td>
+            <td>${CONSTANTS.currency}${u.total_fees - u.pending_fees}</td>
+            <td>${admdate}</td>
+            
         </tr>
         `;
     }
@@ -416,7 +441,7 @@ exports.getAddresses = async (req, res) => {
         "students",
         "address"
     );
-    console.log(address);
+    // console.log(address);
 
     return res.json({
         status: true,
@@ -529,10 +554,10 @@ exports.subjectAddressSearch = async (req, res) => {
 
         }
         const course = await UserModel.getSingleRecord(
-                    'courses',
-                    { id: u.course },
-                    '*'
-                );
+            'courses',
+            { id: u.course },
+            '*'
+        );
 
         tableRows += `
         <tr>
@@ -557,4 +582,122 @@ exports.subjectAddressSearch = async (req, res) => {
         tableRows
     });
 
+}
+
+exports.subjectReport = async (req, res) => {
+
+    return View.Rview(res, "subject", {
+        title: "Subject Wise Report"
+    });
+
+}
+
+exports.subjectSearch = async (req, res) => {
+
+    const { type, year, subject } = req.body;
+    const course = 1;
+    let students = [];
+    const allStudents = await UserModel.getRecords(
+        "students",
+        {
+            course: course,
+            course_year: year
+        },
+        "*"
+    );
+    let selectedSubjects = req.body.subject || [];
+    if (!Array.isArray(selectedSubjects)) {
+        selectedSubjects = [selectedSubjects];
+    }
+    selectedSubjects = selectedSubjects.map(Number);
+    console.log("Selected Subjects:", selectedSubjects);
+
+    students = [];
+
+    for (const s of allStudents) {
+
+        if (!s.subject_ids) continue;
+
+        let ids = [];
+
+        try {
+            ids = JSON.parse(s.subject_ids).map(Number);
+        } catch (e) {
+            ids = [];
+        }
+
+        // Selected kiye gaye SABHI subjects student ke paas hone chahiye
+        const hasAllSubjects = selectedSubjects.every(id =>
+            ids.includes(id)
+        );
+
+        if (hasAllSubjects) {
+            students.push(s);
+        }
+    }
+
+
+    let tableRows = "";
+
+    for (const [i, u] of students.entries()) {
+
+        let subjectList = [];
+
+        if (u.subject_ids) {
+
+            let ids = [];
+
+            try {
+                ids = JSON.parse(u.subject_ids).map(Number);
+            } catch (e) {
+                ids = [];
+            }
+            // Sirf wahi subjects show honge jo search me select kiye gaye hain
+            const matchedSubjectIds = ids.filter(id =>
+                selectedSubjects.includes(id)
+            );
+
+            for (const id of matchedSubjectIds) {
+
+                const sub = await UserModel.getSingleRecord(
+                    "subjects",
+                    { id },
+                    "subject_name, category"
+                );
+
+                if (sub) {
+                    subjectList.push(
+                        `${sub.subject_name} (${sub.category})`
+                    );
+                }
+            }
+        }
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            { id: u.course },
+            '*'
+        );
+
+        tableRows += `
+        <tr>
+            <td>${i + 1}</td>
+            <td>${u.roll_no}</td>
+            <td>${u.student_id}</td>
+            <td>${u.first_name} ${u.last_name}</td>
+            <td>${u.mobile}</td>
+            <td>${course?.course_name + ' - ' + u.course_year || ''}</td>
+            <td>${u.address}</td>
+            <td>
+                <ol>
+                    ${subjectList.map(x => `<li>${x}</li>`).join("")}
+                </ol>
+            </td>
+        </tr>
+        `;
+    }
+
+    return res.json({
+        status: true,
+        tableRows
+    });
 }

@@ -36,19 +36,22 @@ exports.users = async (req, res) => {
     const thead = `
         <tr>
             <th>#</th>
+            <th>Action</th>
+
             <th>Student Id</th>
             <th>Roll No</th>
             <th>Name</th>
+            <th>Mobile No</th>
+            <th>Category</th>
             <th>Date Of Birth</th>
             <th>Father Name</th>
             <th>Mother Name</th>
-            <th>Email</th>
+            <th>Address</th>
             <th>Course</th>
             <th>Subjects</th>
             <th>Total Fees</th>
             <th>Pending Fees</th>
             <th>Admission Date</th>
-            <th>Action</th>
         </tr>
     `;
 
@@ -75,11 +78,13 @@ exports.users = async (req, res) => {
                 const subject = await UserModel.getSingleRecord(
                     'subjects',
                     { id },
-                    'subject_name'
+                    'subject_name,category'
                 );
 
                 if (subject) {
-                    subjectList.push(subject.subject_name);
+                    // subjectList.push(subject.subject_name);
+                    subjectList.push(`${subject.subject_name} (${subject.category})`);
+
                 }
 
             }
@@ -97,16 +102,23 @@ exports.users = async (req, res) => {
         const dob = SuperHelper.dob(u.dob);
         tableRows += `
         <tr>
-
             <td>${index + 1}</td>
+            <td class="text-nowrap">
+    <div class="btn-group btn-group-sm gap-2">
+        ${profile}
+        ${Editprofile}
+        ${editSubjects}
+    </div>
+</td>
             <td>${u.student_id}</td>
             <td>${u.roll_no}</td>
             <td>${u.first_name} ${u.last_name}</td>
+            <td>${u.mobile}<br>${u.father_mobile}</td>
+            <td>${u.category}</td>
             <td>${dob}</td>
             <td>${u.father_name}</td>
             <td>${u.mother_name}</td>
-            <td>${u.email}</td>
-
+            <td>${u.address}</td>
             <td>${course?.course_name + ' - ' + u.course_year || ''}</td>
 
             <td>
@@ -120,13 +132,7 @@ exports.users = async (req, res) => {
             <td>${CONSTANTS.currency}${u.total_fees}</td>
             <td>${CONSTANTS.currency}${u.total_fees - u.pending_fees}</td>
             <td>${admdate}</td>
-<td class="text-nowrap">
-    <div class="btn-group btn-group-sm gap-2">
-        ${profile}
-        ${Editprofile}
-        ${editSubjects}
-    </div>
-</td>
+
         </tr>
 
         `;
