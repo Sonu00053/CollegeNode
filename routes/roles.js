@@ -113,5 +113,11 @@ router
     .post(jwtAuth.verifyToken, Settings.updateClassandsubjects);
 
 
+    router
+    .route("/update-class/:student_id")
+    .get(jwtAuth.verifyToken,Settings.updateClass)
+    .post(jwtAuth.verifyToken,Settings.updateClass);
+
+
 
 module.exports = router;

@@ -37,7 +37,6 @@ exports.users = async (req, res) => {
         <tr>
             <th>#</th>
             <th>Action</th>
-
             <th>Student Id</th>
             <th>Roll No</th>
             <th>Name</th>
@@ -98,6 +97,8 @@ exports.users = async (req, res) => {
         if (Number(u.course) == 1) {
             editSubjects = `<a href="${CONSTANTS.role}update-subjects/${u.student_id}" class="btn btn-success btn-sm">Edit Subjects</a>`;
         }
+        const Classchange = `<a href="${CONSTANTS.role}update-class/${u.student_id}" class="btn btn-primary btn-sm">Change Class</a>`;
+
         const admdate = SuperHelper.OnlyDate(u.admission_date);
         const dob = SuperHelper.dob(u.dob);
         tableRows += `
@@ -108,6 +109,7 @@ exports.users = async (req, res) => {
         ${profile}
         ${Editprofile}
         ${editSubjects}
+        ${Classchange}
     </div>
 </td>
             <td>${u.student_id}</td>

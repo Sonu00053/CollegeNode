@@ -29,12 +29,14 @@ router.get('/admission-reciept-request', jwtAuth.verifyToken, Manage.admissionre
 
 router.post('/admission-receipt-request-action', jwtAuth.verifyToken,Manage.admissionReceiptRequestAction);
 router.post('/approve-subjects', jwtAuth.verifyToken,Reports.approvesubjects);
+router.post('/approve-change-class', jwtAuth.verifyToken,Reports.approvechangeclass);
 
 
 router.get('/receipt-between-history',jwtAuth.verifyToken,Reports.reciptBetweenHistory);
 
 router.get('/class-wise-history', jwtAuth.verifyToken,Reports.ClassWiseSubjectReport);
 router.get('/subject-change-request-history', jwtAuth.verifyToken,Reports.subjectchangerequest);
+router.get('/class-change-request-history', jwtAuth.verifyToken,Reports.classhangerequest);
 
 router.get('/per-class-subject-history/:course_id/:year', jwtAuth.verifyToken,Reports.perclasssubject);
 

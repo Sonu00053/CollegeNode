@@ -874,3 +874,284 @@ exports.generateRequestId = async () => {
         }
     }
 };
+
+
+exports.generateRequestIdClass = async () => {
+    while (true) {
+        const requestId = crypto.randomInt(1000000000, 10000000000).toString();
+        const exists = await UserModel.getSingleRecord(
+            "class_update_detail",
+            { request_id: requestId },
+            "id"
+        );
+
+        if (!exists) {
+            return requestId;
+        }
+    }
+};
+
+
+exports.updateClass = async (req, res) => {
+    try {
+        const staff_id = req.user.staff_id;
+
+        const student_id = req.params.student_id;
+
+        const courses = await UserModel.getRecords(
+            'courses',
+            {},
+            '*'
+        );
+        // console.log(courses);
+
+        const studentDetail = await UserModel.getSingleRecord(
+            'students',
+            { student_id },
+            '*'
+        );
+
+        if (!studentDetail) {
+            return res.status(404).json({
+                status: false,
+                message: 'Student not found'
+            });
+        }
+        const coursename = await UserModel.getSingleRecord(
+            'courses',
+            { id: studentDetail.course },
+            '*'
+        );
+        const pendingFees = (Number(studentDetail.total_fees) - Number(studentDetail.pending_fees));
+        if (req.method === 'POST') {
+            const {
+                course,
+                course_year,
+                subject_ids
+            } = req.body;
+            console.log(req.body);
+
+            if (!course) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Please select course'
+                });
+            }
+
+            if (!course_year) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Please select class/year'
+                });
+            }
+
+            // Check course exists
+            const selectedCourse = await UserModel.getSingleRecord(
+                'courses',
+                { id: Number(course) },
+                '*'
+            );
+
+            if (!selectedCourse) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Invalid course selected'
+                });
+            }
+
+
+            // Same class check
+            if (
+                Number(studentDetail.course) === Number(course) &&
+                Number(studentDetail.course_year) === Number(course_year)
+            ) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Student is already in this class'
+                });
+            }
+            const coursechek = await UserModel.getSingleRecord(
+                'roll_no',
+                { course_id: course, year: course_year },
+                '*'
+            );
+            let subjectsArray = [];
+            if (subject_ids) {
+                subjectsArray = String(subject_ids)
+                    .split(',')
+                    .map(id => String(id).trim())
+                    .filter(id => id !== '');
+            }
+            if (Number(course) == 1) {
+                if (subjectsArray.length == 0) {
+                    return res.status(400).json({
+                        status: false,
+                        message: 'Please Select Subjects'
+                    });
+                }
+            }
+            let subjects = '';
+            let practical = 0;
+            var fine_arts_status = 0;
+            var music_vocal_status = 0;
+            var music_instrumnet_status = 0;
+            var computer_science_status = 0;
+            var english_honour_status = 0;
+            var home_science_status = 0;
+            var physical = 0;
+            // let NewtotalFees = 0;
+            // if (Number(course) == 1) {
+            let totalFees = (Number(coursechek.admission) + Number(coursechek.tution) + Number(coursechek.af_charges) + Number(coursechek.anual) + Number(coursechek.pu_charges) + Number(coursechek.cdf_dilp) + Number(coursechek.uni_examination) + Number(studentDetail.parking_fees) + Number(studentDetail.security));
+            console.log("Total Fees: ", totalFees);
+            // } else {
+            //     NewtotalFees = (Number(coursechek.admission) + Number(coursechek.tution) + Number(coursechek.af_charges) + Number(coursechek.anual) + Number(coursechek.pu_charges) + Number(coursechek.cdf_dilp) + Number(coursechek.uni_examination) + Number(studentDetail.parking_fees) + Number(studentDetail.security));
+            // }
+            totalPracticalFee = 0;
+            if (subjectsArray) {
+                const ids = subjectsArray;
+                let practicalAdded = false;
+
+                for (const id of ids) {
+                    const subject = await UserModel.getSingleRecord(
+                        'subjects',
+                        { id },
+                        'subject_name,practical_status,practical_key'
+                    );
+                    if (subject) {
+                        subjects += subject.subject_name + ', ';
+                        // if (course == 1 && !practicalAdded) {
+                        //     if (subject.subject_name == 'Foundation of Physical Education and Sports') {
+                        //         const practicalfees = await UserModel.getSingleRecord(
+                        //             'roll_no',
+                        //             { course_id: course,year:semester },
+                        //             'practical,practical'
+                        //         );
+                        //         totalFees = (totalFees + Number(practicalfees.practical));
+                        //         totalPracticalFee = (totalPracticalFee + Number(practicalfees.practical));
+                        //         practical = 1;
+                        //         physical = Number(practicalfees.practical);
+                        //         practicalAdded = true;
+                        //     }
+                        // }
+
+
+
+
+                        if (Number(subject.practical_status) == 1) {
+                            const addedfees = await UserModel.getSingleRecord(
+                                'roll_no',
+                                { course_id: course, year: course_year },
+                                'fine_arts,music_vocal,music_instrumnet,computer_science,english_honour,home_science,practical'
+                            );
+
+                            if (subject.practical_key == "practical") {
+                                var physical = Number(addedfees.practical);
+                                practical = 1;
+                                totalFees = (totalFees + Number(addedfees.fine_arts));
+                                totalPracticalFee = (totalPracticalFee + Number(addedfees.fine_arts));
+                            }
+
+
+                            if (subject.practical_key == "fine_arts") {
+                                var fine_arts_status = Number(addedfees.fine_arts);
+                                totalFees = (totalFees + Number(addedfees.fine_arts));
+                                totalPracticalFee = (totalPracticalFee + Number(addedfees.fine_arts));
+                            }
+
+                            if (subject.practical_key == "music_vocal") {
+                                var music_vocal_status = Number(addedfees.music_vocal);
+                                totalFees = (totalFees + Number(addedfees.music_vocal));
+                                totalPracticalFee = (totalPracticalFee + Number(addedfees.music_vocal));
+
+                            }
+                            if (subject.practical_key == "music_instrumnet") {
+                                var music_instrumnet_status = Number(addedfees.music_instrumnet);
+                                totalFees = (totalFees + Number(addedfees.music_instrumnet));
+                                totalPracticalFee = (totalPracticalFee + Number(addedfees.music_instrumnet));
+
+                            }
+                            if (subject.practical_key == "computer_science") {
+                                var computer_science_status = Number(addedfees.computer_science);
+                                totalFees = (totalFees + Number(addedfees.computer_science));
+                                totalPracticalFee = (totalPracticalFee + Number(addedfees.computer_science));
+
+                            }
+                            if (subject.practical_key == "english_honour") {
+                                var english_honour_status = Number(addedfees.english_honour);
+                                totalFees = (totalFees + Number(addedfees.english_honour));
+                                totalPracticalFee = (totalPracticalFee + Number(addedfees.english_honour));
+
+                            }
+                            if (subject.practical_key == "home_science") {
+                                var home_science_status = Number(addedfees.home_science);
+                                totalFees = (totalFees + Number(addedfees.home_science));
+                                totalPracticalFee = (totalPracticalFee + Number(addedfees.home_science));
+
+                            }
+                        }
+                    }
+                }
+                subjects = subjects.replace(/, $/, '');
+            }
+            console.log("Total Practical Fess: ", totalPracticalFee);
+            const request_id = await exports.generateRequestIdClass();
+            await UserModel.addRecord('class_update_detail', {
+                student_id,
+                request_id,
+                course: studentDetail.course,
+                roll_no: studentDetail.roll_no,
+                course_year: studentDetail.course_year,
+                total_fees: studentDetail.total_fees,
+                subject_ids: studentDetail.subject_ids,
+                new_subject_ids: JSON.stringify(subjectsArray),
+                fine_arts: fine_arts_status,
+                music_vocal: music_vocal_status,
+                music_instrumnet: music_instrumnet_status,
+                computer_science: computer_science_status,
+                english_honour: english_honour_status,
+                home_science: home_science_status,
+                total_practical_fees: studentDetail.total_practical_fees,
+                physical: physical,
+                practical_status: practical,
+                new_course: course,
+                new_course_year: course_year,
+                total_fees: studentDetail.total_fees,
+                pending_fees: studentDetail.pending_fees,
+                available_fees: studentDetail.available_fees,
+                new_total_fees: totalFees,
+                new_total_practical_fees: totalPracticalFee,
+                staff_id
+            });
+
+            return res.json({
+                status: true,
+                message: 'Student class updated successfully!'
+            });
+        }
+        const checkrequest = await UserModel.getSingleRecord(
+            'class_update_detail',
+            { student_id: studentDetail.student_id, status: 0 },
+            '*'
+        );
+
+        return View.Rview(res, 'changeclass', {
+            header: 'Change Class',
+            action: 'update-class/' + student_id,
+            redirect: CONSTANTS.role + 'update-class/' + student_id,
+            courses,
+            coursename: coursename.course_name + '-' + studentDetail.course_year,
+            pendingFees,
+            studentDetail,
+            checkrequest,
+            subjectuser: studentDetail.subject_ids,
+        });
+
+    } catch (err) {
+        console.log(err);
+
+        return res.status(500).json({
+            status: false,
+            message: 'Server Error'
+        });
+    }
+};
