@@ -1155,3 +1155,249 @@ exports.updateClass = async (req, res) => {
         });
     }
 };
+
+exports.misc_reciept = async (req, res) => {
+    const student_id = req.params.student_id || "";
+    // const staff_id = req.user.staff_id;
+
+    let name = "", father_name = "", university_roll_no = "", mobile = "";
+    let studentClass = "", on_account_of = "", on_account_of_other = "";
+    let amount = "", payment_mode = "Cash", transaction_id = "", receipt_date = "";
+    let message = "", messageType = "", redirect = "";
+
+    const redirectUrl = CONSTANTS.role + "misc-create-reciept/";
+    let student = null;
+    const errors = {};
+
+    if (student_id) {
+        student = await UserModel.getSingleRecord(
+            "students",
+            { student_id },
+            "*"
+        );
+
+        if (!student) {
+            return View.Rview(res, "404", {
+                message: "Student not found."
+            });
+        }
+    }
+
+    // GET
+    if (req.method !== "POST") {
+
+        if (student) {
+            name = `${student.first_name || ""} ${student.last_name || ""}`.trim();
+            father_name = student.father_name || "";
+            university_roll_no =
+                student.university_roll_no ||
+                student.univ_roll_no ||
+                student.roll_no ||
+                "";
+            mobile = student.mobile || "";
+
+            if (student.course && student.course_year) {
+                studentClass = `${student.course} ${student.course_year}`;
+            } else {
+                studentClass = student.class || "";
+            }
+        }
+
+        receipt_date = new Date().toISOString().split("T")[0];
+    }
+
+    // POST
+    if (req.method === "POST") {
+
+        ({
+            name = "",
+            father_name = "",
+            university_roll_no = "",
+            mobile = "",
+            class: studentClass = "",
+            on_account_of = "",
+            on_account_of_other = "",
+            amount = "",
+            payment_mode = "Cash",
+            transaction_id = "",
+            receipt_date = ""
+        } = req.body);
+
+        name = String(name).trim();
+        father_name = String(father_name).trim();
+        university_roll_no = String(university_roll_no).trim();
+        mobile = String(mobile).trim();
+        studentClass = String(studentClass).trim();
+        on_account_of = String(on_account_of).trim();
+        on_account_of_other = String(on_account_of_other).trim();
+        amount = String(amount).trim();
+        payment_mode = String(payment_mode).trim();
+        transaction_id = String(transaction_id).trim();
+        receipt_date = String(receipt_date).trim();
+
+        // Validation
+        if (!name)
+            errors.name = "Name is required.";
+
+        if (!father_name)
+            errors.father_name = "Father Name is required.";
+
+        if (!university_roll_no)
+            errors.university_roll_no =
+                "University Roll No. is required.";
+
+        if (!mobile)
+            errors.mobile = "Mobile Number is required.";
+        else if (!/^[0-9]{10}$/.test(mobile))
+            errors.mobile =
+                "Enter valid 10 digit mobile number.";
+
+        if (!studentClass)
+            errors.class = "Class is required.";
+
+        // Account Of
+        const accountOptions = [
+            "Degree",
+            "Duplicate Library Card",
+            "Library Books Lost",
+            "Character/Transfer/College Leaving Certificate",
+            "Migration Certificate Attestation",
+            "Duplicate DMC/Degree Certificate Attestation",
+            "Letter of Recommendation (LOR)",
+            "Backlog Certificate",
+            "Medium of Instruction (MOI)",
+            "Other"
+        ];
+
+        if (!on_account_of) {
+            errors.on_account_of =
+                "On Account Of is required.";
+        } else if (!accountOptions.includes(on_account_of)) {
+            errors.on_account_of =
+                "Invalid On Account Of.";
+        }
+
+        if (
+            on_account_of === "Other" &&
+            !on_account_of_other
+        ) {
+            errors.on_account_of_other =
+                "Other Account is required.";
+        }
+
+        if (!amount)
+            errors.amount = "Amount is required.";
+        else if (
+            isNaN(amount) ||
+            Number(amount) <= 0
+        )
+            errors.amount = "Enter valid amount.";
+
+        const paymentModes = [
+            "Cash",
+            "Online",
+            "Cheque",
+            "DD"
+        ];
+
+        if (!paymentModes.includes(payment_mode))
+            errors.payment_mode =
+                "Invalid Payment Mode.";
+
+        if (
+            payment_mode !== "Cash" &&
+            !transaction_id
+        )
+            errors.transaction_id =
+                "Transaction ID is required.";
+
+        if (!receipt_date)
+            errors.receipt_date =
+                "Receipt Date is required.";
+
+        // Save
+        if (Object.keys(errors).length) {
+
+            message =
+                "Please fix the validation errors.";
+
+            messageType = "error";
+
+        } else {
+
+            if (on_account_of !== "Other")
+                on_account_of_other = null;
+
+            if (payment_mode === "Cash")
+                transaction_id = null;
+
+            const receiptData = {
+                student_id: student_id || null,
+                name,
+                father_name,
+                university_roll_no,
+                mobile,
+                class: studentClass,
+                on_account_of,
+                on_account_of_other,
+                amount: Number(amount),
+                payment_mode,
+                transaction_id,
+                receipt_date,
+                created_by: staff_id
+            };
+
+            const receiptId = await UserModel.addRecord(
+                "fee_receipts",
+                receiptData
+            );
+
+            if (!receiptId) {
+
+                message =
+                    "Receipt could not be created.";
+
+                messageType = "error";
+
+            } else {
+
+                message =
+                    "Receipt created successfully.";
+
+                messageType = "success";
+
+                redirect =
+                    CONSTANTS.role +
+                    "receipt/" +
+                    receiptId;
+            }
+        }
+    }
+
+    const response = {
+        title: "Create Misc Receipt",
+        action: redirectUrl,
+        method: "POST",
+        message,
+        messageType,
+        redirect,
+        // name,
+        // father_name,
+        // university_roll_no,
+        // mobile,
+        // studentClass,
+        // on_account_of,
+        // on_account_of_other,
+        // amount,
+        // payment_mode,
+        // transaction_id,
+        // receipt_date,
+        // student
+    };
+
+    return View.Rview(
+        res,
+        "misc_reciept",
+        response
+    );
+};

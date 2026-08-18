@@ -118,6 +118,11 @@ router
     .get(jwtAuth.verifyToken,Settings.updateClass)
     .post(jwtAuth.verifyToken,Settings.updateClass);
 
+    router
+    .route("/misc-create-reciept")
+    .get(Settings.misc_reciept)
+    .post(Settings.misc_reciept);
+
 
 
 module.exports = router;

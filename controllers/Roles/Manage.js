@@ -41,6 +41,7 @@ exports.users = async (req, res) => {
             <th>Roll No</th>
             <th>Name</th>
             <th>Mobile No</th>
+            <th>Father Mobile</th>
             <th>Category</th>
             <th>Date Of Birth</th>
             <th>Father Name</th>
@@ -115,7 +116,8 @@ exports.users = async (req, res) => {
             <td>${u.student_id}</td>
             <td>${u.roll_no}</td>
             <td>${u.first_name} ${u.last_name}</td>
-            <td>${u.mobile}<br>${u.father_mobile}</td>
+            <td>${u.mobile}</td>
+            <td>${u.father_mobile}</td>
             <td>${u.category}</td>
             <td>${dob}</td>
             <td>${u.father_name}</td>

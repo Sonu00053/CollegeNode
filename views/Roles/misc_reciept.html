@@ -1,0 +1,258 @@
+<div class="content">
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">{{title}}</h5>
+        </div>
+
+        <div class="card-body">
+            <form action="{{action}}" method="{{method}}" id="receiptForm" novalidate>
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" id="name" value="" class="form-control"
+                            placeholder="Enter Name">
+                        <div id="name_error" class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Father Name <span class="text-danger">*</span></label>
+                        <input type="text" name="father_name" id="father_name" value=""
+                            class="form-control" placeholder="Enter Father Name">
+                        <div id="father_name_error" class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Univ. Roll No. <span class="text-danger">*</span></label>
+                        <input type="text" name="university_roll_no" id="university_roll_no"
+                            value="" class="form-control" placeholder="Enter University Roll No.">
+                        <div id="university_roll_no_error" class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Mobile Number <span class="text-danger">*</span></label>
+                        <input type="text" name="mobile" id="mobile" value="" maxlength="10"
+                            class="form-control" placeholder="Enter Mobile Number">
+                        <div id="mobile_error" class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Class <span class="text-danger">*</span></label>
+                        <select name="class" id="class" class="form-select">
+                            <option value="">Select Class</option>
+                            <option value="BCA 1st Year">BCA 1st Year</option>
+                            <option value="BCA 2nd Year">BCA 2nd Year</option>
+                            <option value="BCA 3rd Year">BCA 3rd Year</option>
+                            <option value="BBA 1st Year">BBA 1st Year</option>
+                            <option value="BBA 2nd Year">BBA 2nd Year</option>
+                            <option value="BBA 3rd Year">BBA 3rd Year</option>
+                        </select>
+                        <div id="class_error" class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">On Account Of <span class="text-danger">*</span></label>
+                        <select name="on_account_of" id="on_account_of" class="form-select">
+                            <option value="">Select Account</option>
+                            <option value="Degree">Degree</option>
+                            <option value="Duplicate Library Card">Duplicate Library Card</option>
+                            <option value="Library Books Lost">Library Books Lost</option>
+                            <option value="Character/Transfer/College Leaving Certificate">
+                                Character/Transfer/College Leaving Certificate
+                            </option>
+                            <option value="Migration Certificate Attestation">
+                                Migration Certificate Attestation
+                            </option>
+                            <option value="Duplicate DMC/Degree Certificate Attestation">
+                                Duplicate DMC/Degree Certificate Attestation
+                            </option>
+                            <option value="Letter of Recommendation (LOR)">
+                                Letter of Recommendation (LOR)
+                            </option>
+                            <option value="Backlog Certificate">
+                                Backlog Certificate
+                            </option>
+                            <option value="Medium of Instruction (MOI)">
+                                Medium of Instruction (MOI)
+                            </option>
+                            <option value="Other">Other</option>
+                        </select>
+
+                        <div id="on_account_of_error" class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="col-md-6" id="other_account_box" style="display:none;">
+                        <label class="form-label">Other Account <span class="text-danger">*</span></label>
+                        <input type="text" name="on_account_of_other" id="on_account_of_other"
+                            value="" class="form-control" placeholder="Enter Other Account">
+                        <div id="on_account_of_other_error" class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Amount <span class="text-danger">*</span></label>
+                        <input type="number" name="amount" id="amount" value="" min="0" step="0.01"
+                            class="form-control" placeholder="Enter Amount">
+                        <div id="amount_error" class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Payment Mode <span class="text-danger">*</span></label>
+                        <select name="payment_mode" id="payment_mode" class="form-select">
+                            <option value="Cash">Cash</option>
+                            <option value="Online">Online</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="DD">DD</option>
+                        </select>
+                        <div id="payment_mode_error" class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="col-md-6" id="transaction_box" style="display:none;">
+                        <label class="form-label">Transaction ID <span class="text-danger">*</span></label>
+                        <input type="text" name="transaction_id" id="transaction_id" value=""
+                            class="form-control" placeholder="Enter Transaction ID">
+                        <div id="transaction_id_error" class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Receipt Date <span class="text-danger">*</span></label>
+                        <input type="date" name="receipt_date" id="receipt_date" value=""
+                            class="form-control">
+                        <div id="receipt_date_error" class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="col-12 mt-3">
+                        <button type="submit" class="btn btn-dark">Create Receipt</button>
+                        <!-- <a href="" class="btn btn-secondary">Cancel</a> -->
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+        const form = document.getElementById("receiptForm");
+        const account = document.getElementById("on_account_of");
+        const otherBox = document.getElementById("other_account_box");
+        const otherInput = document.getElementById("on_account_of_other");
+        const payment = document.getElementById("payment_mode");
+        const transactionBox = document.getElementById("transaction_box");
+        const transaction = document.getElementById("transaction_id");
+
+        function error(field, msg) {
+            document.getElementById(field).classList.add("is-invalid");
+            document.getElementById(field + "_error").innerHTML = msg;
+        }
+
+        function clearErrors() {
+            document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+            document.querySelectorAll(".invalid-feedback").forEach(el => el.innerHTML = "");
+        }
+
+        function toggleOther() {
+            const show = account.value === "Other";
+            otherBox.style.display = show ? "block" : "none";
+            otherInput.required = show;
+            if (!show) otherInput.value = "";
+        }
+
+        function toggleTransaction() {
+            const show = payment.value !== "Cash";
+            transactionBox.style.display = show ? "block" : "none";
+            transaction.required = show;
+            if (!show) transaction.value = "";
+        }
+
+        account.addEventListener("change", toggleOther);
+        payment.addEventListener("change", toggleTransaction);
+
+        document.getElementById("mobile").addEventListener("input", function () {
+            this.value = this.value.replace(/[^0-9]/g, "").slice(0, 10);
+        });
+
+        toggleOther();
+        toggleTransaction();
+
+        form.addEventListener("submit", e => {
+            e.preventDefault();
+            clearErrors();
+
+            let valid = true;
+
+            const fields = {
+                name: "Name is required.",
+                father_name: "Father Name is required.",
+                university_roll_no: "University Roll No. is required.",
+                class: "Please select Class.",
+                on_account_of: "Please select On Account Of.",
+                amount: "Amount is required.",
+                receipt_date: "Receipt Date is required."
+            };
+
+            Object.keys(fields).forEach(field => {
+                if (!document.getElementById(field).value.trim()) {
+                    error(field, fields[field]);
+                    valid = false;
+                }
+            });
+
+            const mobile = document.getElementById("mobile").value.trim();
+
+            if (!mobile) {
+                error("mobile", "Mobile Number is required.");
+                valid = false;
+            } else if (!/^[0-9]{10}$/.test(mobile)) {
+                error("mobile", "Enter valid 10 digit mobile number.");
+                valid = false;
+            }
+
+            if (account.value === "Other" && !otherInput.value.trim()) {
+                error("on_account_of_other", "Other Account is required.");
+                valid = false;
+            }
+
+            if (Number(document.getElementById("amount").value) <= 0) {
+                error("amount", "Amount must be greater than 0.");
+                valid = false;
+            }
+
+            if (payment.value !== "Cash" && !transaction.value.trim()) {
+                error("transaction_id", "Transaction ID is required.");
+                valid = false;
+            }
+
+            if (!valid) {
+                document.querySelector(".is-invalid")?.focus();
+                return;
+            }
+
+            form.submit();
+        });
+
+        const message = `{{message}}`;
+        const type = `{{messageType}}`;
+        const redirect = `{{redirect}}`;
+
+        if (message) {
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: type || "info",
+                title: message,
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true
+            });
+
+            if (redirect) {
+                setTimeout(() => {
+                    window.location.href = redirect;
+                }, 2000);
+            }
+        }
+    });
+</script>
