@@ -105,9 +105,10 @@
 
 
                 </div>
-                <span class="btn btn-warning" id="approvalMessage" style="display:none;">
+                <!-- <span class="btn btn-warning" id="approvalMessage" style="display:none;">
                     Please Wait For Admin Approval
-                </span>
+                </span> -->
+                {{buttons2}}
 
 
                 <!-- Form -->
@@ -138,10 +139,11 @@
                     </div>
                     <input type="hidden" name="subject_ids" id="subject_ids">
 
-                    <button type="submit" class="btn btn-primary w-100 mt-4">
+                    <!-- <button type="submit" class="btn btn-primary w-100 mt-4">
                         <i class="fas fa-edit"></i>
                         Update Class
-                    </button>
+                    </button> -->
+                    {{buttons}}
 
 
                 </form>
@@ -188,6 +190,16 @@
         if (Checkrequest && Checkrequest !== "null" && Checkrequest !== "undefined") {
             document.getElementById("classChangeForm").style.display = "none";
             document.getElementById("approvalMessage").style.display = "block";
+        }
+         function TableOpen() {
+            Swal.fire({
+                title: 'Request Pending',
+                html: `{{html2}}`,
+                icon: 'info',
+                showCloseButton: true,
+                focusConfirm: false,
+                confirmButtonText: 'Close'
+            });
         }
 
         /* =========================================================

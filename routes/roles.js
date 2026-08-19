@@ -106,6 +106,9 @@ router.post('/update-adm-reciept', jwtAuth.verifyToken, Settings.updateamdrecipt
 
 router.get('/runSet', Reports.updateFees);
 router.get('/receipt-between-history', jwtAuth.verifyToken, Reports.reciptBetweenHistory);
+router.get('/class-change-history', jwtAuth.verifyToken, Reports.classhangerequest);
+router.get('/subject-change-history', jwtAuth.verifyToken, Reports.subjectchangerequest);
+
 
 router
     .route("/update-subjects/:student_id")
@@ -122,6 +125,7 @@ router
     .route("/misc-create-reciept")
     .get(Settings.misc_reciept)
     .post(Settings.misc_reciept);
+    
 
 
 

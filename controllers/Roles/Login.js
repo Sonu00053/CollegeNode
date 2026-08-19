@@ -512,24 +512,6 @@ exports.register = async (req, res) => {
                     );
                     if (subject) {
                         subjects += subject.subject_name + ', ';
-                        // if (course == 1 && !practicalAdded) {
-                        //     if (subject.subject_name == 'Foundation of Physical Education and Sports') {
-                        //         const practicalfees = await UserModel.getSingleRecord(
-                        //             'roll_no',
-                        //             { course_id: course,year:semester },
-                        //             'practical,practical'
-                        //         );
-                        //         totalFees = (totalFees + Number(practicalfees.practical));
-                        //         totalPracticalFee = (totalPracticalFee + Number(practicalfees.practical));
-                        //         practical = 1;
-                        //         physical = Number(practicalfees.practical);
-                        //         practicalAdded = true;
-                        //     }
-                        // }
-
-
-
-
                         if (Number(subject.practical_status) == 1) {
                             const addedfees = await UserModel.getSingleRecord(
                                 'roll_no',
@@ -718,7 +700,6 @@ exports.rollNoGenerate = async (course_id, year) => {
         let runningNo;
 
         if (roll.last_year != currentYear) {
-            // New Year
             runningNo = roll.start;
         } else {
             runningNo = roll.last_rno == null

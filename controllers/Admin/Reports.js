@@ -37,8 +37,8 @@ exports.reciptBetweenHistory = async (req, res) => {
 
             // Receipt Table
             const receipt = await UserModel.getSingleRecorddate(
-                'admission_date',
-                { created_at: newdate },
+                'receipt_details',
+                { admission_date: newdate },
                 'COUNT(*) total_records, IFNULL(SUM(amount),0) total_amount'
             );
 
@@ -326,6 +326,7 @@ exports.subjectchangerequest = async (req, res) => {
             <th>New Subject</th>
             <th>Old Total Fees</th>
             <th>New Total Fees</th>
+            <th>Date</th>
             <th>Status</th>
             <th>Action</th>
         </tr>
@@ -389,38 +390,67 @@ exports.subjectchangerequest = async (req, res) => {
             }
 
         }
-        // <td>${new Date(u.admission_date).toISOString().split('T')[0]}</td>
+      
+        const newdate = SuperHelper.OnlyDate(u.created_at);
 
-
-        const headsView = '<a href="' + '/admin/heads-detail/' + u.student_id + '" class="btn btn-sm btn-dark">View</a>';
-        const date = new Date(u.admission_date);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const newdate = `${year}-${month}-${day}`;
         let button = '';
         let status = '';
+        
         if (Number(u.status) == 0) {
-            button = `<button
+
+            button = `
+        <div class="d-flex gap-1">
+            <button
                 type="button"
                 class="btn btn-success btn-sm SubjecttAction"
                 data-id="${u.id}"
+                data-action="approve">
                 <i class="bi bi-check-circle"></i> Approve
-            </button>`;
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-danger btn-sm SubjecttAction"
+                data-id="${u.id}"
+                data-action="reject">
+                <i class="bi bi-x-circle"></i> Reject
+            </button>
+        </div>
+    `;
+
             status = `
         <span class="badge bg-warning text-dark">
             <i class="bi bi-clock-fill"></i> Pending
-        </span>`;
+        </span>
+    `;
 
-        } else {
+        } else if (Number(u.status) == 1) {
+
             button = `
-                <span class="badge bg-success">
-                    <i class="bi bi-check-circle-fill"></i> Approved
-                </span>`;
+        <span class="badge bg-success">
+            <i class="bi bi-check-circle-fill"></i> Approved
+        </span>
+    `;
+
             status = `
         <span class="badge bg-success">
             <i class="bi bi-check-circle-fill"></i> Success
-        </span>`;
+        </span>
+    `;
+
+        } else if (Number(u.status) == 2) {
+
+            button = `
+        <span class="badge bg-danger">
+            <i class="bi bi-x-circle-fill"></i> Rejected
+        </span>
+    `;
+
+            status = `
+        <span class="badge bg-danger">
+            <i class="bi bi-x-circle-fill"></i> Rejected
+        </span>
+    `;
         }
         tableRows += `
         
@@ -429,17 +459,34 @@ exports.subjectchangerequest = async (req, res) => {
             <td>${u.student_id}</td>
             <td>${course.course_name}-${u.course_year}</td>
         <td>
-            <ol style="margin:0; padding-left:18px;">
-                ${subjectList.map(subject => `<li>${subject}</li>`).join('')}
-            </ol>
+        <div class="card border shadow-sm" style="width: 180px;">
+            <div class="card-body p-2 subject-card-body">
+
+                ${subjectList.map(subject => `
+                    <div class="small border-bottom py-1">
+                        ${subject}
+                    </div>
+                `).join('')}
+
+            </div>
+        </div>
         </td>
-        <td>
-            <ol style="margin:0; padding-left:18px;">
-                ${subjectListNew.map(subject => `<li>${subject}</li>`).join('')}
-            </ol>
+          <td>
+        <div class="card border shadow-sm" style="width: 180px;">
+            <div class="card-body p-2 subject-card-body">
+
+                ${subjectListNew.map(subject => `
+                    <div class="small border-bottom py-1">
+                        ${subject}
+                    </div>
+                `).join('')}
+
+            </div>
+        </div>
         </td>
         <td>${CONSTANTS.currency}${u.total_fees}</td>
         <td>${CONSTANTS.currency}${u.new_total_fees}</td>
+        <td>${newdate}</td>
         <td>${status}</td>
         <td>${button}</td>
 
@@ -465,7 +512,14 @@ exports.approvesubjects = async (req, res) => {
 
     try {
 
-        const { id } = req.body;
+        // const { id } = req.body;
+        const { id, action } = req.body;
+        if (!id || !['approve', 'reject'].includes(action)) {
+            return res.json({
+                status: false,
+                message: 'Invalid request.'
+            });
+        }
 
         const student = await UserModel.getSingleRecord(
             'subject_update_detail',
@@ -486,76 +540,94 @@ exports.approvesubjects = async (req, res) => {
             { student_id: student.student_id },
             '*'
         );
-        const CheckDuplicate = await UserModel.getSingleRecord(
-            'subject_old_history',
-            { request_id: student.request_id },
-            '*'
-        );
-        if (!CheckDuplicate) {
-
-            const OldaDetail = {
-                student_id: studentDetail.roll_no,
-                request_id: student.request_id,
-                roll_no: studentDetail.roll_no,
-                course: studentDetail.course,
-                course_year: studentDetail.course_year,
-                subject_ids: studentDetail.subject_ids,
-                total_fees: studentDetail.total_fees,
-                available_fees: studentDetail.available_fees,
-                physical: studentDetail.physical,
-                computer_science: studentDetail.computer_science,
-                home_science: studentDetail.home_science,
-                fine_arts: studentDetail.fine_arts,
-                music_instrumnet: studentDetail.music_instrumnet,
-                music_vocal: studentDetail.music_vocal,
-                english_honour: studentDetail.english_honour,
-                admission_date: studentDetail.admission_date,
-                security: studentDetail.security,
-                parking_fees: studentDetail.parking_fees,
-            };
-            const result = await UserModel.addRecord(
+        if (action === 'approve') {
+            const CheckDuplicate = await UserModel.getSingleRecord(
                 'subject_old_history',
-                OldaDetail
+                { request_id: student.request_id },
+                '*'
             );
-            const AwailableFee = (Number(student.new_total_fees) - Number(studentDetail.available_fees));
-            const UpdateData = {
-                subject_ids: student.new_subject_ids,
-                total_fees: student.new_total_fees,
-                available_fees: AwailableFee,
-                physical: student.physical,
-                computer_science: student.computer_science,
-                home_science: student.home_science,
-                fine_arts: student.fine_arts,
-                music_instrumnet: student.music_instrumnet,
-                music_vocal: student.music_vocal,
-                english_honour: student.english_honour,
-                total_practical_fees: student.total_practical_fees,
-                physical: student.physical,
-                practical_status: student.practical_status,
-            };
+            if (!CheckDuplicate) {
 
-            await UserModel.updateRecord(
-                "students",
-                UpdateData,
-                { student_id: student.student_id }
+                const OldaDetail = {
+                    student_id: studentDetail.roll_no,
+                    request_id: student.request_id,
+                    roll_no: studentDetail.roll_no,
+                    course: studentDetail.course,
+                    course_year: studentDetail.course_year,
+                    subject_ids: studentDetail.subject_ids,
+                    total_fees: studentDetail.total_fees,
+                    available_fees: studentDetail.available_fees,
+                    physical: studentDetail.physical,
+                    computer_science: studentDetail.computer_science,
+                    home_science: studentDetail.home_science,
+                    fine_arts: studentDetail.fine_arts,
+                    music_instrumnet: studentDetail.music_instrumnet,
+                    music_vocal: studentDetail.music_vocal,
+                    english_honour: studentDetail.english_honour,
+                    admission_date: studentDetail.admission_date,
+                    security: studentDetail.security,
+                    parking_fees: studentDetail.parking_fees,
+                };
+                const result = await UserModel.addRecord(
+                    'subject_old_history',
+                    OldaDetail
+                );
+                const AwailableFee = (Number(student.new_total_fees) - Number(studentDetail.available_fees));
+                const UpdateData = {
+                    subject_ids: student.new_subject_ids,
+                    total_fees: student.new_total_fees,
+                    available_fees: AwailableFee,
+                    physical: student.physical,
+                    computer_science: student.computer_science,
+                    home_science: student.home_science,
+                    fine_arts: student.fine_arts,
+                    music_instrumnet: student.music_instrumnet,
+                    music_vocal: student.music_vocal,
+                    english_honour: student.english_honour,
+                    total_practical_fees: student.total_practical_fees,
+                    physical: student.physical,
+                    practical_status: student.practical_status,
+                };
 
-            );
-            await UserModel.updateRecord(
-                "subject_update_detail",
-                { status: 1 },
-                { id: student.id }
+                await UserModel.updateRecord(
+                    "students",
+                    UpdateData,
+                    { student_id: student.student_id }
 
-            );
-            await exports.updateFees();
-            return res.json({
-                status: true,
-                message: 'Subject Updated successfully.'
-            });
+                );
+                await UserModel.updateRecord(
+                    "subject_update_detail",
+                    { status: 1 },
+                    { id: student.id }
+
+                );
+                // await exports.updateFees();
+                await updateFeesStudent(student.student_id);
+                return res.json({
+                    status: true,
+                    message: 'Subject Updated successfully.'
+                });
+            } else {
+                return res.json({
+                    status: false,
+                    message: 'This Request Alreay Approved.'
+                });
+            }
         } else {
-            return res.json({
-                status: false,
-                message: 'This Request Alreay Approved.'
-            });
+            if (action === 'reject') {
+                await UserModel.updateRecord(
+                    'subject_update_detail',
+                    {
+                        status: 2
+                    },
+                    { id: id }
+                );
+
+                return res.json({
+                    status: true,
+                    message: 'Subject Change Request Rejected Successfully.'
+                });
+            }
         }
 
     } catch (err) {
@@ -834,8 +906,10 @@ exports.classhangerequest = async (req, res) => {
             <th>New Subject</th>
             <th>Old Total Fees</th>
             <th>New Total Fees</th>
+            <th>Date</th>
             <th>Status</th>
             <th>Action</th>
+
         </tr>
     `;
 
@@ -905,35 +979,71 @@ exports.classhangerequest = async (req, res) => {
         // <td>${new Date(u.admission_date).toISOString().split('T')[0]}</td>
 
 
-        const headsView = '<a href="' + '/admin/heads-detail/' + u.student_id + '" class="btn btn-sm btn-dark">View</a>';
-        const date = new Date(u.admission_date);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const newdate = `${year}-${month}-${day}`;
+        // const headsView = '<a href="' + '/admin/heads-detail/' + u.student_id + '" class="btn btn-sm btn-dark">View</a>';
+        // const date = new Date(u.admission_date);
+        // const year = date.getFullYear();
+        // const month = String(date.getMonth() + 1).padStart(2, '0');
+        // const day = String(date.getDate()).padStart(2, '0');
+        // const newdate = `${year}-${month}-${day}`;
+                const newdate = SuperHelper.OnlyDate(u.created_at);
+
         let button = '';
         let status = '';
         if (Number(u.status) == 0) {
-            button = `<button
+
+            button = `
+        <div class="d-flex gap-1">
+            <button
                 type="button"
                 class="btn btn-success btn-sm ClassChangetAction"
                 data-id="${u.id}"
+                data-action="approve">
                 <i class="bi bi-check-circle"></i> Approve
-            </button>`;
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-danger btn-sm ClassChangetAction"
+                data-id="${u.id}"
+                data-action="reject">
+                <i class="bi bi-x-circle"></i> Reject
+            </button>
+        </div>
+    `;
+
             status = `
         <span class="badge bg-warning text-dark">
             <i class="bi bi-clock-fill"></i> Pending
-        </span>`;
+        </span>
+    `;
 
-        } else {
+        } else if (Number(u.status) == 1) {
+
             button = `
-                <span class="badge bg-success">
-                    <i class="bi bi-check-circle-fill"></i> Approved
-                </span>`;
+        <span class="badge bg-success">
+            <i class="bi bi-check-circle-fill"></i> Approved
+        </span>
+    `;
+
             status = `
         <span class="badge bg-success">
             <i class="bi bi-check-circle-fill"></i> Success
-        </span>`;
+        </span>
+    `;
+
+        } else if (Number(u.status) == 2) {
+
+            button = `
+        <span class="badge bg-danger">
+            <i class="bi bi-x-circle-fill"></i> Rejected
+        </span>
+    `;
+
+            status = `
+        <span class="badge bg-danger">
+            <i class="bi bi-x-circle-fill"></i> Rejected
+        </span>
+    `;
         }
         tableRows += `
         
@@ -943,17 +1053,38 @@ exports.classhangerequest = async (req, res) => {
             <td>${course.course_name}-${u.course_year}</td>
             <td>${Newcourse.course_name}-${u.new_course_year}</td>
         <td>
-            <ol style="margin:0; padding-left:18px;">
-                ${subjectList.map(subject => `<li>${subject}</li>`).join('')}
-            </ol>
+         
+        ${subjectList.length > 0 ? `
+            <div class="card border shadow-sm" style="width: 180px;">
+                <div class="card-body p-2 subject-card-body">
+                    ${subjectList.map(subject => `
+                        <div class="small border-bottom py-1">
+                            ${subject}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        ` : ''}
+          
         </td>
         <td>
-            <ol style="margin:0; padding-left:18px;">
-                ${subjectListNew.map(subject => `<li>${subject}</li>`).join('')}
-            </ol>
+        ${subjectListNew.length > 0 ? `
+            <div class="card border shadow-sm" style="width: 180px;">
+                <div class="card-body p-2 subject-card-body">
+                    ${subjectListNew.map(subject => `
+                        <div class="small border-bottom py-1">
+                            ${subject}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        ` : ''}
+           
         </td>
         <td>${CONSTANTS.currency}${u.total_fees}</td>
         <td>${CONSTANTS.currency}${u.new_total_fees}</td>
+        <td>${newdate}</td>
+
         <td>${status}</td>
         <td>${button}</td>
 
@@ -978,8 +1109,15 @@ exports.classhangerequest = async (req, res) => {
 exports.approvechangeclass = async (req, res) => {
 
     try {
+        // console.log(req.body);
+        const { id, action } = req.body;
+        if (!id || !['approve', 'reject'].includes(action)) {
+            return res.json({
+                status: false,
+                message: 'Invalid request.'
+            });
+        }
 
-        const { id } = req.body;
 
         const student = await UserModel.getSingleRecord(
             'class_update_detail',
@@ -1000,94 +1138,111 @@ exports.approvechangeclass = async (req, res) => {
             { student_id: student.student_id },
             '*'
         );
-        const CheckDuplicate = await UserModel.getSingleRecord(
-            'classchange_old_history',
-            { request_id: student.request_id },
-            '*'
-        );
-        if (!CheckDuplicate) {
-            const roll_no = await exports.rollNoGenerate(student.new_course, student.new_course_year);
-            const OldaDetail = {
-                student_id: studentDetail.roll_no,
-                request_id: student.request_id,
-                roll_no: studentDetail.roll_no,
-                new_roll_no: roll_no,
-                course: studentDetail.course,
-                course_year: studentDetail.course_year,
-                subject_ids: studentDetail.subject_ids,
-                total_fees: studentDetail.total_fees,
-                available_fees: studentDetail.available_fees,
-                physical: studentDetail.physical,
-                computer_science: studentDetail.computer_science,
-                home_science: studentDetail.home_science,
-                fine_arts: studentDetail.fine_arts,
-                music_instrumnet: studentDetail.music_instrumnet,
-                music_vocal: studentDetail.music_vocal,
-                english_honour: studentDetail.english_honour,
-                admission_date: studentDetail.admission_date,
-                security: studentDetail.security,
-                parking_fees: studentDetail.parking_fees,
-            };
-            const result = await UserModel.addRecord(
+        if (action === 'approve') {
+            const CheckDuplicate = await UserModel.getSingleRecord(
                 'classchange_old_history',
-                OldaDetail
+                { request_id: student.request_id },
+                '*'
             );
-            const AwailableFee = (Number(student.new_total_fees) - Number(studentDetail.pending_fees));
-            const UpdateData = {
-                subject_ids: student.new_subject_ids,
-                course: student.new_course,
-                roll_no: roll_no,
-                course_year: student.new_course_year,
-                total_fees: student.new_total_fees,
-                available_fees: AwailableFee,
-                physical: student.physical,
-                computer_science: student.computer_science,
-                practical_status: student.practical_status,
-                home_science: student.home_science,
-                fine_arts: student.fine_arts,
-                music_instrumnet: student.music_instrumnet,
-                music_vocal: student.music_vocal,
-                english_honour: student.english_honour,
-                total_practical_fees: student.new_total_practical_fees,
-                physical: student.physical,
-                practical_status: student.practical_status,
-            };
+            if (!CheckDuplicate) {
+                const roll_no = await exports.rollNoGenerate(student.new_course, student.new_course_year);
+                const OldaDetail = {
+                    student_id: studentDetail.roll_no,
+                    request_id: student.request_id,
+                    roll_no: studentDetail.roll_no,
+                    new_roll_no: roll_no,
+                    course: studentDetail.course,
+                    course_year: studentDetail.course_year,
+                    subject_ids: studentDetail.subject_ids,
+                    total_fees: studentDetail.total_fees,
+                    available_fees: studentDetail.available_fees,
+                    physical: studentDetail.physical,
+                    computer_science: studentDetail.computer_science,
+                    home_science: studentDetail.home_science,
+                    fine_arts: studentDetail.fine_arts,
+                    music_instrumnet: studentDetail.music_instrumnet,
+                    music_vocal: studentDetail.music_vocal,
+                    english_honour: studentDetail.english_honour,
+                    admission_date: studentDetail.admission_date,
+                    security: studentDetail.security,
+                    parking_fees: studentDetail.parking_fees,
+                };
+                const result = await UserModel.addRecord(
+                    'classchange_old_history',
+                    OldaDetail
+                );
+                const AwailableFee = (Number(student.new_total_fees) - Number(studentDetail.pending_fees));
+                const UpdateData = {
+                    subject_ids: student.new_subject_ids,
+                    course: student.new_course,
+                    roll_no: roll_no,
+                    course_year: student.new_course_year,
+                    total_fees: student.new_total_fees,
+                    available_fees: AwailableFee,
+                    physical: student.physical,
+                    computer_science: student.computer_science,
+                    practical_status: student.practical_status,
+                    home_science: student.home_science,
+                    fine_arts: student.fine_arts,
+                    music_instrumnet: student.music_instrumnet,
+                    music_vocal: student.music_vocal,
+                    english_honour: student.english_honour,
+                    total_practical_fees: student.new_total_practical_fees,
+                    physical: student.physical,
+                    practical_status: student.practical_status,
+                };
 
-            await UserModel.updateRecord(
-                "students",
-                UpdateData,
-                { student_id: student.student_id }
+                await UserModel.updateRecord(
+                    "students",
+                    UpdateData,
+                    { student_id: student.student_id }
 
-            );
-            await UserModel.updateRecord(
-                "receipt_details",
-                { roll_no: roll_no, course_id: student.new_course, year: student.new_course_year },
-                { student_id: student.student_id }
+                );
+                await UserModel.updateRecord(
+                    "receipt_details",
+                    { roll_no: roll_no, course_id: student.new_course, year: student.new_course_year },
+                    { student_id: student.student_id }
 
-            );
-            await UserModel.updateRecord(
-                "balance_receipt_details",
-                { roll_no: roll_no, course_id: student.new_course, year: student.new_course_year },
-                { student_id: student.student_id }
+                );
+                await UserModel.updateRecord(
+                    "balance_receipt_details",
+                    { roll_no: roll_no, course_id: student.new_course, year: student.new_course_year },
+                    { student_id: student.student_id }
 
-            );
-            await updateFeesStudent(student.student_id);
-            await UserModel.updateRecord(
-                Table,
-                { status: 1, new_roll_no: roll_no },
-                { id: student.id }
+                );
+                await updateFeesStudent(student.student_id);
+                await UserModel.updateRecord(
+                    Table,
+                    { status: 1, new_roll_no: roll_no },
+                    { id: student.id }
 
-            );
-            // await exports.updateFees();
-            return res.json({
-                status: true,
-                message: 'Class Change Updated Successfully successfully.'
-            });
+                );
+                // await exports.updateFees();
+                return res.json({
+                    status: true,
+                    message: 'Class Change Updated Successfully successfully.'
+                });
+            } else {
+                return res.json({
+                    status: false,
+                    message: 'This Request Alreay Approved.'
+                });
+            }
         } else {
-            return res.json({
-                status: false,
-                message: 'This Request Alreay Approved.'
-            });
+            if (action === 'reject') {
+                await UserModel.updateRecord(
+                    'class_update_detail',
+                    {
+                        status: 2
+                    },
+                    { id: id }
+                );
+
+                return res.json({
+                    status: true,
+                    message: 'Class Change Request Rejected Successfully.'
+                });
+            }
         }
 
     } catch (err) {
@@ -1171,7 +1326,7 @@ exports.rollNoGenerate = async (course_id, year) => {
 async function updateFeesStudent(studentId) {
 
     const student = await UserModel.getSingleRecord('students', { student_id: studentId }, '*');
-    console.log(student);
+    // console.log(student);
     await UserModel.updateRecord(
         'students',
         {
@@ -1181,16 +1336,16 @@ async function updateFeesStudent(studentId) {
             student_id: student.student_id
         }
     );
-    await updateReceiptTableSingle('receipt_details',studentId);
-    await updateReceiptTableSingle('balance_receipt_details',studentId);
+    await updateReceiptTableSingle('receipt_details', studentId);
+    await updateReceiptTableSingle('balance_receipt_details', studentId);
 }
 
 
-async function updateReceiptTableSingle(tableName,studentId) {
+async function updateReceiptTableSingle(tableName, studentId) {
 
     const receipts = await UserModel.getRecords(
         tableName,
-        {student_id:studentId},
+        { student_id: studentId },
         '*'
     );
 

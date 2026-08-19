@@ -1133,6 +1133,101 @@ exports.updateClass = async (req, res) => {
             { student_id: studentDetail.student_id, status: 0 },
             '*'
         );
+         let html2 = '';
+            let buttons = '';
+            let buttons2 =''
+        if (!checkrequest) {
+
+            buttons = `
+           <button type="submit" class="btn btn-primary w-100 mt-4">
+                        <i class="fas fa-edit"></i>
+                        Update Class
+                    </button>
+        `;
+        } else {
+
+            let subjectList = [];
+           
+             const courseOld = await UserModel.getSingleRecord(
+                'courses',
+                { id: Number(checkrequest.course) },
+                '*'
+            );
+            const courseNew = await UserModel.getSingleRecord(
+                'courses',
+                { id: Number(checkrequest.new_course) },
+                '*'
+            );
+
+
+
+            html2 += `
+            <div class="mb-3">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card border-warning">
+                            <div class="card-body">
+                                <h6 class="text-muted mb-1">
+                                    Old Total Fees
+                                </h6>
+                                <h4 class="mb-0 text-warning">
+                                    ${CONSTANTS.currency}${Number(checkrequest.total_fees || 0).toFixed(2)}
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-success">
+                            <div class="card-body">
+                                <h6 class="text-muted mb-1">
+                                    New Total Fees
+                                </h6>
+                                <h4 class="mb-0 text-success">
+                                    ${CONSTANTS.currency}${Number(checkrequest.new_total_fees || 0).toFixed(2)}
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row g-3 mt-1">
+                    <div class="col-md-6">
+                        <div class="card border-warning">
+                            <div class="card-body">
+                                <h6 class="text-muted mb-1">
+                                    Old Class
+                                </h6>
+                                <h4 class="mb-0 text-warning">
+                                    ${courseOld.course_name }-${checkrequest.course_year}
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-success">
+                            <div class="card-body">
+                                <h6 class="text-muted mb-1">
+                                    New Class
+                                </h6>
+                                <h4 class="mb-0 text-success">
+                                    ${courseNew.course_name }-${checkrequest.new_course_year}
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+        `;
+
+            buttons2 = `
+            
+             <span class="btn btn-warning" onclick="TableOpen()" id="approvalMessage" style="display:none;">
+                    Please Wait For Admin Approval
+                </span>
+        `;
+        }
 
         return View.Rview(res, 'changeclass', {
             header: 'Change Class',
@@ -1142,6 +1237,9 @@ exports.updateClass = async (req, res) => {
             coursename: coursename.course_name + '-' + studentDetail.course_year,
             pendingFees,
             studentDetail,
+            html2,
+            buttons2,
+            buttons,
             checkrequest,
             subjectuser: studentDetail.subject_ids,
         });
@@ -1381,18 +1479,6 @@ exports.misc_reciept = async (req, res) => {
         message,
         messageType,
         redirect,
-        // name,
-        // father_name,
-        // university_roll_no,
-        // mobile,
-        // studentClass,
-        // on_account_of,
-        // on_account_of_other,
-        // amount,
-        // payment_mode,
-        // transaction_id,
-        // receipt_date,
-        // student
     };
 
     return View.Rview(

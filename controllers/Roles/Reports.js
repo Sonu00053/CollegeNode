@@ -703,3 +703,347 @@ exports.subjectSearch = async (req, res) => {
         tableRows
     });
 }
+
+
+exports.classhangerequest = async (req, res) => {
+        const staff_id = req.user.staff_id;
+    const result = await UserModel.getRecords('class_update_detail', {staff_id:staff_id}, '*', 'id desc');
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Student ID</th>
+            <th>Old Class</th>
+            <th>New Class</th>
+            <th>Old Subject</th>
+            <th>New Subject</th>
+            <th>Old Total Fees</th>
+            <th>New Total Fees</th>
+            <th>Status</th>
+            <th>Date</th>
+        </tr>
+    `;
+
+
+
+    const rows = Array.isArray(result) ? result : (result?.rows || []);
+
+    let tableRows = '';
+
+    for (const [index, u] of rows.entries()) {
+
+
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            { id: u.course },
+            '*'
+        );
+        const Newcourse = await UserModel.getSingleRecord(
+            'courses',
+            { id: u.new_course },
+            '*'
+        );
+
+        let subjectList = [];
+
+        if (u.subject_ids) {
+
+            const ids = JSON.parse(u.subject_ids);
+
+            for (const id of ids) {
+
+                const subject = await UserModel.getSingleRecord(
+                    'subjects',
+                    { id },
+                    'subject_name,category'
+                );
+
+                if (subject) {
+                    subjectList.push(`${subject.subject_name} (${subject.category})`);
+                }
+
+            }
+
+        }
+
+        let subjectListNew = [];
+
+        if (u.new_subject_ids) {
+
+            const ids = JSON.parse(u.new_subject_ids);
+
+            for (const id of ids) {
+
+                const subject = await UserModel.getSingleRecord(
+                    'subjects',
+                    { id },
+                    'subject_name,category'
+                );
+
+                if (subject) {
+                    subjectListNew.push(`${subject.subject_name} (${subject.category})`);
+                }
+
+            }
+
+        }
+        // <td>${new Date(u.admission_date).toISOString().split('T')[0]}</td>
+
+
+        // const headsView = '<a href="' + '/admin/heads-detail/' + u.student_id + '" class="btn btn-sm btn-dark">View</a>';
+        // const date = new Date(u.admission_date);
+        // const year = date.getFullYear();
+        // const month = String(date.getMonth() + 1).padStart(2, '0');
+        // const day = String(date.getDate()).padStart(2, '0');
+        // const newdate = `${year}-${month}-${day}`;
+        const newdate = SuperHelper.OnlyDate(u.created_at);
+
+        let status = '';
+        if (Number(u.status) == 0) {
+
+
+
+            status = `
+        <span class="badge bg-warning text-dark">
+            <i class="bi bi-clock-fill"></i> Pending
+        </span>
+    `;
+
+        } else if (Number(u.status) == 1) {
+            status = `
+        <span class="badge bg-success">
+            <i class="bi bi-check-circle-fill"></i> Success
+        </span>
+    `;
+
+        } else if (Number(u.status) == 2) {
+
+
+            status = `
+        <span class="badge bg-danger">
+            <i class="bi bi-x-circle-fill"></i> Rejected
+        </span>
+    `;
+        }
+        tableRows += `
+        
+        <tr>
+            <td>${index + 1}</td>
+            <td>${u.student_id}</td>
+            <td>${course.course_name}-${u.course_year}</td>
+            <td>${Newcourse.course_name}-${u.new_course_year}</td>
+        <td>
+         
+        ${subjectList.length > 0 ? `
+            <div class="card border shadow-sm" style="width: 180px;">
+                <div class="card-body p-2 subject-card-body">
+                    ${subjectList.map(subject => `
+                        <div class="small border-bottom py-1">
+                            ${subject}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        ` : ''}
+          
+        </td>
+        <td>
+        ${subjectListNew.length > 0 ? `
+            <div class="card border shadow-sm" style="width: 180px;">
+                <div class="card-body p-2 subject-card-body">
+                    ${subjectListNew.map(subject => `
+                        <div class="small border-bottom py-1">
+                            ${subject}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        ` : ''}
+           
+        </td>
+        <td>${CONSTANTS.currency}${u.total_fees}</td>
+        <td>${CONSTANTS.currency}${u.new_total_fees}</td>
+        <td>${status}</td>
+        <td>${newdate}</td>
+
+        </tr>
+        `;
+    }
+
+    return View.Rview(res, 'reports', {
+
+        title: `Class Change Report
+        
+        `,
+
+        thead,
+        tableRows
+
+    });
+
+};
+
+exports.subjectchangerequest = async (req, res) => {
+    const staff_id = req.user.staff_id;
+
+
+
+    const result = await UserModel.getRecords('subject_update_detail', {staff_id:staff_id}, '*', 'id desc');
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Student ID</th>
+            <th>Class</th>
+            <th>Old Subject</th>
+            <th>New Subject</th>
+            <th>Old Total Fees</th>
+            <th>New Total Fees</th>
+            <th>Date</th>
+            <th>Status</th>
+        </tr>
+    `;
+
+
+
+    const rows = Array.isArray(result) ? result : (result?.rows || []);
+
+    let tableRows = '';
+
+    for (const [index, u] of rows.entries()) {
+
+
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            { id: u.course },
+            '*'
+        );
+
+        let subjectList = [];
+
+        if (u.subject_ids) {
+
+            const ids = JSON.parse(u.subject_ids);
+
+            for (const id of ids) {
+
+                const subject = await UserModel.getSingleRecord(
+                    'subjects',
+                    { id },
+                    'subject_name,category'
+                );
+
+                if (subject) {
+                    subjectList.push(`${subject.subject_name} (${subject.category})`);
+                }
+
+            }
+
+        }
+
+        let subjectListNew = [];
+
+        if (u.new_subject_ids) {
+
+            const ids = JSON.parse(u.new_subject_ids);
+
+            for (const id of ids) {
+
+                const subject = await UserModel.getSingleRecord(
+                    'subjects',
+                    { id },
+                    'subject_name,category'
+                );
+
+                if (subject) {
+                    subjectListNew.push(`${subject.subject_name} (${subject.category})`);
+                }
+
+            }
+
+        }
+     
+        const newdate = SuperHelper.OnlyDate(u.created_at);
+
+        let status = '';
+      
+        if (Number(u.status) == 0) {
+
+           
+
+            status = `
+        <span class="badge bg-warning text-dark">
+            <i class="bi bi-clock-fill"></i> Pending
+        </span>
+    `;
+
+        } else if (Number(u.status) == 1) {
+
+        
+
+            status = `
+        <span class="badge bg-success">
+            <i class="bi bi-check-circle-fill"></i> Success
+        </span>
+    `;
+
+        } else if (Number(u.status) == 2) {
+
+
+            status = `
+        <span class="badge bg-danger">
+            <i class="bi bi-x-circle-fill"></i> Rejected
+        </span>
+    `;
+        }
+        tableRows += `
+        
+        <tr>
+            <td>${index + 1}</td>
+            <td>${u.student_id}</td>
+            <td>${course.course_name}-${u.course_year}</td>
+        <td>
+        <div class="card border shadow-sm" style="width: 180px;">
+            <div class="card-body p-2 subject-card-body">
+
+                ${subjectList.map(subject => `
+                    <div class="small border-bottom py-1">
+                        ${subject}
+                    </div>
+                `).join('')}
+
+            </div>
+        </div>
+        </td>
+          <td>
+        <div class="card border shadow-sm" style="width: 180px;">
+            <div class="card-body p-2 subject-card-body">
+
+                ${subjectListNew.map(subject => `
+                    <div class="small border-bottom py-1">
+                        ${subject}
+                    </div>
+                `).join('')}
+
+            </div>
+        </div>
+        </td>
+        <td>${CONSTANTS.currency}${u.total_fees}</td>
+        <td>${CONSTANTS.currency}${u.new_total_fees}</td>
+        <td>${newdate}</td>
+        <td>${status}</td>
+
+        </tr>
+        `;
+    }
+
+    return View.Rview(res, 'reports', {
+
+        title: `Subject Change Report
+        
+        `,
+
+        thead,
+        tableRows
+
+    });
+
+};
