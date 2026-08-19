@@ -321,6 +321,7 @@ exports.subjectchangerequest = async (req, res) => {
         <tr>
             <th>#</th>
             <th>Student ID</th>
+            <th>Student Name</th>
             <th>Class</th>
             <th>Old Subject</th>
             <th>New Subject</th>
@@ -346,6 +347,11 @@ exports.subjectchangerequest = async (req, res) => {
             { id: u.course },
             '*'
         );
+        const StudentDetail = await UserModel.getSingleRecord(
+                    'students',
+                    { student_id: u.student_id },
+                    '*'
+                );
 
         let subjectList = [];
 
@@ -457,6 +463,8 @@ exports.subjectchangerequest = async (req, res) => {
         <tr>
             <td>${index + 1}</td>
             <td>${u.student_id}</td>
+            <td>${StudentDetail.first_name} ${StudentDetail.last_name}</td>
+
             <td>${course.course_name}-${u.course_year}</td>
         <td>
         <div class="card border shadow-sm" style="width: 180px;">
@@ -900,6 +908,7 @@ exports.classhangerequest = async (req, res) => {
         <tr>
             <th>#</th>
             <th>Student ID</th>
+            <th>Student Name</th>
             <th>Old Class</th>
             <th>New Class</th>
             <th>Old Subject</th>
@@ -932,6 +941,11 @@ exports.classhangerequest = async (req, res) => {
             { id: u.new_course },
             '*'
         );
+        const StudentDetail = await UserModel.getSingleRecord(
+                    'students',
+                    { student_id: u.student_id },
+                    '*'
+                );
 
         let subjectList = [];
 
@@ -1050,6 +1064,8 @@ exports.classhangerequest = async (req, res) => {
         <tr>
             <td>${index + 1}</td>
             <td>${u.student_id}</td>
+            <td>${StudentDetail.first_name} ${StudentDetail.last_name}</td>
+
             <td>${course.course_name}-${u.course_year}</td>
             <td>${Newcourse.course_name}-${u.new_course_year}</td>
         <td>
