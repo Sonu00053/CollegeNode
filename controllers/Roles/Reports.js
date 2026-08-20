@@ -748,9 +748,7 @@ exports.classhangerequest = async (req, res) => {
             { student_id: u.student_id },
             '*'
         );
-
         let subjectList = [];
-
         if (u.subject_ids) {
 
             const ids = JSON.parse(u.subject_ids);
