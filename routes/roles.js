@@ -68,6 +68,9 @@ router.get('/view-reciept-history/:date', jwtAuth.verifyToken, Manage.recieptHis
 router.get('/date-wise-balance-reciept-history', jwtAuth.verifyToken, Manage.balacegroupbyrecipthistory);
 router.get('/balance-view-reciept-history/:date', jwtAuth.verifyToken, Manage.balancerecieptHistorydatewisw);
 
+router.post('/remove-parking', jwtAuth.verifyToken,Manage.removeParkingFees);
+
+
 router.route('/update-reciept-heads')
     .get(Course.recieptheadupdate)
     .post(Course.recieptheadupdate);

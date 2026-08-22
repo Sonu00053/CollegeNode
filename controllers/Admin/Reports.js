@@ -348,10 +348,10 @@ exports.subjectchangerequest = async (req, res) => {
             '*'
         );
         const StudentDetail = await UserModel.getSingleRecord(
-                    'students',
-                    { student_id: u.student_id },
-                    '*'
-                );
+            'students',
+            { student_id: u.student_id },
+            '*'
+        );
 
         let subjectList = [];
 
@@ -396,12 +396,12 @@ exports.subjectchangerequest = async (req, res) => {
             }
 
         }
-      
+
         const newdate = SuperHelper.OnlyDate(u.created_at);
 
         let button = '';
         let status = '';
-        
+
         if (Number(u.status) == 0) {
 
             button = `
@@ -557,7 +557,7 @@ exports.approvesubjects = async (req, res) => {
             if (!CheckDuplicate) {
 
                 const OldaDetail = {
-                    student_id: studentDetail.roll_no,
+                    student_id: studentDetail.student_id,
                     request_id: student.request_id,
                     roll_no: studentDetail.roll_no,
                     course: studentDetail.course,
@@ -942,10 +942,10 @@ exports.classhangerequest = async (req, res) => {
             '*'
         );
         const StudentDetail = await UserModel.getSingleRecord(
-                    'students',
-                    { student_id: u.student_id },
-                    '*'
-                );
+            'students',
+            { student_id: u.student_id },
+            '*'
+        );
 
         let subjectList = [];
 
@@ -999,7 +999,7 @@ exports.classhangerequest = async (req, res) => {
         // const month = String(date.getMonth() + 1).padStart(2, '0');
         // const day = String(date.getDate()).padStart(2, '0');
         // const newdate = `${year}-${month}-${day}`;
-                const newdate = SuperHelper.OnlyDate(u.created_at);
+        const newdate = SuperHelper.OnlyDate(u.created_at);
 
         let button = '';
         let status = '';
@@ -1163,7 +1163,7 @@ exports.approvechangeclass = async (req, res) => {
             if (!CheckDuplicate) {
                 const roll_no = await exports.rollNoGenerate(student.new_course, student.new_course_year);
                 const OldaDetail = {
-                    student_id: studentDetail.roll_no,
+                    student_id: studentDetail.student_id,
                     request_id: student.request_id,
                     roll_no: studentDetail.roll_no,
                     new_roll_no: roll_no,
@@ -1236,7 +1236,7 @@ exports.approvechangeclass = async (req, res) => {
                 // await exports.updateFees();
                 return res.json({
                     status: true,
-                    message: 'Class Change Updated Successfully successfully.'
+                    message: 'Class Change Updated Successfully.'
                 });
             } else {
                 return res.json({
@@ -1399,3 +1399,230 @@ async function updateReceiptTableSingle(tableName, studentId) {
         );
     }
 }
+
+
+exports.ParkingRemoveRequest = async (req, res) => {
+
+
+    const result = await UserModel.getRecords('parking_remove', {}, '*', 'id desc');
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Student ID</th>
+            <th>Student Name</th>
+            <th>Class</th>
+            <th>Parking Fees</th>
+            <th>Old Total Fees</th>
+            <th>New Total Fees</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    `;
+
+
+
+    const rows = Array.isArray(result) ? result : (result?.rows || []);
+
+    let tableRows = '';
+
+    for (const [index, u] of rows.entries()) {
+
+
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            { id: u.course },
+            '*'
+        );
+        const StudentDetail = await UserModel.getSingleRecord(
+            'students',
+            { student_id: u.student_id },
+            '*'
+        );
+
+
+
+
+        const newdate = SuperHelper.OnlyDate(u.created_at);
+
+        let button = '';
+        let status = '';
+
+        if (Number(u.status) == 0) {
+
+            button = `
+        <div class="d-flex gap-1">
+            <button
+                type="button"
+                class="btn btn-success btn-sm Parkingremove"
+                data-id="${u.id}"
+                data-action="approve">
+                <i class="bi bi-check-circle"></i> Approve
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-danger btn-sm Parkingremove"
+                data-id="${u.id}"
+                data-action="reject">
+                <i class="bi bi-x-circle"></i> Reject
+            </button>
+        </div>
+    `;
+
+            status = `
+        <span class="badge bg-warning text-dark">
+            <i class="bi bi-clock-fill"></i> Pending
+        </span>
+    `;
+
+        } else if (Number(u.status) == 1) {
+
+            button = `
+        <span class="badge bg-success">
+            <i class="bi bi-check-circle-fill"></i> Approved
+        </span>
+    `;
+
+            status = `
+        <span class="badge bg-success">
+            <i class="bi bi-check-circle-fill"></i> Success
+        </span>
+    `;
+
+        } else if (Number(u.status) == 2) {
+
+            button = `
+        <span class="badge bg-danger">
+            <i class="bi bi-x-circle-fill"></i> Rejected
+        </span>
+    `;
+
+            status = `
+        <span class="badge bg-danger">
+            <i class="bi bi-x-circle-fill"></i> Rejected
+        </span>
+    `;
+        }
+        tableRows += `
+        
+        <tr>
+            <td>${index + 1}</td>
+            <td>${u.student_id}</td>
+            <td>${StudentDetail.first_name} ${StudentDetail.last_name}</td>
+            <td>${course.course_name}-${u.course_year}</td>
+        <td>${CONSTANTS.currency}${u.parking_fees}</td>
+        <td>${CONSTANTS.currency}${u.total_fees}</td>
+        <td>${CONSTANTS.currency}${u.new_total_fees}</td>
+        <td>${newdate}</td>
+        <td>${status}</td>
+        <td>${button}</td>
+
+        </tr>
+        `;
+    }
+
+    return View.Aview(res, 'reports', {
+
+        title: `Parking Fees Remove Requests
+        
+        `,
+
+        thead,
+        tableRows
+
+    });
+
+};
+
+
+exports.approverejectParking = async (req, res) => {
+
+    try {
+        // console.log(req.body);
+        const { id, action } = req.body;
+        if (!id || !['approve', 'reject'].includes(action)) {
+            return res.json({
+                status: false,
+                message: 'Invalid request.'
+            });
+        }
+
+
+        const student = await UserModel.getSingleRecord(
+            'parking_remove',
+            { id: id, status: 0 },
+            '*'
+        );
+
+        if (!student) {
+            return res.json({
+                status: false,
+                message: 'Request not found.'
+            });
+        }
+
+        const studentDetail = await UserModel.getSingleRecord(
+            'students',
+            { student_id: student.student_id },
+            '*'
+        );
+        if (action === 'approve') {
+            const AwailableFee = (Number(student.new_total_fees) - Number(studentDetail.pending_fees));
+            const UpdateData = {
+                total_fees: student.new_total_fees,
+                available_fees: AwailableFee,
+                parking_fees: 0,
+                transport: 'No'
+            };
+
+            await UserModel.updateRecord(
+                "students",
+                UpdateData,
+                { student_id: student.student_id }
+
+            );
+
+            await updateFeesStudent(student.student_id);
+            await UserModel.updateRecord(
+                "parking_remove",
+                { status: 1 },
+                { id: student.id }
+
+            );
+
+
+            // await exports.updateFees();
+            return res.json({
+                status: true,
+                message: 'Parking Fees Removed Successfully.'
+            });
+
+        } else {
+            if (action === 'reject') {
+                await UserModel.updateRecord(
+                    "parking_remove",
+                    { status: 2 },
+                    { id: student.id }
+
+                );
+
+                return res.json({
+                    status: true,
+                    message: 'Parking Fees Remove Rejected Successfully.'
+                });
+            }
+        }
+
+    } catch (err) {
+
+        console.log(err);
+
+        return res.json({
+            status: false,
+            message: 'Something went wrong.'
+        });
+
+    }
+
+};

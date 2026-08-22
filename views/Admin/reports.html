@@ -349,4 +349,66 @@
     });
 
 
+    $('#example tbody').on('click', '.Parkingremove', function () {
+
+    let id = $(this).data('id');
+    let action = $(this).data('action');
+    let $btn = $(this);
+
+    let isApprove = action === 'approve';
+
+    Swal.fire({
+        title: isApprove ? 'Approve Parking Request?' : 'Reject Parking Request?',
+        text: isApprove
+            ? 'Do you want to approve this parking removal request?'
+            : 'Do you want to reject this parking removal request?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: isApprove ? '#198754' : '#dc3545',
+        confirmButtonText: isApprove ? 'Yes, Approve' : 'Yes, Reject',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+
+        if (!result.isConfirmed) return;
+
+        $btn.prop('disabled', true);
+
+        $.ajax({
+            url: "/admin/approve-parking",
+            type: "POST",
+            dataType: "json",
+            data: {
+                id: id,
+                action: action
+            },
+
+            success: function (res) {
+
+                if (res.status) {
+
+                    toastr.success(res.message);
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+
+                } else {
+
+                    toastr.error(res.message);
+                    $btn.prop('disabled', false);
+
+                }
+            },
+
+            error: function () {
+
+                toastr.error("Something went wrong.");
+                $btn.prop('disabled', false);
+
+            }
+        });
+    });
+});
+
+
 </script>

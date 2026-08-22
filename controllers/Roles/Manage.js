@@ -91,17 +91,50 @@ exports.users = async (req, res) => {
 
         }
         let editSubjects = '';
+        let ParkingRemoveButton = '';
+
+        if (Number(u.parking_fees) > 0) {
+
+            const checkparkingrequest = await UserModel.getSingleRecord(
+                'parking_remove',
+                {
+                    student_id: u.student_id,
+                    status: 0
+                },
+                '*'
+            );
+
+            if (checkparkingrequest) {
+
+                ParkingRemoveButton = `
+            <span onclick="Parkingpopup()" class="btn btn-warning btn-sm">
+                Pending
+            </span>
+        `;
+
+            } else {
+
+                ParkingRemoveButton = `
+            <button
+                type="button"
+                class="btn btn-success btn-sm RemoveParking"
+                data-id="${u.id}">
+                Remove Parking
+            </button>
+        `;
+            }
+        }
 
         const profile = `<a href="${CONSTANTS.role}profile/${u.student_id}" class="btn btn-warning btn-sm">View Profile</a>`;
-
         const Editprofile = `<a href="${CONSTANTS.role}update-profile/${u.student_id}" class="btn btn-info btn-sm">Edit</a>`;
         if (Number(u.course) == 1) {
             editSubjects = `<a href="${CONSTANTS.role}update-subjects/${u.student_id}" class="btn btn-success btn-sm">Edit Subjects</a>`;
         }
-        const Classchange = `<a href="${CONSTANTS.role}update-class/${u.student_id}" class="btn btn-primary btn-sm">Change Class</a>`;
 
+        const Classchange = `<a href="${CONSTANTS.role}update-class/${u.student_id}" class="btn btn-primary btn-sm">Change Class</a>`;
         const admdate = SuperHelper.OnlyDate(u.admission_date);
         const dob = SuperHelper.dob(u.dob);
+
         tableRows += `
         <tr>
             <td>${index + 1}</td>
@@ -111,6 +144,7 @@ exports.users = async (req, res) => {
         ${Editprofile}
         ${editSubjects}
         ${Classchange}
+        ${ParkingRemoveButton}
     </div>
 </td>
             <td>${u.student_id}</td>
@@ -157,7 +191,6 @@ exports.users = async (req, res) => {
     }
 
     return View.Rview(res, 'reports', {
-
         title: `
         <div class="d-flex justify-content-between">
             <span>All Students Report</span>
@@ -168,6 +201,69 @@ exports.users = async (req, res) => {
         tableRows
 
     });
+
+};
+
+
+exports.removeParkingFees = async (req, res) => {
+
+    try {
+        const { id } = req.body;
+        const studentDetail = await UserModel.getSingleRecord(
+            'students',
+            { id: id },
+            '*'
+        );
+        if (!studentDetail) {
+            return res.json({
+                status: false,
+                message: 'Request not found.'
+            });
+        }
+
+
+
+        const new_total_fees = (Number(studentDetail.total_fees) - Number(studentDetail.parking_fees));
+        const OldaDetail = {
+            student_id: studentDetail.student_id,
+            roll_no: studentDetail.roll_no,
+            course: studentDetail.course,
+            course_year: studentDetail.course_year,
+            subject_ids: studentDetail.subject_ids,
+            total_fees: studentDetail.total_fees,
+            available_fees: studentDetail.available_fees,
+            physical: studentDetail.physical,
+            computer_science: studentDetail.computer_science,
+            home_science: studentDetail.home_science,
+            fine_arts: studentDetail.fine_arts,
+            music_instrumnet: studentDetail.music_instrumnet,
+            music_vocal: studentDetail.music_vocal,
+            english_honour: studentDetail.english_honour,
+            admission_date: studentDetail.admission_date,
+            security: studentDetail.security,
+            parking_fees: studentDetail.parking_fees,
+            new_total_fees: new_total_fees
+        };
+        const result = await UserModel.addRecord(
+            'parking_remove',
+            OldaDetail
+        );
+        return res.json({
+            status: true,
+            message: 'Parking Fees Remove Request Submit Successfully Please Wait For Admin Approval'
+        });
+
+
+    } catch (err) {
+
+        console.log(err);
+
+        return res.json({
+            status: false,
+            message: 'Something went wrong.'
+        });
+
+    }
 
 };
 

@@ -26,6 +26,9 @@ router.get('/profile/:student_id', jwtAuth.verifyToken,Manage.profile);
 
 router.get('/all-staff', jwtAuth.verifyToken, Manage.StaffHistory);
 router.get('/admission-reciept-request', jwtAuth.verifyToken, Manage.admissionrecieptrequest);
+router.get('/parking-remove-request', jwtAuth.verifyToken, Reports.ParkingRemoveRequest);
+router.post('/approve-parking', jwtAuth.verifyToken,Reports.approverejectParking);
+
 
 router.post('/admission-receipt-request-action', jwtAuth.verifyToken,Manage.admissionReceiptRequestAction);
 router.post('/approve-subjects', jwtAuth.verifyToken,Reports.approvesubjects);

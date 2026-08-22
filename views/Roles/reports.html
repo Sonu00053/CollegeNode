@@ -1,13 +1,13 @@
 <style>
-.subject-card-body {
-    max-height: 100px;
-    overflow-y: auto;
-    scrollbar-width: none;
-}
+    .subject-card-body {
+        max-height: 100px;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
 
-.subject-card-body::-webkit-scrollbar {
-    display: none;
-}
+    .subject-card-body::-webkit-scrollbar {
+        display: none;
+    }
 </style>
 <div class="content">
     <div class="card mt-4 shadow-sm">
@@ -35,8 +35,7 @@
                 <h5 class="modal-title">
                     Student Subjects
                 </h5>
-                <button class="btn-close"
-                    data-bs-dismiss="modal">
+                <button class="btn-close" data-bs-dismiss="modal">
                 </button>
 
             </div>
@@ -56,33 +55,39 @@
 </div>
 
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
 <script>
 
-document.addEventListener("click", function(e){
+    document.addEventListener("click", function (e) {
 
-    if(!e.target.classList.contains("view-subjects")) return;
+        if (!e.target.classList.contains("view-subjects")) return;
 
-    let subjects = [];
+        let subjects = [];
 
-    try{
+        try {
 
-        subjects = JSON.parse(
-            e.target.getAttribute("data-subjects")
-        );
+            subjects = JSON.parse(
+                e.target.getAttribute("data-subjects")
+            );
 
-    }catch(err){
+        } catch (err) {
 
-        console.log(err);
+            console.log(err);
 
-    }
+        }
 
-    let html = "";
+        let html = "";
 
-    if(subjects.length==0){
+        if (subjects.length == 0) {
 
-        html=`
+            html = `
         <div class="col-12">
 
             <div class="alert alert-warning">
@@ -92,11 +97,11 @@ document.addEventListener("click", function(e){
         </div>
         `;
 
-    }else{
+        } else {
 
-        subjects.forEach(function(item,index){
+            subjects.forEach(function (item, index) {
 
-            html += `
+                html += `
             <div class="col-md-4 mb-3">
 
                 <div class="card border-primary shadow">
@@ -104,7 +109,7 @@ document.addEventListener("click", function(e){
                     <div class="card-body text-center">
 
                         <h6>
-                            ${index+1}. ${item}
+                            ${index + 1}. ${item}
                         </h6>
 
                     </div>
@@ -114,18 +119,82 @@ document.addEventListener("click", function(e){
             </div>
             `;
 
+            });
+
+        }
+
+        document.getElementById("subjectsCards").innerHTML = html;
+
+        const modal = new bootstrap.Modal(
+            document.getElementById("subjectsModal")
+        );
+
+        modal.show();
+
+    });
+
+    $('#example tbody').on('click', '.RemoveParking', function () {
+
+        let id = $(this).data('id');
+        let $btn = $(this);
+
+        Swal.fire({
+            title: 'Remove Parking?',
+            text: 'Do you want to remove parking for this student?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Remove'
+        }).then((result) => {
+
+            if (!result.isConfirmed) return;
+
+            $btn.prop('disabled', true);
+
+            $.ajax({
+                url: "{{CONSTANTS.role}}remove-parking",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    id: id
+                },
+                success: function (res) {
+
+                    if (res.status) {
+
+                        toastr.success(res.message);
+
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+
+                    } else {
+
+                        toastr.error(res.message);
+                        $btn.prop('disabled', false);
+
+                    }
+                },
+                error: function () {
+
+                    toastr.error("Something went wrong.");
+                    $btn.prop('disabled', false);
+
+                }
+            });
+        });
+    });
+    function Parkingpopup() {
+        Swal.fire({
+            title: 'Request Pending',
+            html: `Please Wait For Admin Approval`,
+            icon: 'info',
+            showCloseButton: true,
+            focusConfirm: false,
+            confirmButtonText: 'Close'
         });
 
     }
-
-    document.getElementById("subjectsCards").innerHTML = html;
-
-    const modal = new bootstrap.Modal(
-        document.getElementById("subjectsModal")
-    );
-
-    modal.show();
-
-});
 
 </script>
