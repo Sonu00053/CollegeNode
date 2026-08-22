@@ -209,6 +209,8 @@ exports.removeParkingFees = async (req, res) => {
 
     try {
         const { id } = req.body;
+        const staff_id = req.user.staff_id;
+
         const studentDetail = await UserModel.getSingleRecord(
             'students',
             { id: id },
@@ -242,7 +244,8 @@ exports.removeParkingFees = async (req, res) => {
             admission_date: studentDetail.admission_date,
             security: studentDetail.security,
             parking_fees: studentDetail.parking_fees,
-            new_total_fees: new_total_fees
+            new_total_fees: new_total_fees,
+            staff_id:staff_id
         };
         const result = await UserModel.addRecord(
             'parking_remove',
