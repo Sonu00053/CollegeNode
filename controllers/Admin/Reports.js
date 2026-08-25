@@ -1543,7 +1543,7 @@ exports.ParkingRemoveRequest = async (req, res) => {
 
     return View.Aview(res, 'reports', {
 
-        title: `Parking Fees Remove Requests
+        title: `Parking Fees Add Remove Requests
         
         `,
 
