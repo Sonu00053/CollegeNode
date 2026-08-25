@@ -68,3 +68,4 @@ router.route('/add')
     .post(jwtAuth.verifyToken,Manage.updatestidentProfile);
 
 module.exports = router;
+

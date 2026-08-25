@@ -1411,11 +1411,12 @@ exports.ParkingRemoveRequest = async (req, res) => {
             <th>Student ID</th>
             <th>Student Name</th>
             <th>Class</th>
-            <th>Parking Fees</th>
+            <th>Old Parking Fees</th>
             <th>Old Total Fees</th>
             <th>New Total Fees</th>
             <th>Date</th>
             <th>Status</th>
+            <th>Action Type</th>
             <th>Action</th>
         </tr>
     `;
@@ -1448,16 +1449,21 @@ exports.ParkingRemoveRequest = async (req, res) => {
         let button = '';
         let status = '';
 
-        if (Number(u.status) == 0) {
+        const parkingAction = u.action || 'remove';
+        const isAdd = parkingAction === 'add';
+
+        if (Number(u.status) === 0) {
 
             button = `
         <div class="d-flex gap-1">
+
             <button
                 type="button"
                 class="btn btn-success btn-sm Parkingremove"
                 data-id="${u.id}"
                 data-action="approve">
-                <i class="bi bi-check-circle"></i> Approve
+                <i class="bi bi-check-circle"></i>
+                Approve
             </button>
 
             <button
@@ -1465,42 +1471,49 @@ exports.ParkingRemoveRequest = async (req, res) => {
                 class="btn btn-danger btn-sm Parkingremove"
                 data-id="${u.id}"
                 data-action="reject">
-                <i class="bi bi-x-circle"></i> Reject
+                <i class="bi bi-x-circle"></i>
+                Reject
             </button>
+
         </div>
     `;
 
             status = `
         <span class="badge bg-warning text-dark">
-            <i class="bi bi-clock-fill"></i> Pending
+            <i class="bi bi-clock-fill"></i>
+            Pending
         </span>
     `;
 
-        } else if (Number(u.status) == 1) {
+        } else if (Number(u.status) === 1) {
 
             button = `
         <span class="badge bg-success">
-            <i class="bi bi-check-circle-fill"></i> Approved
+            <i class="bi bi-check-circle-fill"></i>
+            Approved
         </span>
     `;
 
             status = `
         <span class="badge bg-success">
-            <i class="bi bi-check-circle-fill"></i> Success
+            <i class="bi bi-check-circle-fill"></i>
+            Success
         </span>
     `;
 
-        } else if (Number(u.status) == 2) {
+        } else if (Number(u.status) === 2) {
 
             button = `
         <span class="badge bg-danger">
-            <i class="bi bi-x-circle-fill"></i> Rejected
+            <i class="bi bi-x-circle-fill"></i>
+            Rejected
         </span>
     `;
 
             status = `
         <span class="badge bg-danger">
-            <i class="bi bi-x-circle-fill"></i> Rejected
+            <i class="bi bi-x-circle-fill"></i>
+            Rejected
         </span>
     `;
         }
@@ -1516,6 +1529,12 @@ exports.ParkingRemoveRequest = async (req, res) => {
         <td>${CONSTANTS.currency}${u.new_total_fees}</td>
         <td>${newdate}</td>
         <td>${status}</td>
+        <td>
+    ${isAdd
+                ? '<span class="badge bg-success">Add Parking</span>'
+                : '<span class="badge bg-danger">Remove Parking</span>'
+            }
+</td>
         <td>${button}</td>
 
         </tr>
@@ -1535,12 +1554,12 @@ exports.ParkingRemoveRequest = async (req, res) => {
 
 };
 
-
 exports.approverejectParking = async (req, res) => {
 
     try {
-        // console.log(req.body);
+
         const { id, action } = req.body;
+
         if (!id || !['approve', 'reject'].includes(action)) {
             return res.json({
                 status: false,
@@ -1548,71 +1567,180 @@ exports.approverejectParking = async (req, res) => {
             });
         }
 
-
-        const student = await UserModel.getSingleRecord(
+        const parkingRequest = await UserModel.getSingleRecord(
             'parking_remove',
-            { id: id, status: 0 },
+            {
+                id: id,
+                status: 0
+            },
             '*'
         );
 
-        if (!student) {
+        if (!parkingRequest) {
             return res.json({
                 status: false,
-                message: 'Request not found.'
+                message: 'Request not found or already processed.'
             });
         }
 
         const studentDetail = await UserModel.getSingleRecord(
             'students',
-            { student_id: student.student_id },
+            {
+                student_id: parkingRequest.student_id
+            },
             '*'
         );
-        if (action === 'approve') {
-            const AwailableFee = (Number(student.new_total_fees) - Number(studentDetail.pending_fees));
-            const UpdateData = {
-                total_fees: student.new_total_fees,
-                available_fees: AwailableFee,
+
+        if (!studentDetail) {
+            return res.json({
+                status: false,
+                message: 'Student not found.'
+            });
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | REJECT
+        |--------------------------------------------------------------------------
+        */
+
+        if (action === 'reject') {
+
+            await UserModel.updateRecord(
+                'parking_remove',
+                {
+                    status: 2
+                },
+                {
+                    id: parkingRequest.id
+                }
+            );
+
+            const requestType =
+                parkingRequest.action === 'add'
+                    ? 'Parking Add'
+                    : 'Parking Remove';
+
+            return res.json({
+                status: true,
+                message: `${requestType} Request Rejected Successfully.`
+            });
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | APPROVE
+        |--------------------------------------------------------------------------
+        */
+
+        const requestType = parkingRequest.action || 'remove';
+
+        let UpdateData = {};
+        let message = '';
+        if (requestType === 'add') {
+            const parkingFee = 1000;
+            const newTotalFees =
+                Number(parkingRequest.new_total_fees) || 0;
+
+            const availableFee =
+                newTotalFees - Number(studentDetail.pending_fees || 0);
+
+            UpdateData = {
+                total_fees: newTotalFees,
+                available_fees: availableFee,
+                parking_fees: parkingFee,
+                transport: 'Yes'
+            };
+
+            message = 'Parking Added Successfully.';
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | REMOVE PARKING
+        |--------------------------------------------------------------------------
+        */
+
+        else if (requestType === 'remove') {
+
+            const newTotalFees =
+                Number(parkingRequest.new_total_fees) || 0;
+
+            const availableFee =
+                newTotalFees - Number(studentDetail.pending_fees || 0);
+                //             const AwailableFee = (Number(student.new_total_fees) - Number(studentDetail.pending_fees));
+
+
+            UpdateData = {
+                total_fees: newTotalFees,
+                available_fees: availableFee,
                 parking_fees: 0,
                 transport: 'No'
             };
 
-            await UserModel.updateRecord(
-                "students",
-                UpdateData,
-                { student_id: student.student_id }
+            message = 'Parking Fees Removed Successfully.';
 
-            );
-
-            await updateFeesStudent(student.student_id);
-            await UserModel.updateRecord(
-                "parking_remove",
-                { status: 1 },
-                { id: student.id }
-
-            );
-
-
-            // await exports.updateFees();
-            return res.json({
-                status: true,
-                message: 'Parking Fees Removed Successfully.'
-            });
-
-        } else {
-            if (action === 'reject') {
-                await UserModel.updateRecord(
-                    "parking_remove",
-                    { status: 2 },
-                    { id: student.id }
-
-                );
-
-                return res.json({
-                    status: true,
-                    message: 'Parking Fees Remove Rejected Successfully.'
-                });
-            }
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | INVALID ACTION TYPE
+        |--------------------------------------------------------------------------
+        */
+
+        else {
+
+            return res.json({
+                status: false,
+                message: 'Invalid parking action type.'
+            });
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE STUDENT
+        |--------------------------------------------------------------------------
+        */
+
+        await UserModel.updateRecord(
+            'students',
+            UpdateData,
+            {
+                student_id: parkingRequest.student_id
+            }
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE FEES
+        |--------------------------------------------------------------------------
+        */
+
+        await updateFeesStudent(
+            parkingRequest.student_id
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | REQUEST APPROVED
+        |--------------------------------------------------------------------------
+        */
+
+        await UserModel.updateRecord(
+            'parking_remove',
+            {
+                status: 1
+            },
+            {
+                id: parkingRequest.id
+            }
+        );
+
+        return res.json({
+            status: true,
+            message: message
+        });
 
     } catch (err) {
 
@@ -1622,7 +1750,97 @@ exports.approverejectParking = async (req, res) => {
             status: false,
             message: 'Something went wrong.'
         });
-
     }
-
 };
+
+
+// exports.approverejectParking = async (req, res) => {
+
+//     try {
+//         // console.log(req.body);
+//         const { id, action } = req.body;
+//         if (!id || !['approve', 'reject'].includes(action)) {
+//             return res.json({
+//                 status: false,
+//                 message: 'Invalid request.'
+//             });
+//         }
+
+
+//         const student = await UserModel.getSingleRecord(
+//             'parking_remove',
+//             { id: id, status: 0 },
+//             '*'
+//         );
+
+//         if (!student) {
+//             return res.json({
+//                 status: false,
+//                 message: 'Request not found.'
+//             });
+//         }
+
+//         const studentDetail = await UserModel.getSingleRecord(
+//             'students',
+//             { student_id: student.student_id },
+//             '*'
+//         );
+//         if (action === 'approve') {
+//             const AwailableFee = (Number(student.new_total_fees) - Number(studentDetail.pending_fees));
+//             const UpdateData = {
+//                 total_fees: student.new_total_fees,
+//                 available_fees: AwailableFee,
+//                 parking_fees: 0,
+//                 transport: 'No'
+//             };
+
+//             await UserModel.updateRecord(
+//                 "students",
+//                 UpdateData,
+//                 { student_id: student.student_id }
+
+//             );
+
+//             await updateFeesStudent(student.student_id);
+//             await UserModel.updateRecord(
+//                 "parking_remove",
+//                 { status: 1 },
+//                 { id: student.id }
+
+//             );
+
+
+//             // await exports.updateFees();
+//             return res.json({
+//                 status: true,
+//                 message: 'Parking Fees Removed Successfully.'
+//             });
+
+//         } else {
+//             if (action === 'reject') {
+//                 await UserModel.updateRecord(
+//                     "parking_remove",
+//                     { status: 2 },
+//                     { id: student.id }
+
+//                 );
+
+//                 return res.json({
+//                     status: true,
+//                     message: 'Parking Fees Remove Rejected Successfully.'
+//                 });
+//             }
+//         }
+
+//     } catch (err) {
+
+//         console.log(err);
+
+//         return res.json({
+//             status: false,
+//             message: 'Something went wrong.'
+//         });
+
+//     }
+
+// };

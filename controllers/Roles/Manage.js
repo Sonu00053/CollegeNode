@@ -91,39 +91,7 @@ exports.users = async (req, res) => {
 
         }
         let editSubjects = '';
-        let ParkingRemoveButton = '';
-
-        if (Number(u.parking_fees) > 0) {
-
-            const checkparkingrequest = await UserModel.getSingleRecord(
-                'parking_remove',
-                {
-                    student_id: u.student_id,
-                    status: 0
-                },
-                '*'
-            );
-
-            if (checkparkingrequest) {
-
-                ParkingRemoveButton = `
-            <span onclick="Parkingpopup()" class="btn btn-warning btn-sm">
-                Pending
-            </span>
-        `;
-
-            } else {
-
-                ParkingRemoveButton = `
-            <button
-                type="button"
-                class="btn btn-success btn-sm RemoveParking"
-                data-id="${u.id}">
-                Remove Parking
-            </button>
-        `;
-            }
-        }
+        
 
         const profile = `<a href="${CONSTANTS.role}profile/${u.student_id}" class="btn btn-warning btn-sm">View Profile</a>`;
         const Editprofile = `<a href="${CONSTANTS.role}update-profile/${u.student_id}" class="btn btn-info btn-sm">Edit</a>`;
@@ -144,7 +112,6 @@ exports.users = async (req, res) => {
         ${Editprofile}
         ${editSubjects}
         ${Classchange}
-        ${ParkingRemoveButton}
     </div>
 </td>
             <td>${u.student_id}</td>
@@ -205,35 +172,367 @@ exports.users = async (req, res) => {
 };
 
 
+exports.parkingAddremove = async (req, res) => {
+
+    const student_id = (req.query.student_id || '').trim();
+
+    let rows = [];
+
+    // Default page par koi student load nahi hoga
+    if (student_id) {
+
+        const result = await UserModel.getRecords(
+            'students',
+            { student_id: student_id },
+            '*'
+        );
+
+        rows = Array.isArray(result)
+            ? result
+            : (result?.rows || []);
+    }
+
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Action</th>
+            <th>Student Id</th>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Mobile No</th>
+            <th>Father Mobile</th>
+            <th>Category</th>
+            <th>Date Of Birth</th>
+            <th>Father Name</th>
+            <th>Mother Name</th>
+            <th>Address</th>
+            <th>Course</th>
+            <th>Subjects</th>
+            <th>Total Fees</th>
+            <th>Pending Fees</th>
+            <th>Admission Date</th>
+        </tr>
+    `;
+
+    let tableRows = '';
+
+    for (const [index, u] of rows.entries()) {
+
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            { id: u.course },
+            '*'
+        );
+
+        let subjectList = [];
+
+        if (u.subject_ids) {
+
+            try {
+
+                const ids = JSON.parse(u.subject_ids);
+
+                for (const id of ids) {
+
+                    const subject = await UserModel.getSingleRecord(
+                        'subjects',
+                        { id },
+                        'subject_name,category'
+                    );
+
+                    if (subject) {
+                        subjectList.push(
+                            `${subject.subject_name} (${subject.category})`
+                        );
+                    }
+                }
+
+            } catch (error) {
+                console.log('Subject JSON Error:', error);
+            }
+        }
+
+        let ParkingButton = '';
+
+        const parkingFees = Number(u.parking_fees) || 0;
+
+        const checkparkingrequest = await UserModel.getSingleRecord(
+            'parking_remove',
+            {
+                student_id: u.student_id,
+                status: 0
+            },
+            '*'
+        );
+
+        if (checkparkingrequest) {
+
+            ParkingButton = `
+        <button
+            type="button"
+            class="btn btn-warning btn-sm ParkingAction"
+            disabled>
+            Pending
+        </button>
+    `;
+
+        } else if (parkingFees > 0) {
+
+            ParkingButton = `
+        <button
+            type="button"
+            class="btn btn-danger btn-sm ParkingAction"
+            data-id="${u.id}"
+            data-action="remove">
+            Remove Parking
+        </button>
+    `;
+
+        } else {
+
+            ParkingButton = `
+        <button
+            type="button"
+            class="btn btn-success btn-sm ParkingAction"
+            data-id="${u.id}"
+            data-action="add">
+            Add Parking
+        </button>
+    `;
+        }
+
+
+
+
+
+        const admdate = SuperHelper.OnlyDate(u.admission_date);
+        const dob = SuperHelper.dob(u.dob);
+
+        tableRows += `
+            <tr>
+                <td>${index + 1}</td>
+
+                <td class="text-nowrap">
+                    <div class="btn-group btn-group-sm gap-2">
+                        ${ParkingButton}
+                    </div>
+                </td>
+
+                <td>${u.student_id || ''}</td>
+                <td>${u.roll_no || ''}</td>
+                <td>${u.first_name || ''} ${u.last_name || ''}</td>
+                <td>${u.mobile || ''}</td>
+                <td>${u.father_mobile || ''}</td>
+                <td>${u.category || ''}</td>
+                <td>${dob || ''}</td>
+                <td>${u.father_name || ''}</td>
+                <td>${u.mother_name || ''}</td>
+                <td>${u.address || ''}</td>
+
+                <td>
+                    ${course?.course_name
+                ? course.course_name + ' - ' + (u.course_year || '')
+                : ''
+            }
+                </td>
+
+                <td>
+                    <button
+                        class="btn btn-primary btn-sm view-subjects"
+                        data-subjects='${JSON.stringify(subjectList)}'>
+                        View
+                    </button>
+                </td>
+
+                <td>
+                    ${CONSTANTS.currency}${u.total_fees || 0}
+                </td>
+
+                <td>
+                    ${CONSTANTS.currency}${(Number(u.total_fees) - Number(u.pending_fees)) || 0}
+                </td>
+
+                <td>${admdate || ''}</td>
+            </tr>
+        `;
+    }
+
+    // if (!rows.length) {
+
+    //     tableRows = `
+    //         <tr>
+    //             <td colspan="17" class="text-center text-muted py-4">
+    //                 ${student_id
+    //                     ? 'No Student Found'
+    //                     : 'Search Student ID to view record'
+    //                 }
+    //             </td>
+    //         </tr>
+    //     `;
+    // }
+
+    return View.Rview(res, 'student_search', {
+        title: `
+            <div class="d-flex justify-content-between">
+                <span>Parking Add Remove</span>
+            </div>
+        `,
+
+        thead,
+        tableRows
+    });
+};
+
+
+// exports.removeParkingFees = async (req, res) => {
+
+//     try {
+//         const { id } = req.body;
+//         const staff_id = req.user.staff_id;
+
+//         const studentDetail = await UserModel.getSingleRecord(
+//             'students',
+//             { id: id },
+//             '*'
+//         );
+//         if (!studentDetail) {
+//             return res.json({
+//                 status: false,
+//                 message: 'Request not found.'
+//             });
+//         }
+
+
+
+//         const new_total_fees = (Number(studentDetail.total_fees) - Number(studentDetail.parking_fees));
+//         const OldaDetail = {
+//             student_id: studentDetail.student_id,
+//             roll_no: studentDetail.roll_no,
+//             course: studentDetail.course,
+//             course_year: studentDetail.course_year,
+//             subject_ids: studentDetail.subject_ids,
+//             total_fees: studentDetail.total_fees,
+//             available_fees: studentDetail.available_fees,
+//             physical: studentDetail.physical,
+//             computer_science: studentDetail.computer_science,
+//             home_science: studentDetail.home_science,
+//             fine_arts: studentDetail.fine_arts,
+//             music_instrumnet: studentDetail.music_instrumnet,
+//             music_vocal: studentDetail.music_vocal,
+//             english_honour: studentDetail.english_honour,
+//             admission_date: studentDetail.admission_date,
+//             security: studentDetail.security,
+//             parking_fees: studentDetail.parking_fees,
+//             new_total_fees: new_total_fees,
+//             staff_id:staff_id
+//         };
+//         const result = await UserModel.addRecord(
+//             'parking_remove',
+//             OldaDetail
+//         );
+//         return res.json({
+//             status: true,
+//             message: 'Parking Fees Remove Request Submit Successfully Please Wait For Admin Approval'
+//         });
+
+
+//     } catch (err) {
+
+//         console.log(err);
+
+//         return res.json({
+//             status: false,
+//             message: 'Something went wrong.'
+//         });
+
+//     }
+
+// };
+
 exports.removeParkingFees = async (req, res) => {
 
     try {
-        const { id } = req.body;
+
+        const { id, action } = req.body;
         const staff_id = req.user.staff_id;
+
+        if (!id || !action) {
+            return res.json({
+                status: false,
+                message: 'Invalid request.'
+            });
+        }
+
+        if (!['add', 'remove'].includes(action)) {
+            return res.json({
+                status: false,
+                message: 'Invalid parking action.'
+            });
+        }
 
         const studentDetail = await UserModel.getSingleRecord(
             'students',
             { id: id },
             '*'
         );
+
         if (!studentDetail) {
             return res.json({
                 status: false,
-                message: 'Request not found.'
+                message: 'Student not found.'
             });
         }
 
+        const currentParkingFees = Number(studentDetail.parking_fees) || 0;
+        const totalFees = Number(studentDetail.total_fees) || 0;
 
+        let new_total_fees;
+        let message;
 
-        const new_total_fees = (Number(studentDetail.total_fees) - Number(studentDetail.parking_fees));
+        if (action === 'remove') {
+
+            // Parking already removed
+            if (currentParkingFees <= 0) {
+                return res.json({
+                    status: false,
+                    message: 'Parking is already removed.'
+                });
+            }
+
+            new_total_fees = totalFees - currentParkingFees;
+
+            message =
+                'Parking Fees Remove Request Submit Successfully Please Wait For Admin Approval';
+
+        } else {
+
+            // Parking already exists
+            if (currentParkingFees > 0) {
+                return res.json({
+                    status: false,
+                    message: 'Parking is already added.'
+                });
+            }
+
+            // Yahan apni parking fee amount rakho
+            const parkingFee = 1000;
+
+            new_total_fees = totalFees + parkingFee;
+
+            message =
+                'Parking Add Request Submit Successfully Please Wait For Admin Approval';
+        }
+
         const OldaDetail = {
             student_id: studentDetail.student_id,
             roll_no: studentDetail.roll_no,
             course: studentDetail.course,
             course_year: studentDetail.course_year,
             subject_ids: studentDetail.subject_ids,
+
             total_fees: studentDetail.total_fees,
             available_fees: studentDetail.available_fees,
+
             physical: studentDetail.physical,
             computer_science: studentDetail.computer_science,
             home_science: studentDetail.home_science,
@@ -241,21 +540,28 @@ exports.removeParkingFees = async (req, res) => {
             music_instrumnet: studentDetail.music_instrumnet,
             music_vocal: studentDetail.music_vocal,
             english_honour: studentDetail.english_honour,
+
             admission_date: studentDetail.admission_date,
             security: studentDetail.security,
-            parking_fees: studentDetail.parking_fees,
+
+            parking_fees: currentParkingFees,
+
             new_total_fees: new_total_fees,
-            staff_id:staff_id
+
+            action: action,
+
+            staff_id: staff_id
         };
-        const result = await UserModel.addRecord(
+
+        await UserModel.addRecord(
             'parking_remove',
             OldaDetail
         );
+
         return res.json({
             status: true,
-            message: 'Parking Fees Remove Request Submit Successfully Please Wait For Admin Approval'
+            message: message
         });
-
 
     } catch (err) {
 
@@ -267,7 +573,6 @@ exports.removeParkingFees = async (req, res) => {
         });
 
     }
-
 };
 
 

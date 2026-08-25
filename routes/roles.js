@@ -27,6 +27,8 @@ router.get('/all-students', jwtAuth.verifyToken, Manage.users);
 router.get('/subjects/:course_id', Login.getSubjectsByCourse);
 router.get('/subjects-group/:course_id', Login.getSubjectsByCourseGroup);
 router.get('/subjects-group-course/:courseId/:year', Login.getSubjectsGroup);
+router.get('/parking-add-remove', jwtAuth.verifyToken, Manage.parkingAddremove);
+
 
 router.get('/admission-date', Login.getAdmissionDate);
 
