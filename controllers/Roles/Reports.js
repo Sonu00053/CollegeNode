@@ -221,7 +221,7 @@ exports.updateFees = async (req, res) => {
         // Update receipt_details
         await updateReceiptTable('receipt_details');
 
-        // Update balance_receipt_details
+        // Update   
         await updateReceiptTable('balance_receipt_details');
 
         return res.json({
@@ -274,7 +274,6 @@ async function updateReceiptTable(tableName) {
             }
         );
 
-        // Student Remaining Fees Update
         await UserModel.updateRecord(
             'students',
             {

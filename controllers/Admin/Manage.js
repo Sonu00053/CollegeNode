@@ -582,6 +582,11 @@ exports.updatestidentProfile = async (req, res) => {
         { student_id },
         "*"
     );
+    
+    if (!student) {
+        return SuperHelper.c(res);
+       
+    }
 
     
 
@@ -639,9 +644,9 @@ exports.updatestidentProfile = async (req, res) => {
             errors.first_name = "First Name is required.";
         }
 
-        if (!last_name) {
-            errors.last_name = "Last Name is required.";
-        }
+        // if (!last_name) {
+        //     errors.last_name = "Last Name is required.";
+        // }
 
         if (!mobile) {
             errors.mobile = "Mobile Number is required.";
@@ -659,6 +664,9 @@ exports.updatestidentProfile = async (req, res) => {
 
         if (email && !/^\S+@\S+\.\S+$/.test(email)) {
             errors.email = "Invalid Email Address.";
+        }
+        if (!email) {
+            email = null;
         }
 
         if (!dob) {
@@ -707,6 +715,7 @@ exports.updatestidentProfile = async (req, res) => {
                 aadhar_no: student.aadhar_no,
                 course: student.course,
                 course_year: student.course_year,
+                dob: student.dob,
                 staff_id: staff_id
             });
 
@@ -720,7 +729,8 @@ exports.updatestidentProfile = async (req, res) => {
                     mother_name,
                     email,
                     category,
-                    aadhar_no
+                    aadhar_no,
+                    dob
                 },
                 { student_id }
 

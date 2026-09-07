@@ -187,9 +187,8 @@ exports.updatestidentProfile = async (req, res) => {
     );
 
     if (!student) {
-        return View.Rview(res, "404", {
-            message: "Student not found."
-        });
+        return SuperHelper.c(res);
+       
     }
 
     // Show DB values on first load
@@ -319,6 +318,7 @@ exports.updatestidentProfile = async (req, res) => {
                 aadhar_no: student.aadhar_no,
                 course: student.course,
                 course_year: student.course_year,
+                dob:student.dob,
                 staff_id: staff_id
             });
 
@@ -332,7 +332,8 @@ exports.updatestidentProfile = async (req, res) => {
                     mother_name,
                     email,
                     category,
-                    aadhar_no
+                    aadhar_no,
+                    dob
                 },
                 { student_id }
 

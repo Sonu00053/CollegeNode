@@ -161,3 +161,35 @@
     }
 
 </script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const form = document.querySelector('form');
+    const button = document.getElementById('createReceiptBtn');
+
+    if (!button || !form) return;
+
+    button.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        Swal.fire({
+            title: 'Create Receipt?',
+            text: 'Are you sure you want to create this receipt?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Create Receipt',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+                form.submit();
+            }
+
+        });
+    });
+
+});
+</script>

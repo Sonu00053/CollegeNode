@@ -171,6 +171,116 @@ exports.users = async (req, res) => {
 
 };
 
+// exports.users2 = async (req, res) => {
+
+//     const result = await UserModel.getRecords('students', {}, '*');
+//     const thead = `
+//         <tr>
+//             <th>#</th>
+//             <th>Student Name</th>
+//             <th>Mobile No</th>
+//             <th>Father Mobile</th>
+//             <th>Father Name</th>
+//             <th>Address</th>
+//             <th>Class</th>
+//         </tr>
+//     `;
+
+//     const rows = Array.isArray(result) ? result : (result?.rows || []);
+
+//     let tableRows = '';
+
+//     for (const [index, u] of rows.entries()) {
+
+//         const course = await UserModel.getSingleRecord(
+//             'courses',
+//             { id: u.course },
+//             '*'
+//         );
+
+//         let subjectList = [];
+
+//         if (u.subject_ids) {
+
+//             const ids = JSON.parse(u.subject_ids);
+
+//             for (const id of ids) {
+
+//                 const subject = await UserModel.getSingleRecord(
+//                     'subjects',
+//                     { id },
+//                     'subject_name,category'
+//                 );
+
+//                 if (subject) {
+//                     // subjectList.push(subject.subject_name);
+//                     subjectList.push(`${subject.subject_name} (${subject.category})`);
+
+//                 }
+
+//             }
+
+//         }
+//         let editSubjects = '';
+        
+
+//         const profile = `<a href="${CONSTANTS.role}profile/${u.student_id}" class="btn btn-warning btn-sm">View Profile</a>`;
+//         const Editprofile = `<a href="${CONSTANTS.role}update-profile/${u.student_id}" class="btn btn-info btn-sm">Edit</a>`;
+//         if (Number(u.course) == 1) {
+//             editSubjects = `<a href="${CONSTANTS.role}update-subjects/${u.student_id}" class="btn btn-success btn-sm">Edit Subjects</a>`;
+//         }
+
+//         const Classchange = `<a href="${CONSTANTS.role}update-class/${u.student_id}" class="btn btn-primary btn-sm">Change Class</a>`;
+//         const admdate = SuperHelper.OnlyDate(u.admission_date);
+//         const dob = SuperHelper.dob(u.dob);
+
+//         tableRows += `
+//         <tr>
+//             <td>${index + 1}</td>
+        
+//             <td>${u.first_name} ${u.last_name}</td>
+//             <td>${u.mobile}</td>
+//             <td>${u.father_mobile}</td>
+//             <td>${u.father_name}</td>
+//             <td>${u.address}</td>
+//             <td>${course?.course_name + ' - ' + u.course_year || ''}</td>
+
+            
+
+
+//         </tr>
+
+//         `;
+
+
+//     }
+
+//     if (!rows.length) {
+
+//         tableRows = `
+//         <tr>
+//             <td colspan="10" class="text-center">
+//                 No Data Found
+//             </td>
+//         </tr>
+//         `;
+
+//     }
+
+//     return View.Rview(res, 'reports', {
+//         title: `
+//         <div class="d-flex justify-content-between">
+//             <span>All Students Report</span>
+//         </div>
+//         `,
+
+//         thead,
+//         tableRows
+
+//     });
+
+// };
+
 
 exports.parkingAddremove = async (req, res) => {
 
@@ -792,7 +902,8 @@ ${errors.remarks ? `<div class="text-danger small mt-1">${errors.remarks}</div>`
 
     const buttons = `
         ${Form.submit("Create Receipt", {
-        class: "btn btn-dark"
+        class: "btn btn-dark",
+        id: "createReceiptBtn"
     })}
     `;
 
@@ -1440,7 +1551,8 @@ ${errors.remarks ? `<div class="text-danger small mt-1">${errors.remarks}</div>`
 
     const buttons = `
         ${Form.submit("Create Receipt", {
-        class: "btn btn-dark"
+        class: "btn btn-dark",
+        id: "createReceiptBtn"
     })}
     `;
 
