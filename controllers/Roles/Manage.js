@@ -91,7 +91,7 @@ exports.users = async (req, res) => {
 
         }
         let editSubjects = '';
-        
+
 
         const profile = `<a href="${CONSTANTS.role}profile/${u.student_id}" class="btn btn-warning btn-sm">View Profile</a>`;
         const Editprofile = `<a href="${CONSTANTS.role}update-profile/${u.student_id}" class="btn btn-info btn-sm">Edit</a>`;
@@ -222,7 +222,7 @@ exports.users = async (req, res) => {
 
 //         }
 //         let editSubjects = '';
-        
+
 
 //         const profile = `<a href="${CONSTANTS.role}profile/${u.student_id}" class="btn btn-warning btn-sm">View Profile</a>`;
 //         const Editprofile = `<a href="${CONSTANTS.role}update-profile/${u.student_id}" class="btn btn-info btn-sm">Edit</a>`;
@@ -237,7 +237,7 @@ exports.users = async (req, res) => {
 //         tableRows += `
 //         <tr>
 //             <td>${index + 1}</td>
-        
+
 //             <td>${u.first_name} ${u.last_name}</td>
 //             <td>${u.mobile}</td>
 //             <td>${u.father_mobile}</td>
@@ -245,7 +245,7 @@ exports.users = async (req, res) => {
 //             <td>${u.address}</td>
 //             <td>${course?.course_name + ' - ' + u.course_year || ''}</td>
 
-            
+
 
 
 //         </tr>
@@ -1021,22 +1021,33 @@ exports.recieptHistory = async (req, res) => {
 
 exports.studentFees = async (req, res) => {
 
-    const student = await UserModel.getSingleRecord(
+    let student = await UserModel.getSingleRecord(
         "students",
         { student_id: req.body.student_id },
         "total_fees,pending_fees,first_name,last_name,father_name,course,course_year"
     );
+    if (student) {
+        student = student
+    } else {
+        student = await UserModel.getSingleRecord(
+            "students",
+            { roll_no: req.body.student_id },
+            "total_fees,pending_fees,first_name,last_name,father_name,course,course_year"
+        );
+        student = student;
+    }
+    if (!student) {
+        return res.json({
+            status: false
+        });
+    }
     const course = await UserModel.getSingleRecord(
         "courses",
         { id: student.course },
         "course_name"
     );
 
-    if (!student) {
-        return res.json({
-            status: false
-        });
-    }
+
 
     return res.json({
         status: true,
@@ -1049,6 +1060,61 @@ exports.studentFees = async (req, res) => {
     });
 
 };
+
+// exports.studentFees = async (req, res) => {
+//     try {
+//         let student = await UserModel.getSingleRecord(
+//             "students",
+//             { student_id: req.body.student_id },
+//             "total_fees,pending_fees,first_name,last_name,father_name,course,course_year"
+//         );
+
+//         if (!student) {
+//             student = await UserModel.getSingleRecord(
+//                 "students",
+//                 { roll_no: req.body.student_id },
+//                 "total_fees,pending_fees,first_name,last_name,father_name,course,course_year"
+//             );
+//         }
+
+//         if (!student) {
+//             return res.json({
+//                 status: false,
+//                 message: "Student not found"
+//             });
+//         }
+
+//         const course = await UserModel.getSingleRecord(
+//             "courses",
+//             { id: student.course },
+//             "course_name"
+//         );
+
+//         console.log(student);
+
+//         return res.json({
+//             status: true,
+//             total_fees: Number(student.total_fees),
+//             name: `${student.first_name} ${student.last_name}`,
+//             father: student.father_name,
+//             course: `${course ? course.course_name : "N/A"} - ${student.course_year}`,
+//             paid_fees: Number(student.pending_fees),
+//             pending_fees:
+//                 Number(student.total_fees) - Number(student.pending_fees)
+//         });
+
+//     } catch (error) {
+//         console.error("studentFees Error:", error);
+
+//         return res.status(500).json({
+//             status: false,
+//             message: "Something went wrong"
+//         });
+//     }
+// };
+
+
+
 
 
 
@@ -1342,12 +1408,12 @@ exports.balancereciptcreate = async (req, res) => {
     let amount = '', payment_mode = '', transaction_id = '', remarks = '';
     let message = '', messageType = '';
     let rediret = '';
-    if (student_id) {
-        redirect = CONSTANTS.role + 'create-reciept?student_id=' + student_id;
-    } else {
-        redirect = CONSTANTS.role + 'balance-create-reciept';
-    }
-    console.log(rediret);
+    // if (student_id) {
+    //     redirect = CONSTANTS.role + 'create-reciept?student_id=' + student_id;
+    // } else {
+    var redirectUrl = CONSTANTS.role + 'balance-create-reciept';
+    // }
+    // console.log(rediret);
 
     if (req.method === 'POST') {
         student_id = req.body.student_id || '';
@@ -1372,7 +1438,7 @@ exports.balancereciptcreate = async (req, res) => {
         if (payment_mode !== 'Cash' && !transaction_id) {
             errors.transaction_id = 'This field is required';
         }
-        var redirectUrl = CONSTANTS.role + 'create-reciept'; // Default redirect URL
+        // var redirectUrl = CONSTANTS.role + 'create-reciept'; // Default redirect URL
 
         Object.keys(errors).forEach(k => !errors[k] && delete errors[k]);
 
@@ -1381,11 +1447,34 @@ exports.balancereciptcreate = async (req, res) => {
             messageType = 'error';
         } else {
             const receipt_no = await exports.generatebalancerecieptId();
-            const students = await UserModel.getSingleRecord(
+            // const students = await UserModel.getSingleRecord(
+            //     'students',
+            //     { student_id: student_id },
+            //     '*'
+            // );
+
+            // const RollNo = await UserModel.getSingleRecord(
+            //     'students',
+            //     { roll_no: student_id },
+            //     '*'
+            // );
+            const student = await UserModel.getSingleRecord(
                 'students',
                 { student_id: student_id },
                 '*'
             );
+
+            const RollNo = await UserModel.getSingleRecord(
+                'students',
+                { roll_no: student_id },
+                '*'
+            );
+
+            const students = student || RollNo;
+
+            if (!students) {
+                return SuperHelper.c(res);
+            }
             if (students) {
                 if (Number(students.reciept_status) == 1) {
                     if (Number(students.pending_fees) < Number(students.total_fees)) {
@@ -1396,7 +1485,7 @@ exports.balancereciptcreate = async (req, res) => {
                             var end = students.end;
                             const availableFees = Number(students.available_fees);
                             await UserModel.addRecord('balance_receipt_details', {
-                                student_id,
+                                student_id:students.student_id,
                                 receipt_no,
                                 roll_no: students.roll_no,
                                 total_fees: Number(students.total_fees),
@@ -1418,7 +1507,7 @@ exports.balancereciptcreate = async (req, res) => {
                                     pending_fees: Number(students.pending_fees) + Number(amount), reciept_status: 1, available_fees: (availableFees - Number(amount))
                                 },
                                 {
-                                    student_id: student_id
+                                    student_id: students.student_id
                                 }
                             );
                             message = 'Receipt created successfully!';
@@ -1461,10 +1550,10 @@ exports.balancereciptcreate = async (req, res) => {
         );
     }
     const fields = `
-        ${Form.label("Student ID *")}
+        ${Form.label("Student ID OR Roll No *")}
         ${Form.text("student_id", student_id, {
         class: `form-control ${errors.student_id ? "is-invalid" : ""}`,
-        placeholder: "Enter Student ID",
+        placeholder: "Enter Student ID OR Roll No",
         onkeyup: "loadStudentDetails()"
     })}
         ${errors.student_id ? `<div class="text-danger small mt-1">${errors.student_id}</div>` : ""}

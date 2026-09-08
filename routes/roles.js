@@ -89,6 +89,10 @@ router.get('/class-wise-history', jwtAuth.verifyToken, Reports.ClassWiseSubjectR
 
 router.get('/per-class-subject-history/:course_id/:year', jwtAuth.verifyToken, Reports.perclasssubject);
 
+router.get('/ClassWise-History', jwtAuth.verifyToken, Reports.ClassWiseHistory);
+
+router.get('/per-class-history/:course_id/:year', jwtAuth.verifyToken, Reports.perclassHistory);
+
 
 
 router.get("/subject-address-report", jwtAuth.verifyToken, Reports.subjectAddressReport);

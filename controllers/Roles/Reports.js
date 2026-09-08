@@ -1058,3 +1058,145 @@ exports.subjectchangerequest = async (req, res) => {
     });
 
 };
+
+
+exports.ClassWiseHistory = async (req, res) => {
+
+    const result = await UserModel.getRecords('roll_no', {}, '*');
+
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Class</th>
+            <th>Total Students</th>
+            <th>Action</th>
+        </tr>
+    `;
+
+    const rows = Array.isArray(result) ? result : (result?.rows || []);
+
+    let tableRows = '';
+
+    for (const [index, u] of rows.entries()) {
+        const Class = await UserModel.getSingleRecorddate(
+            'courses',
+            {
+                id: u.course_id
+            },
+            'course_name'
+        );
+
+        const totalStudents = await UserModel.getSingleRecord(
+            'students',
+            { course: u.course_id, course_year: u.year },
+            'COUNT(id) as total'
+        );
+
+        tableRows += `
+            <tr>
+                <td>${index + 1}</td>
+                    <td>${Class.course_name} - ${u.year}</td>  
+                    <td>${totalStudents.total}</td>  
+                     <td>
+                    <a href="${CONSTANTS.role}per-class-history/${u.course_id}/${u.year}"
+                       class="btn btn-sm btn-primary">
+                       View 
+                    </a>
+                </td>              
+                
+            </tr>
+        `;
+    }
+
+
+
+    if (!rows.length) {
+        tableRows = `
+        <tr>
+            <td colspan="8">No Data Found</td>
+        </tr>
+        `;
+    }
+
+
+
+    return View.Rview(res, 'reports', {
+        title: `
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Class Wise Report</span>
+            </div>
+        `,
+        thead,
+        tableRows,
+    });
+
+};
+
+
+exports.perclassHistory = async (req, res) => {
+
+    const { course_id, year } = req.params;
+
+    const result = await UserModel.getRecords('students', { course: course_id, course_year: year }, '*');
+    const thead = `
+        <tr>
+           <th>#</th>
+            <th>Roll No</th>
+            <th>Student Name</th>
+            <th>Father Name</th>
+            <th>Mother Name</th>
+            <th>Course</th>
+            <th>Admission Date</th>
+        </tr>
+    `;
+
+    const Class = await UserModel.getSingleRecorddate(
+        'courses',
+        {
+            id: course_id
+        },
+        'course_name'
+    );
+
+    const rows = Array.isArray(result) ? result : (result?.rows || []);
+
+    let tableRows = '';
+
+    for (const [index, u] of rows.entries()) {
+
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            { id: u.course },
+            '*'
+        );
+
+        
+        const admdate = SuperHelper.OnlyDate(u.admission_date);
+        tableRows += `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${u.roll_no}</td>
+            <td>${u.first_name} ${u.last_name}</td>
+            <td>${u.father_name}</td>
+            <td>${u.mother_name}</td>
+            <td>${Class.course_name} - ${year}</td>
+            <td>${admdate}</td>
+            
+        </tr>
+        `;
+    }
+
+    return View.Rview(res, 'reports', {
+
+        title: `
+        <div class="d-flex justify-content-between">
+            <span>Class ${Class.course_name} - ${year} Report</span>
+        </div>
+        `,
+
+        thead,
+        tableRows
+
+    });
+
+};
