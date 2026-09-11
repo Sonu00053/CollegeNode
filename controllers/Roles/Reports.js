@@ -705,8 +705,8 @@ exports.subjectSearch = async (req, res) => {
 
 
 exports.classhangerequest = async (req, res) => {
-        const staff_id = req.user.staff_id;
-    const result = await UserModel.getRecords('class_update_detail', {staff_id:staff_id}, '*', 'id desc');
+    const staff_id = req.user.staff_id;
+    const result = await UserModel.getRecords('class_update_detail', { staff_id: staff_id }, '*', 'id desc');
     const thead = `
         <tr>
             <th>#</th>
@@ -714,6 +714,8 @@ exports.classhangerequest = async (req, res) => {
             <th>Student Name</th>
             <th>Old Class</th>
             <th>New Class</th>
+            <th>Old Roll No</th>
+            <th>New Roll No</th>
             <th>Old Subject</th>
             <th>New Subject</th>
             <th>Old Total Fees</th>
@@ -789,28 +791,15 @@ exports.classhangerequest = async (req, res) => {
             }
 
         }
-        // <td>${new Date(u.admission_date).toISOString().split('T')[0]}</td>
-
-
-        // const headsView = '<a href="' + '/admin/heads-detail/' + u.student_id + '" class="btn btn-sm btn-dark">View</a>';
-        // const date = new Date(u.admission_date);
-        // const year = date.getFullYear();
-        // const month = String(date.getMonth() + 1).padStart(2, '0');
-        // const day = String(date.getDate()).padStart(2, '0');
-        // const newdate = `${year}-${month}-${day}`;
         const newdate = SuperHelper.OnlyDate(u.created_at);
 
         let status = '';
         if (Number(u.status) == 0) {
-
-
-
             status = `
         <span class="badge bg-warning text-dark">
             <i class="bi bi-clock-fill"></i> Pending
         </span>
     `;
-
         } else if (Number(u.status) == 1) {
             status = `
         <span class="badge bg-success">
@@ -835,6 +824,9 @@ exports.classhangerequest = async (req, res) => {
             <td>${StudentDetail.first_name} ${StudentDetail.last_name}</td>
             <td>${course.course_name}-${u.course_year}</td>
             <td>${Newcourse.course_name}-${u.new_course_year}</td>
+            <td>${u.roll_no}</td>
+            <td>${u.new_roll_no}</td>
+
         <td>
          
         ${subjectList.length > 0 ? `
@@ -891,7 +883,7 @@ exports.subjectchangerequest = async (req, res) => {
 
 
 
-    const result = await UserModel.getRecords('subject_update_detail', {staff_id:staff_id}, '*', 'id desc');
+    const result = await UserModel.getRecords('subject_update_detail', { staff_id: staff_id }, '*', 'id desc');
     const thead = `
         <tr>
             <th>#</th>
@@ -921,7 +913,7 @@ exports.subjectchangerequest = async (req, res) => {
             { id: u.course },
             '*'
         );
-         const StudentDetail = await UserModel.getSingleRecord(
+        const StudentDetail = await UserModel.getSingleRecord(
             'students',
             { student_id: u.student_id },
             '*'
@@ -970,14 +962,14 @@ exports.subjectchangerequest = async (req, res) => {
             }
 
         }
-     
+
         const newdate = SuperHelper.OnlyDate(u.created_at);
 
         let status = '';
-      
+
         if (Number(u.status) == 0) {
 
-           
+
 
             status = `
         <span class="badge bg-warning text-dark">
@@ -987,7 +979,7 @@ exports.subjectchangerequest = async (req, res) => {
 
         } else if (Number(u.status) == 1) {
 
-        
+
 
             status = `
         <span class="badge bg-success">
@@ -1170,7 +1162,7 @@ exports.perclassHistory = async (req, res) => {
             '*'
         );
 
-        
+
         const admdate = SuperHelper.OnlyDate(u.admission_date);
         tableRows += `
         <tr>
@@ -1192,6 +1184,124 @@ exports.perclassHistory = async (req, res) => {
         <div class="d-flex justify-content-between">
             <span>Class ${Class.course_name} - ${year} Report</span>
         </div>
+        `,
+
+        thead,
+        tableRows
+
+    });
+
+};
+
+
+exports.parkigAddremove = async (req, res) => {
+    const staff_id = req.user.staff_id;
+    const result = await UserModel.getRecords('parking_remove', { staff_id: staff_id ,status:0}, '*', 'id desc');
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Student ID</th>
+            <th>Student Name</th>
+            <th>Class</th>
+            <th>Roll No</th>
+            <th>Parking Fees</th>
+            <th>Old Total Fess</th>
+            <th>New Total Fees</th>
+            <th>Status</th>
+            <th>Action Type</th>
+            <th>Date</th>
+        </tr>
+    `;
+
+
+
+    const rows = Array.isArray(result) ? result : (result?.rows || []);
+
+    let tableRows = '';
+    let letparkingFee = 1000;
+    let ActionType = '';
+
+    for (const [index, u] of rows.entries()) {
+
+
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            { id: u.course },
+            '*'
+        );
+        const Newcourse = await UserModel.getSingleRecord(
+            'courses',
+            { id: u.new_course },
+            '*'
+        );
+        const StudentDetail = await UserModel.getSingleRecord(
+            'students',
+            { student_id: u.student_id },
+            '*'
+        );
+        
+        const newdate = SuperHelper.OnlyDate(u.created_at);
+
+        let status = '';
+        if (Number(u.status) == 0) {
+            status = `
+        <span class="badge bg-warning text-dark">
+            <i class="bi bi-clock-fill"></i> Pending
+        </span>
+    `;
+        } else if (Number(u.status) == 1) {
+            status = `
+        <span class="badge bg-success">
+            <i class="bi bi-check-circle-fill"></i> Success
+        </span>
+    `;
+
+        } else if (Number(u.status) == 2) {
+
+
+            status = `
+        <span class="badge bg-danger">
+            <i class="bi bi-x-circle-fill"></i> Rejected
+        </span>
+    `;
+        }
+        if(u.action == 'add'){
+            ActionType = `
+            <span class="badge bg-success">
+                <i class="bi bi-plus-circle-fill"></i> Add Parking
+            </span>
+        `;
+        }else if(u.action == 'remove'){
+            ActionType = `
+            <span class="badge bg-danger">
+                <i class="bi bi-dash-circle-fill"></i> Remove Parking
+            </span>
+        `;
+        }
+        tableRows += `
+        
+        <tr>
+            <td>${index + 1}</td>
+            <td>${u.student_id}</td>
+            <td>${StudentDetail.first_name} ${StudentDetail.last_name}</td>
+            <td>${course.course_name}-${u.course_year}</td>
+            <td>${u.roll_no}</td>
+        <td>${CONSTANTS.currency}${letparkingFee}</td>
+        <td>${CONSTANTS.currency}${u.total_fees}</td>
+        <td>${CONSTANTS.currency}${u.new_total_fees}</td>
+        <td>${status}</td>
+        <td>${ActionType}</td>
+        <td>${newdate}</td>
+
+        </tr>
+        `;
+    }
+
+
+    return View.Rview(res, 'reports', {
+
+        title: `Parking Add/Remove Report
+        
         `,
 
         thead,

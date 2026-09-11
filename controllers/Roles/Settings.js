@@ -168,6 +168,7 @@ exports.updatestidentProfile = async (req, res) => {
     let address = "";
     let category = "";
     let aadhar_no = "";
+    let father_name = "";
 
 
     let message = "";
@@ -201,6 +202,7 @@ exports.updatestidentProfile = async (req, res) => {
         email = student.email || "";
         category = student.category || "";
         aadhar_no = student.aadhar_no || "";
+        father_name = student.father_name || "";
 
         dob = "";
         if (student.dob) {
@@ -217,6 +219,7 @@ exports.updatestidentProfile = async (req, res) => {
             mobile = "",
             father_mobile = "",
             mother_name = "",
+            father_name = "",
             email = "",
             dob = "",
             address = "",
@@ -229,6 +232,7 @@ exports.updatestidentProfile = async (req, res) => {
         console.log(req.body);
 
         first_name = first_name.trim();
+        father_name = father_name.trim();
         // last_name = last_name.trim();
         mobile = mobile.trim();
         father_mobile = father_mobile.trim();
@@ -259,8 +263,12 @@ exports.updatestidentProfile = async (req, res) => {
             errors.father_mobile = "Enter a valid 10 digit mobile number.";
         }
 
+
         if (!mother_name) {
             errors.mother_name = "Mother Name is required.";
+        }
+        if (!father_name) {
+            errors.father_name = "Father Name is required.";
         }
 
         if (email && !/^\S+@\S+\.\S+$/.test(email)) {
@@ -312,6 +320,7 @@ exports.updatestidentProfile = async (req, res) => {
                 last_name: student.last_name,
                 mobile: student.mobile,
                 father_mobile: student.father_mobile,
+                father_name: student.father_name,
                 mother_name: student.mother_name,
                 email: student.email,
                 category: student.category,
@@ -329,6 +338,7 @@ exports.updatestidentProfile = async (req, res) => {
                     last_name,
                     mobile,
                     father_mobile,
+                    father_name,
                     mother_name,
                     email,
                     category,
@@ -384,6 +394,15 @@ exports.updatestidentProfile = async (req, res) => {
         oninput="this.value=this.value.replace(/[^0-9]/g,'')">
 
     ${errors.mobile ? `<div class="invalid-feedback d-block">${errors.mobile}</div>` : ""}
+
+    <br>
+
+    ${Form.label("Father Name *")}
+    ${Form.text("father_name", father_name, {
+        class: `form-control ${errors.father_name ? "is-invalid" : ""}`,
+        placeholder: "Enter Father Name"
+    })}
+    ${errors.father_name ? `<div class="invalid-feedback d-block">${errors.father_name}</div>` : ""}
 
     <br>
 

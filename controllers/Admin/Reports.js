@@ -911,6 +911,8 @@ exports.classhangerequest = async (req, res) => {
             <th>Student Name</th>
             <th>Old Class</th>
             <th>New Class</th>
+            <th>Old Roll No</th>
+            <th>New Roll No</th>
             <th>Old Subject</th>
             <th>New Subject</th>
             <th>Old Total Fees</th>
@@ -1068,6 +1070,9 @@ exports.classhangerequest = async (req, res) => {
 
             <td>${course.course_name}-${u.course_year}</td>
             <td>${Newcourse.course_name}-${u.new_course_year}</td>
+            <td>${u.roll_no}</td>
+            <td>${u.new_roll_no}</td>
+
         <td>
          
         ${subjectList.length > 0 ? `

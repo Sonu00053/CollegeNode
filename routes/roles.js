@@ -120,6 +120,9 @@ router.get('/receipt-between-history', jwtAuth.verifyToken, Reports.reciptBetwee
 router.get('/class-change-history', jwtAuth.verifyToken, Reports.classhangerequest);
 router.get('/subject-change-history', jwtAuth.verifyToken, Reports.subjectchangerequest);
 
+router.get('/parking-AddRemove-report', jwtAuth.verifyToken, Reports.parkigAddremove);
+
+
 
 router
     .route("/update-subjects/:student_id")
