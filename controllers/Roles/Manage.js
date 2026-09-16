@@ -1776,7 +1776,7 @@ exports.groupbyrecipthistory = async (req, res) => {
         'admission_date',
         'amount'
     );
-    console.log(result);
+    // console.log(result);
 
     const thead = `
         <tr>
@@ -1881,6 +1881,7 @@ exports.recieptHistorydatewisw = async (req, res) => {
             <th>Roll No</th>
             <th>Amount</th>
             <th>Payment Mode</th>
+            <th>Remarks</th>
             <th>Date & Time</th>
             <th>Action</th>
         </tr>
@@ -1905,6 +1906,7 @@ exports.recieptHistorydatewisw = async (req, res) => {
                 <td>${studentDetail.roll_no}</td>
                 <td>${CONSTANTS.currency}${u.amount}</td>
                 <td>${u.payment_mode}</td>
+                <td>${u.remarks || ' '}</td>
                 <td>${newdate}</td>
                 <td>
                     <a href="${CONSTANTS.role}reciept/${u.receipt_no}"
@@ -1959,7 +1961,7 @@ exports.balacegroupbyrecipthistory = async (req, res) => {
         'created_at',
         'amount'
     );
-    console.log(result);
+    // console.log(result);
 
     const thead = `
         <tr>
@@ -2065,6 +2067,7 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
             <th>Roll No</th>
             <th>Amount</th>
             <th>Payment Mode</th>
+            <th>Remarks</th>
             <th>Date & Time</th>
             <th>Action</th>
         </tr>
@@ -2091,6 +2094,7 @@ exports.balancerecieptHistorydatewisw = async (req, res) => {
                 <td>${studentDetail.roll_no}</td>
                 <td>${CONSTANTS.currency}${u.amount}</td>
                 <td>${u.payment_mode}</td>
+                <td>${u.remarks || ' '}</td>
                 <td>${SuperHelper.formatDate(u.created_at)}</td>
                 <td>
                     <a href="${CONSTANTS.role}balance-reciept/${u.receipt_no}"
@@ -2323,6 +2327,7 @@ exports.adminReceiptHistory = async (student_id, table, link) => {
                 <td>${u.receipt_no}</td>
                 <td>${CONSTANTS.currency}${u.amount}</td>
                 <td>${u.payment_mode || ""}</td>
+                <td>${u.remarks || ""}</td>
                 <td>${SuperHelper.formatDate(u.created_at)}</td>
                 <td>
                     <a href="${CONSTANTS.role}${link}/${u.receipt_no}"

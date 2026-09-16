@@ -120,6 +120,7 @@ exports.perclasssubject = async (req, res) => {
             '*'
         );
 
+
         let subjectList = [];
 
         if (u.subject_ids) {
@@ -135,11 +136,12 @@ exports.perclasssubject = async (req, res) => {
                 );
 
                 if (subject) {
-                    subjectList.push(`${subject.subject_name} (${subject.category})`);
+                    subjectList.push({
+                        subject_name: subject.subject_name,
+                        category: subject.category
+                    });
                 }
-
             }
-
         }
         // <td>${new Date(u.admission_date).toISOString().split('T')[0]}</td>
 
@@ -152,6 +154,46 @@ exports.perclasssubject = async (req, res) => {
         const newdate = `${year}-${month}-${day}`;
         const admdate = SuperHelper.OnlyDate(u.admission_date);
         const dob = SuperHelper.dob(u.dob);
+        let subjectsHtml = '';
+
+        if (subjectList.length > 0) {
+
+            subjectsHtml = subjectList.map((subject, subjectIndex) => `
+        <div style="
+            display:flex;
+            align-items:flex-start;
+            line-height:1.5;
+            margin-bottom:4px;
+            white-space:normal;
+            word-break:break-word;
+        ">
+            <span style="
+                min-width:22px;
+                font-weight:500;
+            ">
+                ${subjectIndex + 1}.
+            </span>
+
+            <span style="
+                flex:1;
+                word-break:break-word;
+            ">
+                ${subject.subject_name} (${subject.category})
+            </span>
+        </div>
+    `).join('');
+
+        } else {
+
+            subjectsHtml = `
+        <span style="
+            color:#6c757d;
+            white-space:nowrap;
+        ">
+            No Subject
+        </span>
+    `;
+        }
         tableRows += `
         <tr>
             <td>${index + 1}</td>
@@ -167,13 +209,19 @@ exports.perclasssubject = async (req, res) => {
             <td>${u.address}</td>
             <td>${course?.course_name + ' - ' + u.course_year || ''}</td>
 
-            <td>
-                <button
-                    class="btn btn-primary btn-sm view-subjects"
-                    data-subjects='${JSON.stringify(subjectList)}'>
-                    View
-                </button>
-            </td>
+        <td style="
+    width:280px;
+    min-width:280px;
+    max-width:280px;
+    vertical-align:top;
+    padding:10px;
+    line-height:1.5;
+    white-space:normal;
+    word-break:break-word;
+    overflow-wrap:anywhere;
+">
+    ${subjectsHtml}
+</td>
             
 
             <td>${CONSTANTS.currency}${u.total_fees}</td>
@@ -611,7 +659,7 @@ exports.subjectSearch = async (req, res) => {
         selectedSubjects = [selectedSubjects];
     }
     selectedSubjects = selectedSubjects.map(Number);
-    console.log("Selected Subjects:", selectedSubjects);
+    // console.log("Selected Subjects:", selectedSubjects);
 
     students = [];
 
@@ -1061,6 +1109,9 @@ exports.ClassWiseHistory = async (req, res) => {
             <th>#</th>
             <th>Class</th>
             <th>Total Students</th>
+            <th>Total Fees</th>
+            <th>Total Paid</th>
+            <th>Total Remaining</th>
             <th>Action</th>
         </tr>
     `;
@@ -1084,15 +1135,41 @@ exports.ClassWiseHistory = async (req, res) => {
             'COUNT(id) as total'
         );
 
+        const totalFees = await UserModel.getSingleRecord(
+            'students',
+            { course: u.course_id, course_year: u.year },
+            'ifnull(SUM(total_fees),0) as total'
+        );
+
+        const totalPaid = await UserModel.getSingleRecord(
+            'students',
+            { course: u.course_id, course_year: u.year },
+            'ifnull(SUM(pending_fees),0) as total'
+        );
+
+        const totalRemaining = await UserModel.getSingleRecord(
+            'students',
+            { course: u.course_id, course_year: u.year },
+            'ifnull(SUM(available_fees),0) as total'
+        );
+
         tableRows += `
             <tr>
                 <td>${index + 1}</td>
                     <td>${Class.course_name} - ${u.year}</td>  
                     <td>${totalStudents.total}</td>  
+                    <td>${CONSTANTS.currency}${totalFees.total}</td>
+                    <td>${CONSTANTS.currency}${totalPaid.total}</td>
+                    <td>${CONSTANTS.currency}${totalRemaining.total}</td>
                      <td>
                     <a href="${CONSTANTS.role}per-class-history/${u.course_id}/${u.year}"
                        class="btn btn-sm btn-primary">
                        View 
+                    </a>
+
+                    <a href="${CONSTANTS.role}student-trial/${u.course_id}/${u.year}"
+                       class="btn btn-sm btn-warning">
+                       Student Trial 
                     </a>
                 </td>              
                 
@@ -1193,10 +1270,87 @@ exports.perclassHistory = async (req, res) => {
 
 };
 
+exports.studenttrial = async (req, res) => {
+
+    const { course_id, year } = req.params;
+
+    const result = await UserModel.getRecords('students', { course: course_id, course_year: year }, '*');
+    const thead = `
+        <tr>
+           <th>#</th>
+            <th>Student Id</th>
+            <th>Roll No</th>
+            <th>Student Name</th>
+            <th>Mobile</th>
+            <th>Father Name</th>
+            <th>Mother Name</th>
+            <th>Course</th>
+            <th>Admission Date</th>
+            <th>Total Fees</th>
+            <th>Paid Fees</th>
+            <th>Remaining Fees</th>
+        </tr>
+    `;
+
+    const Class = await UserModel.getSingleRecorddate(
+        'courses',
+        {
+            id: course_id
+        },
+        'course_name'
+    );
+
+    const rows = Array.isArray(result) ? result : (result?.rows || []);
+
+    let tableRows = '';
+
+    for (const [index, u] of rows.entries()) {
+
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            { id: u.course },
+            '*'
+        );
+
+
+        const admdate = SuperHelper.OnlyDate(u.admission_date);
+        tableRows += `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${u.student_id}</td>
+            <td>${u.roll_no}</td>
+            <td>${u.first_name} ${u.last_name}</td>
+            <td>${u.mobile}</td>
+            <td>${u.father_name}</td>
+            <td>${u.mother_name}</td>
+            <td>${Class.course_name} - ${year}</td>
+            <td>${admdate}</td>
+            <td>${CONSTANTS.currency}${u.total_fees}</td>
+            <td>${CONSTANTS.currency}${u.pending_fees}</td>
+            <td>${CONSTANTS.currency}${u.available_fees}</td>
+        </tr>
+        `;
+    }
+
+    return View.Rview(res, 'reports', {
+
+        title: `
+        <div class="d-flex justify-content-between">
+            <span>Student Trial ${Class.course_name} - ${year} Report</span>
+        </div>
+        `,
+
+        thead,
+        tableRows
+
+    });
+
+};
+
 
 exports.parkigAddremove = async (req, res) => {
     const staff_id = req.user.staff_id;
-    const result = await UserModel.getRecords('parking_remove', { staff_id: staff_id ,status:0}, '*', 'id desc');
+    const result = await UserModel.getRecords('parking_remove', { staff_id: staff_id, status: 0 }, '*', 'id desc');
     const thead = `
         <tr>
             <th>#</th>
@@ -1216,14 +1370,10 @@ exports.parkigAddremove = async (req, res) => {
 
 
     const rows = Array.isArray(result) ? result : (result?.rows || []);
-
     let tableRows = '';
     let letparkingFee = 1000;
     let ActionType = '';
-
     for (const [index, u] of rows.entries()) {
-
-
         const course = await UserModel.getSingleRecord(
             'courses',
             { id: u.course },
@@ -1239,9 +1389,7 @@ exports.parkigAddremove = async (req, res) => {
             { student_id: u.student_id },
             '*'
         );
-        
         const newdate = SuperHelper.OnlyDate(u.created_at);
-
         let status = '';
         if (Number(u.status) == 0) {
             status = `
@@ -1255,23 +1403,20 @@ exports.parkigAddremove = async (req, res) => {
             <i class="bi bi-check-circle-fill"></i> Success
         </span>
     `;
-
         } else if (Number(u.status) == 2) {
-
-
             status = `
         <span class="badge bg-danger">
             <i class="bi bi-x-circle-fill"></i> Rejected
         </span>
     `;
         }
-        if(u.action == 'add'){
+        if (u.action == 'add') {
             ActionType = `
             <span class="badge bg-success">
                 <i class="bi bi-plus-circle-fill"></i> Add Parking
             </span>
         `;
-        }else if(u.action == 'remove'){
+        } else if (u.action == 'remove') {
             ActionType = `
             <span class="badge bg-danger">
                 <i class="bi bi-dash-circle-fill"></i> Remove Parking
@@ -1302,6 +1447,204 @@ exports.parkigAddremove = async (req, res) => {
 
         title: `Parking Add/Remove Report
         
+        `,
+
+        thead,
+        tableRows
+
+    });
+
+};
+
+
+exports.cagegoryHistory = async (req, res) => {
+
+    const result = await UserModel.getGroupByField(
+        "students",
+        "category"
+    );
+
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Category</th>
+            <th>Total</th>
+            <th>Action</th>
+        </tr>
+    `;
+
+    const rows = Array.isArray(result) ? result : (result?.rows || []);
+
+    let tableRows = '';
+    let categoryStudents = 0;
+
+    for (const [index, u] of rows.entries()) {
+        const totalStudents = await UserModel.getSingleRecord(
+            'students',
+            { category: u.category },
+            'COUNT(id) as total'
+        );
+        categoryStudents += totalStudents.total;
+
+        tableRows += `
+            <tr>
+                <td>${index + 1}</td>
+                    <td>${u.category}</td>  
+                    <td>${totalStudents.total}</td>  
+                     <td>
+                    <a href="${CONSTANTS.role}category-wise-report/${u.category}"
+                       class="btn btn-sm btn-primary">
+                       View 
+                    </a>
+                </td>              
+                
+            </tr>
+        `;
+    }
+
+
+
+    if (!rows.length) {
+        tableRows = `
+        <tr>
+            <td colspan="8">No Data Found</td>
+        </tr>
+        `;
+    }
+
+
+
+    return View.Rview(res, 'reports', {
+        title: `
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Category Wise Report ${categoryStudents}</span>
+            </div>
+        `,
+        thead,
+        tableRows,
+    });
+
+};
+
+
+exports.categorywisereport = async (req, res) => {
+
+    const { category } = req.params;
+
+    const result = await UserModel.getRecords('students', { category }, '*');
+    const thead = `
+        <tr>
+           <th>#</th>
+            <th>Student Id</th>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Mobile No</th>
+            <th>Father Mobile</th>
+            <th>Category</th>
+            <th>Date Of Birth</th>
+            <th>Father Name</th>
+            <th>Mother Name</th>
+            <th>Address</th>
+            <th>Course</th>
+            <th>Subjects</th>
+            <th>Total Fees</th>
+            <th>Pending Fees</th>
+            <th>Admission Date</th>
+        </tr>
+    `;
+
+
+
+    const rows = Array.isArray(result) ? result : (result?.rows || []);
+
+    let tableRows = '';
+
+    for (const [index, u] of rows.entries()) {
+        const Class = await UserModel.getSingleRecorddate(
+            'courses',
+            {
+                id: u.course
+            },
+            'course_name'
+        );
+
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            { id: u.course },
+            '*'
+        );
+
+
+        let subjectList = [];
+
+        if (u.subject_ids) {
+
+            const ids = JSON.parse(u.subject_ids);
+
+            for (const id of ids) {
+
+                const subject = await UserModel.getSingleRecord(
+                    'subjects',
+                    { id },
+                    'subject_name,category'
+                );
+
+                if (subject) {
+                    subjectList.push(`${subject.subject_name} (${subject.category})`);
+                }
+
+            }
+
+        }
+        // <td>${new Date(u.admission_date).toISOString().split('T')[0]}</td>
+
+
+        const headsView = '<a href="' + CONSTANTS.role + 'heads-detail/' + u.student_id + '" class="btn btn-sm btn-dark">View</a>';
+        // const date = new Date(u.admission_date);
+        // const year = date.getFullYear();
+        // const month = String(date.getMonth() + 1).padStart(2, '0');
+        // const day = String(date.getDate()).padStart(2, '0');
+        // const newdate = `${year}-${month}-${day}`;
+        const admdate = SuperHelper.OnlyDate(u.admission_date);
+        const dob = SuperHelper.dob(u.dob);
+        tableRows += `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${u.student_id}</td>
+            <td>${u.roll_no}</td>
+            <td>${u.first_name} ${u.last_name}</td>
+            <td>${u.mobile}</td>
+            <td>${u.father_mobile}</td>
+            <td>${u.category}</td>
+            <td>${dob}</td>
+            <td>${u.father_name}</td>
+            <td>${u.mother_name}</td>
+            <td>${u.address}</td>
+            <td>${course?.course_name + ' - ' + u.course_year || ''}</td>
+
+            <td>
+                <button
+                    class="btn btn-primary btn-sm view-subjects"
+                    data-subjects='${JSON.stringify(subjectList)}'>
+                    View
+                </button>
+            </td>
+            
+
+            <td>${CONSTANTS.currency}${u.total_fees}</td>
+            <td>${CONSTANTS.currency}${u.total_fees - u.pending_fees}</td>
+            <td>${admdate}</td>
+            
+        </tr>
+        `;
+    }
+
+    return View.Rview(res, 'reports', {
+
+        title: `
+        <div class="d-flex justify-content-between">
+            <span>${category} Category Report</span>
+        </div>
         `,
 
         thead,

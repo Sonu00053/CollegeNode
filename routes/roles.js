@@ -88,6 +88,7 @@ router.get('/profile/:student_id', jwtAuth.verifyToken, Manage.profile);
 router.get('/class-wise-history', jwtAuth.verifyToken, Reports.ClassWiseSubjectReport);
 
 router.get('/per-class-subject-history/:course_id/:year', jwtAuth.verifyToken, Reports.perclasssubject);
+router.get('/student-trial/:course_id/:year', jwtAuth.verifyToken, Reports.studenttrial);
 
 router.get('/ClassWise-History', jwtAuth.verifyToken, Reports.ClassWiseHistory);
 
@@ -121,6 +122,10 @@ router.get('/class-change-history', jwtAuth.verifyToken, Reports.classhangereque
 router.get('/subject-change-history', jwtAuth.verifyToken, Reports.subjectchangerequest);
 
 router.get('/parking-AddRemove-report', jwtAuth.verifyToken, Reports.parkigAddremove);
+
+router.get('/category-report', jwtAuth.verifyToken, Reports.cagegoryHistory);
+router.get('/category-wise-report/:category', jwtAuth.verifyToken, Reports.categorywisereport);
+
 
 
 
