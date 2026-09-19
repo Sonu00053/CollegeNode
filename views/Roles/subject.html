@@ -228,27 +228,139 @@
                     <'col-md-6 d-flex justify-content-end'p>>",
 
                 buttons: [
-                    {
-                        extend: 'copy',
-                        className: 'btn btn-secondary btn-sm'
+
+                // =========================
+                // COPY
+                // =========================
+                {
+                    extend: 'copyHtml5',
+                    className: 'btn btn-secondary btn-sm',
+
+                    title: function () {
+                        return $('.card-header').first().text().trim();
                     },
-                    {
-                        extend: 'csv',
-                        className: 'btn btn-success btn-sm'
-                    },
-                    {
-                        extend: 'excel',
-                        className: 'btn btn-success btn-sm'
-                    },
-                    {
-                        extend: 'pdf',
-                        className: 'btn btn-danger btn-sm'
-                    },
-                    {
-                        extend: 'print',
-                        className: 'btn btn-info btn-sm'
+
+                    exportOptions: {
+                        columns: ':visible'
                     }
-                ]
+                },
+
+
+                // =========================
+                // CSV
+                // =========================
+                {
+                    extend: 'csvHtml5',
+                    className: 'btn btn-success btn-sm',
+
+                    title: function () {
+                        return $('.card-header').first().text().trim();
+                    },
+
+                    filename: function () {
+                        return $('.card-header').first().text().trim();
+                    },
+
+                    exportOptions: {
+                        columns: ':visible'
+                    },
+
+                    customize: function (csv) {
+
+                        let title = $('.card-header')
+                            .first()
+                            .text()
+                            .trim();
+
+                        return '"' + title + '"\n\n' + csv;
+                    }
+                },
+
+
+                // =========================
+                // EXCEL
+                // =========================
+                {
+                    extend: 'excelHtml5',
+                    className: 'btn btn-success btn-sm',
+
+                    title: function () {
+                        return $('.card-header').first().text().trim();
+                    },
+
+                    filename: function () {
+                        return $('.card-header').first().text().trim();
+                    },
+
+                    exportOptions: {
+                        columns: ':visible'
+                    }
+                },
+
+
+                // =========================
+                // PDF
+                // =========================
+                {
+                    extend: 'pdfHtml5',
+                    className: 'btn btn-danger btn-sm',
+
+                    title: function () {
+                        return $('.card-header').first().text().trim();
+                    },
+
+                    filename: function () {
+                        return $('.card-header').first().text().trim();
+                    },
+
+                    exportOptions: {
+                        columns: ':visible'
+                    },
+
+                    customize: function (doc) {
+
+                        doc.defaultStyle.fontSize = 9;
+
+                        doc.styles.title = {
+                            fontSize: 14,
+                            bold: true,
+                            alignment: 'center'
+                        };
+                    }
+                },
+
+
+                // =========================
+                // PRINT
+                // =========================
+                {
+                    extend: 'print',
+                    className: 'btn btn-info btn-sm',
+
+                    title: function () {
+                        return $('.card-header').first().text().trim();
+                    },
+
+                    exportOptions: {
+                        columns: ':visible'
+                    },
+
+                    customize: function (win) {
+
+                        $(win.document.body)
+                            .css('font-size', '10pt');
+
+                        $(win.document.body)
+                            .find('h1')
+                            .css({
+                                'text-align': 'center',
+                                'font-size': '18px',
+                                'margin-bottom': '20px'
+                            });
+                    }
+                }
+
+            ]
 
             });
 

@@ -1104,11 +1104,38 @@ exports.ClassWiseHistory = async (req, res) => {
 
     const result = await UserModel.getRecords('roll_no', {}, '*');
 
+    const categories = await UserModel.getGroupByField(
+        "students",
+        "category"
+    );
+
+    const rows = Array.isArray(result)
+        ? result
+        : (result?.rows || []);
+
+    const categoryList = Array.isArray(categories)
+        ? categories
+        : (categories?.rows || []);
+
+
+    // =====================================
+    // CATEGORY TH - Total Fees se pehle
+    // =====================================
+    let categoryTh = '';
+
+    categoryList.forEach((cat) => {
+        categoryTh += `
+            <th>${cat.category || 'N/A'}</th>
+        `;
+    });
+
+
     const thead = `
         <tr>
             <th>#</th>
             <th>Class</th>
             <th>Total Students</th>
+            ${categoryTh}
             <th>Total Fees</th>
             <th>Total Paid</th>
             <th>Total Remaining</th>
@@ -1116,10 +1143,8 @@ exports.ClassWiseHistory = async (req, res) => {
         </tr>
     `;
 
-    const rows = Array.isArray(result) ? result : (result?.rows || []);
 
     let tableRows = '';
-
     for (const [index, u] of rows.entries()) {
         const Class = await UserModel.getSingleRecorddate(
             'courses',
@@ -1129,76 +1154,107 @@ exports.ClassWiseHistory = async (req, res) => {
             'course_name'
         );
 
+
+        const studentCondition = {
+            course: u.course_id,
+            course_year: u.year
+        };
+
+
         const totalStudents = await UserModel.getSingleRecord(
             'students',
-            { course: u.course_id, course_year: u.year },
+            studentCondition,
             'COUNT(id) as total'
         );
 
+
+        // =====================================
+        // CATEGORY TOTALS
+        // =====================================
+        let categoryTd = '';
+
+        for (const cat of categoryList) {
+
+            const categoryTotal = await UserModel.getSingleRecord(
+                'students',
+                {
+                    course: u.course_id,
+                    course_year: u.year,
+                    category: cat.category
+                },
+                'COUNT(id) as total'
+            );
+
+            categoryTd += `
+                <td>
+                    ${categoryTotal?.total || 0}
+                </td>
+            `;
+        }
+
+
+        // =====================================
+        // FEES
+        // =====================================
         const totalFees = await UserModel.getSingleRecord(
             'students',
-            { course: u.course_id, course_year: u.year },
-            'ifnull(SUM(total_fees),0) as total'
+            studentCondition,
+            'IFNULL(SUM(total_fees),0) as total'
         );
 
         const totalPaid = await UserModel.getSingleRecord(
             'students',
-            { course: u.course_id, course_year: u.year },
-            'ifnull(SUM(pending_fees),0) as total'
+            studentCondition,
+            'IFNULL(SUM(pending_fees),0) as total'
         );
-
         const totalRemaining = await UserModel.getSingleRecord(
             'students',
-            { course: u.course_id, course_year: u.year },
-            'ifnull(SUM(available_fees),0) as total'
+            studentCondition,
+            'IFNULL(SUM(available_fees),0) as total'
         );
-
         tableRows += `
             <tr>
                 <td>${index + 1}</td>
-                    <td>${Class.course_name} - ${u.year}</td>  
-                    <td>${totalStudents.total}</td>  
-                    <td>${CONSTANTS.currency}${totalFees.total}</td>
-                    <td>${CONSTANTS.currency}${totalPaid.total}</td>
-                    <td>${CONSTANTS.currency}${totalRemaining.total}</td>
-                     <td>
-                    <a href="${CONSTANTS.role}per-class-history/${u.course_id}/${u.year}"
-                       class="btn btn-sm btn-primary">
-                       View 
-                    </a>
+                <td>${Class.course_name} - ${u.year}</td>
+                <td>${totalStudents?.total || 0}</td>
+                ${categoryTd}
+                <td>${CONSTANTS.currency}${totalFees?.total || 0}</td>
+                <td>${CONSTANTS.currency}${totalPaid?.total || 0}</td>
+                <td>${CONSTANTS.currency}${totalRemaining?.total || 0}</td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <a href="${CONSTANTS.role}per-class-history/${u.course_id}/${u.year}" class="btn btn-sm btn-primary">View</a>
+                        <a href="${CONSTANTS.role}student-trial/${u.course_id}/${u.year}" class="btn btn-sm btn-warning">Student Trial</a>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
 
-                    <a href="${CONSTANTS.role}student-trial/${u.course_id}/${u.year}"
-                       class="btn btn-sm btn-warning">
-                       Student Trial 
-                    </a>
-                </td>              
-                
+    if (!rows.length) {
+
+        tableRows = `
+            <tr>
+                <td colspan="${7 + categoryList.length}"
+                    class="text-center">
+                    No Data Found
+                </td>
             </tr>
         `;
     }
 
 
-
-    if (!rows.length) {
-        tableRows = `
-        <tr>
-            <td colspan="8">No Data Found</td>
-        </tr>
-        `;
-    }
-
-
-
     return View.Rview(res, 'reports', {
+
         title: `
             <div class="d-flex justify-content-between align-items-center">
                 <span>Class Wise Report</span>
             </div>
         `,
-        thead,
-        tableRows,
-    });
 
+        thead,
+        tableRows
+    });
 };
 
 
@@ -1476,7 +1532,6 @@ exports.cagegoryHistory = async (req, res) => {
     const rows = Array.isArray(result) ? result : (result?.rows || []);
 
     let tableRows = '';
-    let categoryStudents = 0;
 
     for (const [index, u] of rows.entries()) {
         const totalStudents = await UserModel.getSingleRecord(
@@ -1484,7 +1539,6 @@ exports.cagegoryHistory = async (req, res) => {
             { category: u.category },
             'COUNT(id) as total'
         );
-        categoryStudents += totalStudents.total;
 
         tableRows += `
             <tr>
@@ -1517,7 +1571,7 @@ exports.cagegoryHistory = async (req, res) => {
     return View.Rview(res, 'reports', {
         title: `
             <div class="d-flex justify-content-between align-items-center">
-                <span>Category Wise Report ${categoryStudents}</span>
+                <span>Category Wise Report </span>
             </div>
         `,
         thead,
@@ -1596,15 +1650,6 @@ exports.categorywisereport = async (req, res) => {
             }
 
         }
-        // <td>${new Date(u.admission_date).toISOString().split('T')[0]}</td>
-
-
-        const headsView = '<a href="' + CONSTANTS.role + 'heads-detail/' + u.student_id + '" class="btn btn-sm btn-dark">View</a>';
-        // const date = new Date(u.admission_date);
-        // const year = date.getFullYear();
-        // const month = String(date.getMonth() + 1).padStart(2, '0');
-        // const day = String(date.getDate()).padStart(2, '0');
-        // const newdate = `${year}-${month}-${day}`;
         const admdate = SuperHelper.OnlyDate(u.admission_date);
         const dob = SuperHelper.dob(u.dob);
         tableRows += `
