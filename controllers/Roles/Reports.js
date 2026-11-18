@@ -614,16 +614,19 @@ exports.subjectAddressSearch = async (req, res) => {
             <td>${u.roll_no}</td>
             <td>${u.student_id}</td>
             <td>${u.first_name} ${u.last_name}</td>
-            <td>${u.mobile}</td>
             <td>${course?.course_name + ' - ' + u.course_year || ''}</td>
             <td>${u.address}</td>
-            <td>
-                <ol>
-                    ${subjectList.map(x => `<li>${x}</li>`).join("")}
-                </ol>
-            </td>
+           
         </tr>
         `;
+            // <td>${u.mobile}</td>
+
+        //  <td>
+        
+        //         <ol>
+        //             ${subjectList.map(x => `<li>${x}</li>`).join("")}
+        //         </ol>
+        //     </td>
     }
 
     return res.json({
@@ -733,16 +736,18 @@ exports.subjectSearch = async (req, res) => {
             <td>${u.roll_no}</td>
             <td>${u.student_id}</td>
             <td>${u.first_name} ${u.last_name}</td>
-            <td>${u.mobile}</td>
             <td>${course?.course_name + ' - ' + u.course_year || ''}</td>
             <td>${u.address}</td>
-            <td>
-                <ol>
-                    ${subjectList.map(x => `<li>${x}</li>`).join("")}
-                </ol>
-            </td>
+            
         </tr>
         `;
+            // <td>${u.mobile}</td>
+
+        // <td>
+        //         <ol>
+        //             ${subjectList.map(x => `<li>${x}</li>`).join("")}
+        //         </ol>
+        //     </td>
     }
 
     return res.json({

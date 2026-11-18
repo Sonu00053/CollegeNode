@@ -99,7 +99,6 @@ exports.users = async (req, res) => {
 
         tableRows += `
         <tr>
-
             <td>${index + 1}</td>
             <td>${u.student_id}</td>
             <td>${u.roll_no}</td>
@@ -107,29 +106,18 @@ exports.users = async (req, res) => {
             <td>${u.father_name}</td>
             <td>${u.mother_name}</td>
             <td>${u.email}</td>
-
             <td>${course?.course_name + ' - ' + u.course_year || ''}</td>
-
             <td>
-                <button
-                    class="btn btn-primary btn-sm view-subjects"
-                    data-subjects='${JSON.stringify(subjectList)}'>
-                    View
-                </button>
+                <button class="btn btn-primary btn-sm view-subjects" data-subjects='${JSON.stringify(subjectList)}'>View</button>
             </td>
-
             <td>${CONSTANTS.currency}${u.total_fees}</td>
             <td>${CONSTANTS.currency}${u.total_fees - u.pending_fees}</td>
             <td>${admdate}</td>
             <td class="d-flex gap-2">${profile} ${Editprofile}</td>
-
         </tr>
         `;
-
     }
-
     if (!rows.length) {
-
         tableRows = `
         <tr>
             <td colspan="10" class="text-center">
@@ -137,11 +125,8 @@ exports.users = async (req, res) => {
             </td>
         </tr>
         `;
-
     }
-
     return View.Aview(res, 'reports', {
-
         title: `
         <div class="d-flex justify-content-between">
             <span>All Students Report</span>
@@ -716,6 +701,7 @@ exports.updatestidentProfile = async (req, res) => {
                 course: student.course,
                 course_year: student.course_year,
                 dob: student.dob,
+                address: student.address,
                 staff_id: staff_id
             });
 
@@ -730,7 +716,8 @@ exports.updatestidentProfile = async (req, res) => {
                     email,
                     category,
                     aadhar_no,
-                    dob
+                    dob,
+                    address
                 },
                 { student_id }
 

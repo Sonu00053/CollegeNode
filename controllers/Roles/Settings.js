@@ -6,6 +6,7 @@ const crypto = require("crypto");
 
 
 
+
 exports.updateamdrecipt = async (req, res) => {
     try {
         const staff_id = req.user.staff_id;
@@ -189,7 +190,7 @@ exports.updatestidentProfile = async (req, res) => {
 
     if (!student) {
         return SuperHelper.c(res);
-       
+
     }
 
     // Show DB values on first load
@@ -327,7 +328,8 @@ exports.updatestidentProfile = async (req, res) => {
                 aadhar_no: student.aadhar_no,
                 course: student.course,
                 course_year: student.course_year,
-                dob:student.dob,
+                dob: student.dob,
+                address: student.address,
                 staff_id: staff_id
             });
 
@@ -343,7 +345,8 @@ exports.updatestidentProfile = async (req, res) => {
                     email,
                     category,
                     aadhar_no,
-                    dob
+                    dob,
+                    address
                 },
                 { student_id }
 
@@ -1153,9 +1156,9 @@ exports.updateClass = async (req, res) => {
             { student_id: studentDetail.student_id, status: 0 },
             '*'
         );
-         let html2 = '';
-            let buttons = '';
-            let buttons2 =''
+        let html2 = '';
+        let buttons = '';
+        let buttons2 = ''
         if (!checkrequest) {
 
             buttons = `
@@ -1167,8 +1170,8 @@ exports.updateClass = async (req, res) => {
         } else {
 
             let subjectList = [];
-           
-             const courseOld = await UserModel.getSingleRecord(
+
+            const courseOld = await UserModel.getSingleRecord(
                 'courses',
                 { id: Number(checkrequest.course) },
                 '*'
@@ -1218,7 +1221,7 @@ exports.updateClass = async (req, res) => {
                                     Old Class
                                 </h6>
                                 <h4 class="mb-0 text-warning">
-                                    ${courseOld.course_name }-${checkrequest.course_year}
+                                    ${courseOld.course_name}-${checkrequest.course_year}
                                 </h4>
                             </div>
                         </div>
@@ -1230,7 +1233,7 @@ exports.updateClass = async (req, res) => {
                                     New Class
                                 </h6>
                                 <h4 class="mb-0 text-success">
-                                    ${courseNew.course_name }-${checkrequest.new_course_year}
+                                    ${courseNew.course_name}-${checkrequest.new_course_year}
                                 </h4>
                             </div>
                         </div>
@@ -1274,236 +1277,330 @@ exports.updateClass = async (req, res) => {
     }
 };
 
+
 exports.misc_reciept = async (req, res) => {
-    const student_id = req.params.student_id || "";
-    // const staff_id = req.user.staff_id;
-
-    let name = "", father_name = "", university_roll_no = "", mobile = "";
-    let studentClass = "", on_account_of = "", on_account_of_other = "";
-    let amount = "", payment_mode = "Cash", transaction_id = "", receipt_date = "";
-    let message = "", messageType = "", redirect = "";
-
+    const staff_id = req.user.staff_id;
     const redirectUrl = CONSTANTS.role + "misc-create-reciept/";
-    let student = null;
     const errors = {};
 
-    if (student_id) {
-        student = await UserModel.getSingleRecord(
-            "students",
-            { student_id },
-            "*"
-        );
+    let message = "", messageType = "", redirect = "", student = null;
 
-        if (!student) {
-            return View.Rview(res, "404", {
-                message: "Student not found."
-            });
-        }
+    const data = {
+        name: "", father_name: "", university_roll_no: "", mobile: "",
+        class: "", on_account_of: "", on_account_of_other: "",
+        amount: "", payment_mode: "Cash", transaction_id: ""
+    };
+    if (req.method === "GET" && student) {
+        Object.assign(data, {
+            name: `${student.first_name || ""} ${student.last_name || ""}`.trim(),
+            father_name: student.father_name || "",
+            university_roll_no: student.university_roll_no || student.univ_roll_no || student.roll_no || "",
+            mobile: student.mobile || "",
+            class: student.course && student.course_year ? `${student.course} ${student.course_year}` : student.class || ""
+        });
     }
-
-    // GET
-    if (req.method !== "POST") {
-
-        if (student) {
-            name = `${student.first_name || ""} ${student.last_name || ""}`.trim();
-            father_name = student.father_name || "";
-            university_roll_no =
-                student.university_roll_no ||
-                student.univ_roll_no ||
-                student.roll_no ||
-                "";
-            mobile = student.mobile || "";
-
-            if (student.course && student.course_year) {
-                studentClass = `${student.course} ${student.course_year}`;
-            } else {
-                studentClass = student.class || "";
-            }
-        }
-
-        receipt_date = new Date().toISOString().split("T")[0];
-    }
-
-    // POST
     if (req.method === "POST") {
+        Object.keys(data).forEach(key => {
+            data[key] = String(req.body[key] || "").trim();
+        });
 
-        ({
-            name = "",
-            father_name = "",
-            university_roll_no = "",
-            mobile = "",
-            class: studentClass = "",
-            on_account_of = "",
-            on_account_of_other = "",
-            amount = "",
-            payment_mode = "Cash",
-            transaction_id = "",
-            receipt_date = ""
-        } = req.body);
+        const {
+            name, father_name, university_roll_no, mobile, class: studentClass,
+            on_account_of, on_account_of_other, amount, payment_mode, transaction_id
+        } = data;
 
-        name = String(name).trim();
-        father_name = String(father_name).trim();
-        university_roll_no = String(university_roll_no).trim();
-        mobile = String(mobile).trim();
-        studentClass = String(studentClass).trim();
-        on_account_of = String(on_account_of).trim();
-        on_account_of_other = String(on_account_of_other).trim();
-        amount = String(amount).trim();
-        payment_mode = String(payment_mode).trim();
-        transaction_id = String(transaction_id).trim();
-        receipt_date = String(receipt_date).trim();
-
-        // Validation
-        if (!name)
-            errors.name = "Name is required.";
-
-        if (!father_name)
-            errors.father_name = "Father Name is required.";
-
-        if (!university_roll_no)
-            errors.university_roll_no =
-                "University Roll No. is required.";
-
-        if (!mobile)
-            errors.mobile = "Mobile Number is required.";
-        else if (!/^[0-9]{10}$/.test(mobile))
-            errors.mobile =
-                "Enter valid 10 digit mobile number.";
-
-        if (!studentClass)
-            errors.class = "Class is required.";
-
-        // Account Of
         const accountOptions = [
-            "Degree",
-            "Duplicate Library Card",
-            "Library Books Lost",
+            "Degree", "Duplicate Library Card", "Library Books Lost",
             "Character/Transfer/College Leaving Certificate",
             "Migration Certificate Attestation",
             "Duplicate DMC/Degree Certificate Attestation",
-            "Letter of Recommendation (LOR)",
-            "Backlog Certificate",
-            "Medium of Instruction (MOI)",
-            "Other"
+            "Letter of Recommendation (LOR)", "Backlog Certificate",
+            "Medium of Instruction (MOI)", "Other"
         ];
 
-        if (!on_account_of) {
-            errors.on_account_of =
-                "On Account Of is required.";
-        } else if (!accountOptions.includes(on_account_of)) {
-            errors.on_account_of =
-                "Invalid On Account Of.";
-        }
+        const paymentModes = ["Cash", "Online", "Cheque"];
 
-        if (
-            on_account_of === "Other" &&
-            !on_account_of_other
-        ) {
-            errors.on_account_of_other =
-                "Other Account is required.";
-        }
+        if (!name) errors.name = "Name is required.";
+        if (!father_name) errors.father_name = "Father Name is required.";
+        if (!university_roll_no) errors.university_roll_no = "University Roll No. is required.";
+        if (!mobile) errors.mobile = "Mobile Number is required.";
+        else if (!/^[0-9]{10}$/.test(mobile)) errors.mobile = "Enter valid 10 digit mobile number.";
+        if (!studentClass) errors.class = "Class is required.";
 
-        if (!amount)
-            errors.amount = "Amount is required.";
-        else if (
-            isNaN(amount) ||
-            Number(amount) <= 0
-        )
+        if (!on_account_of) errors.on_account_of = "On Account Of is required.";
+        else if (!accountOptions.includes(on_account_of)) errors.on_account_of = "Invalid On Account Of.";
+
+        if (on_account_of === "Other" && !on_account_of_other)
+            errors.on_account_of_other = "Other Account is required.";
+
+        if (!amount || !Number.isFinite(Number(amount)) || Number(amount) <= 0)
             errors.amount = "Enter valid amount.";
 
-        const paymentModes = [
-            "Cash",
-            "Online",
-            "Cheque",
-            "DD"
-        ];
-
         if (!paymentModes.includes(payment_mode))
-            errors.payment_mode =
-                "Invalid Payment Mode.";
+            errors.payment_mode = "Invalid Payment Mode.";
 
-        if (
-            payment_mode !== "Cash" &&
-            !transaction_id
-        )
-            errors.transaction_id =
-                "Transaction ID is required.";
+        // if (payment_mode !== "Cash") {
+        //     if (!transaction_id) {
+        //         errors.transaction_id = "Transaction ID is required.";
+        //     }
+        // }
+        if (payment_mode !== "Cash") {
+            if (!transaction_id) {
+                errors.transaction_id = "Transaction ID is required.";
+            } else {
+                const checktransaction = await UserModel.getSingleRecord(
+                    "misc_receipts",
+                    { transaction_id },
+                    "*"
+                );
 
-        if (!receipt_date)
-            errors.receipt_date =
-                "Receipt Date is required.";
+                if (checktransaction) {
+                    errors.transaction_id = "Transaction ID already exists.";
+                }
+            }
+        }
 
-        // Save
         if (Object.keys(errors).length) {
-
-            message =
-                "Please fix the validation errors.";
-
+            message = errors.transaction_id || "Please fix the validation errors.";
             messageType = "error";
-
         } else {
-
-            if (on_account_of !== "Other")
-                on_account_of_other = null;
-
-            if (payment_mode === "Cash")
-                transaction_id = null;
+            // if (!transaction_id) {
+            //     const checktransaction = await UserModel.getSingleRecord("misc_receipts", { transaction_id }, "*");
+            //     if (checktransaction) {
+            //         return res.status(400).json({
+            //             status: false,
+            //             message: 'Transaction ID already exists.'
+            //         });
+            //     }
+            // }
+            const receipt_no = await exports.generaterecieptId();
 
             const receiptData = {
-                student_id: student_id || null,
-                name,
-                father_name,
-                university_roll_no,
-                mobile,
+                ...data,
+                receipt_no,
+                staff_id,
                 class: studentClass,
-                on_account_of,
-                on_account_of_other,
+                on_account_of_other: on_account_of === "Other" ? on_account_of_other : null,
                 amount: Number(amount),
-                payment_mode,
-                transaction_id,
-                receipt_date,
+                transaction_id: payment_mode === "Cash" ? null : transaction_id,
                 created_by: staff_id
             };
 
-            const receiptId = await UserModel.addRecord(
-                "fee_receipts",
-                receiptData
-            );
+            const receiptId = await UserModel.addRecord("misc_receipts", receiptData);
 
-            if (!receiptId) {
+            if (receiptId) return res.redirect(CONSTANTS.role + "misc-reciept/" + receipt_no);
 
-                message =
-                    "Receipt could not be created.";
-
-                messageType = "error";
-
-            } else {
-
-                message =
-                    "Receipt created successfully.";
-
-                messageType = "success";
-
-                redirect =
-                    CONSTANTS.role +
-                    "receipt/" +
-                    receiptId;
-            }
+            message = "Receipt could not be created.";
+            messageType = "error";
         }
     }
 
-    const response = {
+    return View.Rview(res, "misc_reciept", {
         title: "Create Misc Receipt",
         action: redirectUrl,
         method: "POST",
         message,
         messageType,
         redirect,
-    };
+        errors,
+        ...data
+    });
+};
 
-    return View.Rview(
-        res,
-        "misc_reciept",
-        response
+
+exports.generaterecieptId = async () => {
+    const lastReceipt = await UserModel.getSingleRecord(
+        'misc_receipts',
+        {},
+        'receipt_no',
+        'id DESC'
     );
+
+    if (!lastReceipt || !lastReceipt.receipt_no) {
+        return 1;
+    }
+    return Number(lastReceipt.receipt_no) + 1;
+};
+
+exports.miscreciept = async (req, res) => {
+    const receipt = await UserModel.getSingleRecord(
+        'misc_receipts',
+        { receipt_no: req.params.id }, '*'
+    );
+    const amountInWords = SuperHelper.numberToWords(receipt.amount);
+    let paymentRow = '';
+
+    if (receipt.payment_mode === 'Cash') {
+        paymentRow = `
+        <div class="d-flex m-0 justify-content-between">
+            <p class="m-0">CASH RECEIVED</p>
+            <p class="text-end m-0">${receipt.amount}</p>
+        </div>
+    `;
+    } else {
+        paymentRow = `
+        <div class="d-flex m-0 justify-content-between">
+            <p class="m-0">${receipt.payment_mode.toUpperCase()} (${receipt.transaction_id})</td>
+            <p class="text-end m-0">${receipt.amount}</td>
+        </div>
+    `;
+    }
+    return View.Rview(res, 'miscreciept', {
+        receipt,
+        paymentRow,
+        amountInWords,
+        receipt_date: SuperHelper.formatDate(receipt.created_at),
+        appId: String(SuperHelper.formatDate(receipt.created_at)),
+        name: receipt.name
+
+    });
+
+};
+
+exports.miscgroupbyrecipthistory = async (req, res) => {
+
+    // const rows = await UserModel.getReceiptHistoryByDate();
+    const result = await UserModel.getGroupByDate(
+        'misc_receipts',
+        'created_at',
+        'amount'
+    );
+    // console.log(result);
+
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Total Receipts</th>
+            <th>Total Amount</th>
+            <th>Cash</th>
+            <th>Online</th>
+            <th>Action</th>
+        </tr>
+    `;
+    let tableRows = '';
+    for (const [index, row] of result.entries()) {
+        const newdate = SuperHelper.OnlyDate(row.group_date);
+        const cashsum = await UserModel.getSingleRecorddate(
+            'misc_receipts',
+            {
+                created_at: newdate,
+                payment_mode: 'Cash'
+            },
+            'IFNULL(SUM(amount),0) AS total'
+        );
+        const online = await UserModel.getSingleRecorddate(
+            'misc_receipts',
+            {
+                created_at: newdate,
+                payment_mode: {
+                    operator: '!=',
+                    value: 'Cash'
+                },
+            },
+            'IFNULL(SUM(amount),0) AS total'
+        );
+        tableRows += `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${newdate}</td>
+            <td>${row.total_records}</td>
+            <td>${CONSTANTS.currency}${row.total_amount}</td>
+            <td>${CONSTANTS.currency}${cashsum.total}</td>
+            <td>${CONSTANTS.currency}${online.total}</td>
+            <td>
+                <a href="${CONSTANTS.role}misc-view-reciept-history/${newdate}"
+                   class="btn btn-sm btn-primary">
+                    View
+                </a>
+            </td>
+        </tr>
+    `;
+    }
+
+   
+
+    return View.Rview(res, 'reports', {
+        title: `
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Misc Receipt History (Date Wise)</span>
+            </div>
+        `,
+        thead,
+        tableRows
+    });
+};
+
+exports.miscrecieptHistorydatewisw = async (req, res) => {
+
+    const date = req.params.date;
+
+
+    // Sirf aaj ki receipts
+    const rows = await UserModel.getRecordsNew(
+        'misc_receipts',
+        {
+            'DATE(created_at)': date
+        },
+        '*'
+    );
+    // console.log(rows);
+
+    // Summary
+    const todayCount = rows.length;
+
+    const todayAmount = rows.reduce((sum, r) => {
+        return sum + Number(r.amount || 0);
+    }, 0);
+
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Reciept No</th>
+            <th>Student Name</th>
+            <th>Roll No</th>
+            <th>Amount</th>
+            <th>Payment Mode</th>
+            <th>Date & Time</th>
+            <th>Action</th>
+        </tr>
+    `;
+
+    let tableRows = '';
+
+    for (const [index, u] of rows.entries()) {
+        tableRows += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${u.receipt_no}</td>
+                <td>${u.name}</td>
+                <td>${u.university_roll_no}</td>
+                <td>${CONSTANTS.currency}${u.amount}</td>
+                <td>${u.payment_mode}</td>
+                <td>${SuperHelper.formatDate(u.created_at)}</td>
+                <td>
+                    <a href="${CONSTANTS.role}misc-reciept/${u.receipt_no}"
+                        class="btn btn-sm btn-primary">
+                        View Receipt
+                    </a>
+               
+                </td>
+            </tr>
+        `;
+    }
+
+    
+
+    return View.Rview(res, 'popupreport', {
+        title: `
+            <div class="d-flex justify-content-between align-items-center">
+                <span>${date} Misc Reciepts History</span>
+
+                
+            </div>
+        `,
+        thead,
+        tableRows,
+    });
+
 };

@@ -72,7 +72,7 @@ router.get('/view-reciept-history/:date', jwtAuth.verifyToken, Manage.recieptHis
 router.get('/date-wise-balance-reciept-history', jwtAuth.verifyToken, Manage.balacegroupbyrecipthistory);
 router.get('/balance-view-reciept-history/:date', jwtAuth.verifyToken, Manage.balancerecieptHistorydatewisw);
 
-router.post('/remove-parking', jwtAuth.verifyToken,Manage.removeParkingFees);
+router.post('/remove-parking', jwtAuth.verifyToken, Manage.removeParkingFees);
 
 
 router.route('/update-reciept-heads')
@@ -104,7 +104,7 @@ router.post("/get-subjects-report", Reports.getSubjectsByClass);
 
 router.post("/subject-address-search", Reports.subjectAddressSearch);
 
-router.get("/subject-report",jwtAuth.verifyToken,Reports.subjectReport);
+router.get("/subject-report", jwtAuth.verifyToken, Reports.subjectReport);
 router.post("/subject-search", Reports.subjectSearch);
 
 
@@ -135,16 +135,21 @@ router
     .post(jwtAuth.verifyToken, Settings.updateClassandsubjects);
 
 
-    router
+router
     .route("/update-class/:student_id")
-    .get(jwtAuth.verifyToken,Settings.updateClass)
-    .post(jwtAuth.verifyToken,Settings.updateClass);
+    .get(jwtAuth.verifyToken, Settings.updateClass)
+    .post(jwtAuth.verifyToken, Settings.updateClass);
 
-    router
+router
     .route("/misc-create-reciept")
-    .get(Settings.misc_reciept)
-    .post(Settings.misc_reciept);
-    
+    .get(jwtAuth.verifyToken,Settings.misc_reciept)
+    .post(jwtAuth.verifyToken,Settings.misc_reciept);
+router.get('/misc-reciept/:id', Settings.miscreciept);
+
+router.get('/datewise-misc-reciept-history', jwtAuth.verifyToken, Settings.miscgroupbyrecipthistory);
+router.get('/misc-view-reciept-history/:date', jwtAuth.verifyToken, Settings.miscrecieptHistorydatewisw);
+
+
 
 
 

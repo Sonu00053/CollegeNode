@@ -1,7 +1,7 @@
 <div class="content">
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">Address / Subject Wise Report</h4>
+            <h4 class="mb-0">Address / Subject Wise Report <span id="SubjectName"></span></h4>
             <button type="button" class="btn btn-warning btn-sm" onclick="location.reload();">
                 <i class="fa fa-refresh"></i> Refresh
             </button>
@@ -95,10 +95,10 @@
                         <th>Roll</th>
                         <th>Student ID</th>
                         <th>Name</th>
-                        <th>Mobile</th>
+                        <!-- <th>Mobile</th> -->
                         <th>Class</th>
                         <th>Address</th>
-                        <th>Subjects</th>
+                        <!-- <th>Subjects</th> -->
 
                     </tr>
 
@@ -436,6 +436,8 @@
         });
 
         $("#subjectIds").val(ids.join(","));
+                        $("#SubjectName").html("("+names.join(", ")+")");
+
 
         $("#selectedSubjectsText").val(names.join(", "));
 

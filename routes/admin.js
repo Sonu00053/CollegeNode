@@ -39,6 +39,7 @@ router.get('/receipt-between-history',jwtAuth.verifyToken,Reports.reciptBetweenH
 
 router.get('/class-wise-history', jwtAuth.verifyToken,Reports.ClassWiseSubjectReport);
 router.get('/subject-change-request-history', jwtAuth.verifyToken,Reports.subjectchangerequest);
+router.get('/subject-change-pending-request-history', jwtAuth.verifyToken,Reports.pendingsubjectchangerequest);
 router.get('/class-change-request-history', jwtAuth.verifyToken,Reports.classhangerequest);
 
 router.get('/per-class-subject-history/:course_id/:year', jwtAuth.verifyToken,Reports.perclasssubject);

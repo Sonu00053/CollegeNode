@@ -1913,9 +1913,7 @@ exports.recieptHistorydatewisw = async (req, res) => {
                         class="btn btn-sm btn-primary">
                         View Receipt
                     </a>
-               
                 </td>
-
             </tr>
         `;
     }
@@ -1971,9 +1969,7 @@ exports.balacegroupbyrecipthistory = async (req, res) => {
             <th>Total Amount</th>
             <th>Cash</th>
             <th>Online</th>
-           
             <th>Action</th>
-
         </tr>
     `;
     let tableRows = '';
@@ -2011,7 +2007,6 @@ exports.balacegroupbyrecipthistory = async (req, res) => {
                    class="btn btn-sm btn-primary">
                     View
                 </a>
-               
             </td>
         </tr>
     `;
@@ -2274,7 +2269,9 @@ exports.profile = async (req, res) => {
 
 
         const courseYear = yearMap[user.course_year] || `${user.course_year}th Year`;
-        const dob = new Date(user.dob).toISOString().split('T')[0];
+        // const dob = new Date(user.dob).toISOString().split('T')[0];
+                const dob = SuperHelper.OnlyDate(user.dob);
+
         //   const dob = new Date(user.dob).toLocaleDateString('en-GB');
 
         var start = user.start;

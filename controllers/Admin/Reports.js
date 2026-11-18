@@ -516,6 +516,209 @@ exports.subjectchangerequest = async (req, res) => {
 };
 
 
+exports.pendingsubjectchangerequest = async (req, res) => {
+
+
+    const result = await UserModel.getRecords('subject_update_detail', {status:0}, '*', 'id desc');
+    const thead = `
+        <tr>
+            <th>#</th>
+            <th>Student ID</th>
+            <th>Student Name</th>
+            <th>Class</th>
+            <th>Old Subject</th>
+            <th>New Subject</th>
+            <th>Old Total Fees</th>
+            <th>New Total Fees</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    `;
+
+
+
+    const rows = Array.isArray(result) ? result : (result?.rows || []);
+
+    let tableRows = '';
+
+    for (const [index, u] of rows.entries()) {
+
+
+        const course = await UserModel.getSingleRecord(
+            'courses',
+            { id: u.course },
+            '*'
+        );
+        const StudentDetail = await UserModel.getSingleRecord(
+            'students',
+            { student_id: u.student_id },
+            '*'
+        );
+
+        let subjectList = [];
+
+        if (u.subject_ids) {
+
+            const ids = JSON.parse(u.subject_ids);
+
+            for (const id of ids) {
+
+                const subject = await UserModel.getSingleRecord(
+                    'subjects',
+                    { id },
+                    'subject_name,category'
+                );
+
+                if (subject) {
+                    subjectList.push(`${subject.subject_name} (${subject.category})`);
+                }
+
+            }
+
+        }
+
+        let subjectListNew = [];
+
+        if (u.new_subject_ids) {
+
+            const ids = JSON.parse(u.new_subject_ids);
+
+            for (const id of ids) {
+
+                const subject = await UserModel.getSingleRecord(
+                    'subjects',
+                    { id },
+                    'subject_name,category'
+                );
+
+                if (subject) {
+                    subjectListNew.push(`${subject.subject_name} (${subject.category})`);
+                }
+
+            }
+
+        }
+
+        const newdate = SuperHelper.OnlyDate(u.created_at);
+
+        let button = '';
+        let status = '';
+
+        if (Number(u.status) == 0) {
+
+            button = `
+        <div class="d-flex gap-1">
+            <button
+                type="button"
+                class="btn btn-success btn-sm SubjecttAction"
+                data-id="${u.id}"
+                data-action="approve">
+                <i class="bi bi-check-circle"></i> Approve
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-danger btn-sm SubjecttAction"
+                data-id="${u.id}"
+                data-action="reject">
+                <i class="bi bi-x-circle"></i> Reject
+            </button>
+        </div>
+    `;
+
+            status = `
+        <span class="badge bg-warning text-dark">
+            <i class="bi bi-clock-fill"></i> Pending
+        </span>
+    `;
+
+        } else if (Number(u.status) == 1) {
+
+            button = `
+        <span class="badge bg-success">
+            <i class="bi bi-check-circle-fill"></i> Approved
+        </span>
+    `;
+
+            status = `
+        <span class="badge bg-success">
+            <i class="bi bi-check-circle-fill"></i> Success
+        </span>
+    `;
+
+        } else if (Number(u.status) == 2) {
+
+            button = `
+        <span class="badge bg-danger">
+            <i class="bi bi-x-circle-fill"></i> Rejected
+        </span>
+    `;
+
+            status = `
+        <span class="badge bg-danger">
+            <i class="bi bi-x-circle-fill"></i> Rejected
+        </span>
+    `;
+        }
+        tableRows += `
+        
+        <tr>
+            <td>${index + 1}</td>
+            <td>${u.student_id}</td>
+            <td>${StudentDetail.first_name} ${StudentDetail.last_name}</td>
+
+            <td>${course.course_name}-${u.course_year}</td>
+        <td>
+        <div class="card border shadow-sm" style="width: 180px;">
+            <div class="card-body p-2 subject-card-body">
+
+                ${subjectList.map(subject => `
+                    <div class="small border-bottom py-1">
+                        ${subject}
+                    </div>
+                `).join('')}
+
+            </div>
+        </div>
+        </td>
+          <td>
+        <div class="card border shadow-sm" style="width: 180px;">
+            <div class="card-body p-2 subject-card-body">
+
+                ${subjectListNew.map(subject => `
+                    <div class="small border-bottom py-1">
+                        ${subject}
+                    </div>
+                `).join('')}
+
+            </div>
+        </div>
+        </td>
+        <td>${CONSTANTS.currency}${u.total_fees}</td>
+        <td>${CONSTANTS.currency}${u.new_total_fees}</td>
+        <td>${newdate}</td>
+        <td>${status}</td>
+        <td>${button}</td>
+
+        </tr>
+        `;
+    }
+
+    return View.Aview(res, 'reports', {
+
+        title: `Pending Subject Change Report
+        
+        `,
+
+        thead,
+        tableRows
+
+    });
+
+};
+
+
 exports.approvesubjects = async (req, res) => {
 
     try {
