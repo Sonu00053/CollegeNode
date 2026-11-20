@@ -1303,7 +1303,6 @@ exports.misc_reciept = async (req, res) => {
         Object.keys(data).forEach(key => {
             data[key] = String(req.body[key] || "").trim();
         });
-
         const {
             name, father_name, university_roll_no, mobile, class: studentClass,
             on_account_of, on_account_of_other, amount, payment_mode, transaction_id
@@ -1317,64 +1316,36 @@ exports.misc_reciept = async (req, res) => {
             "Letter of Recommendation (LOR)", "Backlog Certificate",
             "Medium of Instruction (MOI)", "Other"
         ];
-
         const paymentModes = ["Cash", "Online", "Cheque"];
-
         if (!name) errors.name = "Name is required.";
         if (!father_name) errors.father_name = "Father Name is required.";
         if (!university_roll_no) errors.university_roll_no = "University Roll No. is required.";
         if (!mobile) errors.mobile = "Mobile Number is required.";
         else if (!/^[0-9]{10}$/.test(mobile)) errors.mobile = "Enter valid 10 digit mobile number.";
         if (!studentClass) errors.class = "Class is required.";
-
         if (!on_account_of) errors.on_account_of = "On Account Of is required.";
         else if (!accountOptions.includes(on_account_of)) errors.on_account_of = "Invalid On Account Of.";
-
         if (on_account_of === "Other" && !on_account_of_other)
             errors.on_account_of_other = "Other Account is required.";
-
         if (!amount || !Number.isFinite(Number(amount)) || Number(amount) <= 0)
             errors.amount = "Enter valid amount.";
-
         if (!paymentModes.includes(payment_mode))
             errors.payment_mode = "Invalid Payment Mode.";
-
-        // if (payment_mode !== "Cash") {
-        //     if (!transaction_id) {
-        //         errors.transaction_id = "Transaction ID is required.";
-        //     }
-        // }
         if (payment_mode !== "Cash") {
             if (!transaction_id) {
                 errors.transaction_id = "Transaction ID is required.";
             } else {
-                const checktransaction = await UserModel.getSingleRecord(
-                    "misc_receipts",
-                    { transaction_id },
-                    "*"
-                );
-
+                const checktransaction = await UserModel.getSingleRecord("misc_receipts",{ transaction_id },"*");
                 if (checktransaction) {
                     errors.transaction_id = "Transaction ID already exists.";
                 }
             }
         }
-
         if (Object.keys(errors).length) {
             message = errors.transaction_id || "Please fix the validation errors.";
             messageType = "error";
         } else {
-            // if (!transaction_id) {
-            //     const checktransaction = await UserModel.getSingleRecord("misc_receipts", { transaction_id }, "*");
-            //     if (checktransaction) {
-            //         return res.status(400).json({
-            //             status: false,
-            //             message: 'Transaction ID already exists.'
-            //         });
-            //     }
-            // }
             const receipt_no = await exports.generaterecieptId();
-
             const receiptData = {
                 ...data,
                 receipt_no,
@@ -1385,11 +1356,8 @@ exports.misc_reciept = async (req, res) => {
                 transaction_id: payment_mode === "Cash" ? null : transaction_id,
                 created_by: staff_id
             };
-
             const receiptId = await UserModel.addRecord("misc_receipts", receiptData);
-
             if (receiptId) return res.redirect(CONSTANTS.role + "misc-reciept/" + receipt_no);
-
             message = "Receipt could not be created.";
             messageType = "error";
         }
@@ -1481,25 +1449,8 @@ exports.miscgroupbyrecipthistory = async (req, res) => {
     let tableRows = '';
     for (const [index, row] of result.entries()) {
         const newdate = SuperHelper.OnlyDate(row.group_date);
-        const cashsum = await UserModel.getSingleRecorddate(
-            'misc_receipts',
-            {
-                created_at: newdate,
-                payment_mode: 'Cash'
-            },
-            'IFNULL(SUM(amount),0) AS total'
-        );
-        const online = await UserModel.getSingleRecorddate(
-            'misc_receipts',
-            {
-                created_at: newdate,
-                payment_mode: {
-                    operator: '!=',
-                    value: 'Cash'
-                },
-            },
-            'IFNULL(SUM(amount),0) AS total'
-        );
+        const cashsum = await UserModel.getSingleRecorddate('misc_receipts',{created_at: newdate,payment_mode: 'Cash'},'IFNULL(SUM(amount),0) AS total');
+        const online = await UserModel.getSingleRecorddate('misc_receipts',{created_at: newdate,payment_mode: {operator: '!=',value: 'Cash'},},'IFNULL(SUM(amount),0) AS total');
         tableRows += `
         <tr>
             <td>${index + 1}</td>
